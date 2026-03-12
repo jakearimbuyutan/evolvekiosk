@@ -12,106 +12,106 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --gold:#d4a853;--gold2:#f0c060;--gold-dim:rgba(212,168,83,0.15);
-  --bg:#060608;--card:rgba(14,14,18,0.97);
+  --gold:#d4a853;--gold2:#f5c842;--gold-dim:rgba(212,168,83,0.15);
+  --bg:#04040a;
 }
-*{font-family:'Rajdhani',sans-serif;-webkit-tap-highlight-color:transparent;}
+*{font-family:'Rajdhani',sans-serif;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
 .font-oswald{font-family:'Oswald',sans-serif;}
 html,body{background:var(--bg);color:#fff;overflow-x:hidden;min-height:100vh;}
 
 /* ── AMBIENT BACKGROUND ── */
 #ambient-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
 #ambient-bg::before{content:'';position:absolute;inset:0;background:
-  radial-gradient(ellipse 80% 50% at 20% 80%,rgba(212,168,83,0.07) 0%,transparent 60%),
-  radial-gradient(ellipse 60% 40% at 80% 20%,rgba(212,168,83,0.05) 0%,transparent 55%),
-  radial-gradient(ellipse 100% 100% at 50% 50%,rgba(10,10,15,0.95) 0%,var(--bg) 100%);}
+  radial-gradient(ellipse 80% 60% at 10% 90%,rgba(212,168,83,0.12) 0%,transparent 55%),
+  radial-gradient(ellipse 60% 50% at 90% 10%,rgba(212,168,83,0.08) 0%,transparent 50%),
+  radial-gradient(ellipse 100% 100% at 50% 50%,rgba(8,8,14,0.88) 0%,var(--bg) 100%);}
 .grid-lines{position:absolute;inset:0;background-image:
-  linear-gradient(rgba(212,168,83,0.03) 1px,transparent 1px),
-  linear-gradient(90deg,rgba(212,168,83,0.03) 1px,transparent 1px);
-  background-size:60px 60px;animation:gridDrift 40s linear infinite;}
-@keyframes gridDrift{0%{transform:translate(0,0)}100%{transform:translate(60px,60px)}}
+  linear-gradient(rgba(212,168,83,0.04) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(212,168,83,0.04) 1px,transparent 1px);
+  background-size:72px 72px;animation:gridDrift 50s linear infinite;}
+@keyframes gridDrift{0%{transform:translate(0,0)}100%{transform:translate(72px,72px)}}
 
 /* ── PARTICLES ── */
-#particles-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.6;}
+#particles-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.8;}
 
 /* ── BASE ── */
 .gold-text{color:var(--gold);}
-.dark-card{background:rgba(10,10,14,0.98);border:1px solid rgba(212,168,83,0.15);backdrop-filter:blur(16px);box-shadow:0 4px 24px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.03);}
-.fade-in{animation:fadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.dark-card{background:rgba(8,8,14,0.99);border:1px solid rgba(212,168,83,0.18);backdrop-filter:blur(24px);box-shadow:0 12px 50px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.04);}
+.fade-in{animation:fadeIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── NAV ── */
-nav.kiosk-nav{background:rgba(4,4,6,0.96);backdrop-filter:blur(24px);border-bottom:1px solid rgba(212,168,83,0.1);position:fixed;top:0;width:100%;z-index:40;box-shadow:0 4px 30px rgba(0,0,0,0.5);}
-.nav-btn{transition:all 0.25s;border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);}
-.nav-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(212,168,83,0.08);}
-.nav-btn.active{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;border-color:transparent;box-shadow:0 4px 15px rgba(212,168,83,0.35);}
+nav.kiosk-nav{background:rgba(4,4,10,0.97);backdrop-filter:blur(30px);border-bottom:1px solid rgba(212,168,83,0.14);position:fixed;top:0;width:100%;z-index:40;box-shadow:0 2px 40px rgba(0,0,0,0.7);}
+.nav-btn{transition:all 0.22s;border:1px solid rgba(255,255,255,0.09);color:rgba(255,255,255,0.5);}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(212,168,83,0.09);}
+.nav-btn.active{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;border-color:transparent;font-weight:700;box-shadow:0 4px 20px rgba(212,168,83,0.45);}
 
-/* ── CLOCK ── */
-.kiosk-clock{font-family:'Oswald',sans-serif;font-size:clamp(2.8rem,5.5vw,5rem);font-weight:300;letter-spacing:0.06em;line-height:1;color:#fff;text-shadow:0 0 40px rgba(212,168,83,0.25);}
-.kiosk-date{font-family:'Rajdhani',sans-serif;font-size:clamp(0.65rem,1vw,0.85rem);letter-spacing:0.35em;color:rgba(212,168,83,0.6);text-transform:uppercase;margin-top:6px;font-weight:600;}
+/* ── CLOCK — HUGE ── */
+.kiosk-clock{font-family:'Oswald',sans-serif;font-size:clamp(5rem,10vw,10rem);font-weight:200;letter-spacing:0.03em;line-height:1;color:#fff;text-shadow:0 0 80px rgba(212,168,83,0.4),0 2px 20px rgba(0,0,0,0.5);}
+.kiosk-date{font-size:clamp(0.85rem,1.4vw,1.15rem);letter-spacing:0.42em;color:rgba(212,168,83,0.75);text-transform:uppercase;margin-top:12px;font-weight:700;}
 
-/* ── STAT BUBBLES ── */
-.stat-bubble{background:rgba(10,10,14,0.95);border:1px solid rgba(212,168,83,0.15);border-radius:18px;padding:14px 18px;text-align:center;transition:all 0.35s;position:relative;overflow:hidden;}
-.stat-bubble::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(212,168,83,0.06),transparent 60%);pointer-events:none;}
-.stat-bubble::after{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,rgba(212,168,83,0.35),transparent);}
-.stat-bubble:hover{border-color:rgba(212,168,83,0.4);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,0.4),0 0 0 1px rgba(212,168,83,0.1);}
+/* ── STAT BUBBLES — LARGE ── */
+.stat-bubble{background:rgba(8,8,14,0.96);border:1px solid rgba(212,168,83,0.18);border-radius:22px;padding:24px 32px;text-align:center;transition:all 0.35s;position:relative;overflow:hidden;}
+.stat-bubble::before{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(212,168,83,0.08),transparent 55%);pointer-events:none;}
+.stat-bubble::after{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(212,168,83,0.5),transparent);}
+.stat-bubble:hover{border-color:rgba(212,168,83,0.5);transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,0.5),0 0 30px rgba(212,168,83,0.12);}
 .stat-num{font-family:'Oswald',sans-serif;line-height:1;transition:all 0.4s;}
 
+/* ── RFID RINGS — FULL SIZE ── */
+.rfid-ring-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+.rfid-outer{width:160px;height:160px;border-radius:50%;border:2.5px solid rgba(212,168,83,0.28);display:flex;align-items:center;justify-content:center;position:relative;animation:breathe 3s ease-in-out infinite;}
+@keyframes breathe{0%,100%{transform:scale(1);border-color:rgba(212,168,83,0.25);}50%{transform:scale(1.07);border-color:rgba(212,168,83,0.7);box-shadow:0 0 50px rgba(212,168,83,0.15);}}
+.rfid-ring-1,.rfid-ring-2,.rfid-ring-3{position:absolute;border-radius:50%;border:1.5px solid rgba(212,168,83,0.4);animation:ripple 2.8s ease-out infinite;}
+.rfid-ring-1{width:160px;height:160px;animation-delay:0s;}
+.rfid-ring-2{width:160px;height:160px;animation-delay:0.9s;}
+.rfid-ring-3{width:160px;height:160px;animation-delay:1.8s;}
+@keyframes ripple{0%{transform:scale(1);opacity:0.6;}100%{transform:scale(2.8);opacity:0;}}
+.rfid-inner{width:116px;height:116px;border-radius:50%;background:linear-gradient(145deg,rgba(212,168,83,0.12),rgba(212,168,83,0.04));border:2px solid rgba(212,168,83,0.38);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(212,168,83,0.12),inset 0 0 30px rgba(212,168,83,0.06);}
+
 /* ── CHECKIN CARD ── */
-.checkin-card{transition:all 0.35s cubic-bezier(0.16,1,0.3,1);border:1px solid rgba(212,168,83,0.2);cursor:pointer;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
-.checkin-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(212,168,83,0.07) 0%,transparent 60%);opacity:0;transition:opacity 0.3s;pointer-events:none;}
+.checkin-card{transition:all 0.35s cubic-bezier(0.16,1,0.3,1);border:1px solid rgba(212,168,83,0.2);cursor:pointer;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+.checkin-card::before{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(212,168,83,0.09) 0%,transparent 55%);opacity:0;transition:opacity 0.3s;pointer-events:none;}
 .checkin-card:hover::before{opacity:1;}
-.checkin-card:hover{border-color:rgba(212,168,83,0.55);box-shadow:0 0 50px rgba(212,168,83,0.18),inset 0 0 30px rgba(212,168,83,0.04),0 8px 30px rgba(0,0,0,0.4);}
+.checkin-card:hover{border-color:rgba(212,168,83,0.65);box-shadow:0 0 80px rgba(212,168,83,0.22),0 16px 50px rgba(0,0,0,0.5);}
 .checkin-card:active{transform:scale(0.99);}
 
-/* ── RFID RING ANIMATION ── */
-.rfid-ring-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
-.rfid-outer{width:90px;height:90px;border-radius:50%;border:2px solid rgba(212,168,83,0.25);display:flex;align-items:center;justify-content:center;position:relative;animation:breathe 3s ease-in-out infinite;}
-@keyframes breathe{0%,100%{transform:scale(1);border-color:rgba(212,168,83,0.25);}50%{transform:scale(1.05);border-color:rgba(212,168,83,0.6);}}
-.rfid-ring-1,.rfid-ring-2,.rfid-ring-3{position:absolute;border-radius:50%;border:1px solid rgba(212,168,83,0.35);animation:ripple 2.5s ease-out infinite;}
-.rfid-ring-1{width:90px;height:90px;animation-delay:0s;}
-.rfid-ring-2{width:90px;height:90px;animation-delay:0.7s;}
-.rfid-ring-3{width:90px;height:90px;animation-delay:1.4s;}
-@keyframes ripple{0%{transform:scale(1);opacity:0.5;}100%{transform:scale(2.2);opacity:0;}}
-.rfid-inner{width:66px;height:66px;border-radius:50%;background:rgba(212,168,83,0.08);border:1px solid rgba(212,168,83,0.3);display:flex;align-items:center;justify-content:center;}
-
 /* ── SCAN LINE ── */
-.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:scanMove 2.2s ease-in-out infinite;opacity:0.6;}
-@keyframes scanMove{0%{top:0;opacity:0;}10%{opacity:0.7;}90%{opacity:0.7;}100%{top:100%;opacity:0;}}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:scanMove 2.5s ease-in-out infinite;opacity:0.55;}
+@keyframes scanMove{0%{top:0;opacity:0;}8%{opacity:0.9;}92%{opacity:0.9;}100%{top:100%;opacity:0;}}
 
 /* ── CORNER BRACKETS ── */
-.corner-tl{position:absolute;top:12px;left:12px;width:20px;height:20px;border-top:2px solid rgba(212,168,83,0.5);border-left:2px solid rgba(212,168,83,0.5);}
-.corner-tr{position:absolute;top:12px;right:12px;width:20px;height:20px;border-top:2px solid rgba(212,168,83,0.5);border-right:2px solid rgba(212,168,83,0.5);}
-.corner-bl{position:absolute;bottom:12px;left:12px;width:20px;height:20px;border-bottom:2px solid rgba(212,168,83,0.5);border-left:2px solid rgba(212,168,83,0.5);}
-.corner-br{position:absolute;bottom:12px;right:12px;width:20px;height:20px;border-bottom:2px solid rgba(212,168,83,0.5);border-right:2px solid rgba(212,168,83,0.5);}
+.corner-tl{position:absolute;top:18px;left:18px;width:30px;height:30px;border-top:2.5px solid rgba(212,168,83,0.6);border-left:2.5px solid rgba(212,168,83,0.6);}
+.corner-tr{position:absolute;top:18px;right:18px;width:30px;height:30px;border-top:2.5px solid rgba(212,168,83,0.6);border-right:2.5px solid rgba(212,168,83,0.6);}
+.corner-bl{position:absolute;bottom:18px;left:18px;width:30px;height:30px;border-bottom:2.5px solid rgba(212,168,83,0.6);border-left:2.5px solid rgba(212,168,83,0.6);}
+.corner-br{position:absolute;bottom:18px;right:18px;width:30px;height:30px;border-bottom:2.5px solid rgba(212,168,83,0.6);border-right:2.5px solid rgba(212,168,83,0.6);}
 
 /* ── LOGO ── */
 .logo-container{position:relative;display:inline-flex;align-items:center;justify-content:center;}
-.logo-halo{position:absolute;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,83,0.18) 0%,transparent 70%);animation:haloBreath 3s ease-in-out infinite;}
-@keyframes haloBreath{0%,100%{transform:scale(0.9);opacity:0.6;}50%{transform:scale(1.1);opacity:1;}}
-.logo-hex{width:96px;height:96px;background:linear-gradient(145deg,#1a1a1a,#0a0a0a);border:2px solid rgba(212,168,83,0.35);border-radius:18px;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 40px rgba(212,168,83,0.2),inset 0 1px 0 rgba(255,255,255,0.05);animation:logoFloat 4s ease-in-out infinite;}
-@keyframes logoFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
-.logo-hex::before{content:'';position:absolute;inset:1px;border-radius:16px;background:linear-gradient(145deg,rgba(212,168,83,0.06),transparent);}
+.logo-halo{position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,83,0.22) 0%,transparent 65%);animation:haloBreath 3.5s ease-in-out infinite;}
+@keyframes haloBreath{0%,100%{transform:scale(0.87);opacity:0.5;}50%{transform:scale(1.13);opacity:1;}}
+.logo-hex{width:148px;height:148px;background:linear-gradient(145deg,#1e1e28,#080810);border:2.5px solid rgba(212,168,83,0.45);border-radius:28px;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 70px rgba(212,168,83,0.28),0 20px 60px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.07);animation:logoFloat 4s ease-in-out infinite;}
+@keyframes logoFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.logo-hex::before{content:'';position:absolute;inset:1px;border-radius:26px;background:linear-gradient(145deg,rgba(212,168,83,0.09),transparent);}
 
-/* ── TITLE ANIMATION ── */
-.title-welcome{font-family:'Rajdhani',sans-serif;font-size:clamp(0.9rem,1.8vw,1.1rem);letter-spacing:0.45em;color:rgba(255,255,255,0.35);text-transform:uppercase;font-weight:600;animation:titleSlideIn 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) both;}
-.title-main{font-family:'Oswald',sans-serif;font-size:clamp(2rem,4.5vw,3.8rem);font-weight:700;letter-spacing:0.12em;text-transform:uppercase;line-height:1;animation:titleSlideIn 0.8s 0.5s cubic-bezier(0.16,1,0.3,1) both;background:linear-gradient(135deg,var(--gold2) 0%,var(--gold) 50%,#b8902a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-@keyframes titleSlideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* ── TITLE ── */
+.title-welcome{font-size:clamp(0.85rem,1.4vw,1.1rem);letter-spacing:0.55em;color:rgba(255,255,255,0.3);text-transform:uppercase;font-weight:700;animation:titleSlideIn 0.9s 0.3s cubic-bezier(0.16,1,0.3,1) both;}
+.title-main{font-family:'Oswald',sans-serif;font-size:clamp(3rem,5.5vw,6rem);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;line-height:1;animation:titleSlideIn 0.9s 0.5s cubic-bezier(0.16,1,0.3,1) both;background:linear-gradient(140deg,var(--gold2) 0%,var(--gold) 45%,#c49030 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+@keyframes titleSlideIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── INPUT ── */
-.input-dark{background:rgba(18,18,22,0.9);border:1px solid rgba(212,168,83,0.25);color:white;transition:all 0.3s;font-family:'Rajdhani',sans-serif;font-weight:500;}
-.input-dark:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,83,0.1),0 0 20px rgba(212,168,83,0.15);}
-.input-dark::placeholder{color:rgba(255,255,255,0.2);}
+/* ── INPUT — LARGE ── */
+.input-dark{background:rgba(12,12,20,0.95);border:1.5px solid rgba(212,168,83,0.25);color:white;transition:all 0.3s;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:1.1rem;}
+.input-dark:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(212,168,83,0.12),0 0 30px rgba(212,168,83,0.18);}
+.input-dark::placeholder{color:rgba(255,255,255,0.22);}
 .input-dark.valid{border-color:rgba(34,197,94,0.6);}
 .input-dark.invalid{border-color:rgba(239,68,68,0.6);}
 
-/* ── BUTTON ── */
-.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;font-weight:700;transition:all 0.3s;position:relative;overflow:hidden;}
-.btn-gold::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.25),transparent);opacity:0;transition:opacity 0.3s;}
+/* ── BUTTON — LARGE ── */
+.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;font-weight:800;transition:all 0.3s;position:relative;overflow:hidden;font-family:'Oswald',sans-serif;letter-spacing:0.12em;}
+.btn-gold::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.3),transparent 60%);opacity:0;transition:opacity 0.3s;}
 .btn-gold:hover::before{opacity:1;}
-.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,168,83,0.55);}
+.btn-gold:hover{transform:translateY(-3px);box-shadow:0 14px 45px rgba(212,168,83,0.65);}
 .btn-gold:active{transform:scale(0.98);}
-.btn-gold:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-gold:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none;}
 
 /* ── TICKER ── */
 .ticker-wrap{overflow:hidden;background:rgba(212,168,83,0.04);border-top:1px solid rgba(212,168,83,0.12);border-bottom:1px solid rgba(212,168,83,0.06);}
@@ -121,55 +121,55 @@ nav.kiosk-nav{background:rgba(4,4,6,0.96);backdrop-filter:blur(24px);border-bott
 .ticker-item{display:inline-flex;align-items:center;gap:8px;padding:8px 28px;white-space:nowrap;flex-shrink:0;border-right:1px solid rgba(255,255,255,0.05);}
 
 /* ── MODAL ── */
-.modal-enter{animation:modalPop 0.35s cubic-bezier(0.16,1,0.3,1);}
-@keyframes modalPop{from{opacity:0;transform:scale(0.93) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.modal-member-photo{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);margin:0 auto 16px;display:block;}
+.modal-enter{animation:modalPop 0.38s cubic-bezier(0.16,1,0.3,1);}
+@keyframes modalPop{from{opacity:0;transform:scale(0.91) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-member-photo{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);margin:0 auto 18px;display:block;box-shadow:0 0 30px rgba(212,168,83,0.3);}
 
 /* ── NOTIF ── */
 .notif{animation:slideR 0.35s cubic-bezier(0.16,1,0.3,1);}
 @keyframes slideR{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
 
 /* ── MISC ── */
-.gold-glow{filter:drop-shadow(0 0 18px rgba(212,168,83,0.5));}
-.logo-glow{filter:drop-shadow(0 0 20px rgba(212,168,83,0.5));}
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-track{background:#060608;}
-::-webkit-scrollbar-thumb{background:#d4a853;border-radius:4px;}
+.gold-glow{filter:drop-shadow(0 0 22px rgba(212,168,83,0.6));}
+.logo-glow{filter:drop-shadow(0 0 28px rgba(212,168,83,0.65));}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:#04040a;}
+::-webkit-scrollbar-thumb{background:rgba(212,168,83,0.5);border-radius:4px;}
 .plan-card{transition:all 0.3s cubic-bezier(0.16,1,0.3,1);cursor:pointer;}
-.plan-card:hover{transform:translateY(-3px);}
-.plan-card.selected{border-color:var(--gold)!important;background:rgba(212,168,83,0.1)!important;box-shadow:0 0 30px rgba(212,168,83,0.15);}
+.plan-card:hover{transform:translateY(-4px);}
+.plan-card.selected{border-color:var(--gold)!important;background:rgba(212,168,83,0.1)!important;box-shadow:0 0 40px rgba(212,168,83,0.18);}
 .tag-icon{animation:tagPulse 1.8s ease-in-out infinite;}
-@keyframes tagPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.9);}}
-.step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;transition:all 0.35s;flex-shrink:0;}
-.step-dot.active{background:var(--gold);color:#000;box-shadow:0 0 16px rgba(212,168,83,0.5);}
+@keyframes tagPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.45;transform:scale(0.85);}}
+.step-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;transition:all 0.35s;flex-shrink:0;}
+.step-dot.active{background:var(--gold);color:#000;box-shadow:0 0 20px rgba(212,168,83,0.55);}
 .step-dot.done{background:#16a34a;color:#fff;}
 .step-dot.pending{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.1);}
 .step-line{flex:1;height:2px;background:rgba(255,255,255,0.07);transition:background 0.4s;}
 .step-line.done{background:var(--gold);}
-#video-feed{transform:scaleX(-1);object-fit:cover;border-radius:12px;}
+#video-feed{transform:scaleX(-1);object-fit:cover;border-radius:14px;}
 #capture-canvas{display:none;}
-.shutter-btn{width:70px;height:70px;border-radius:50%;border:3px solid var(--gold);background:transparent;position:relative;transition:all 0.2s;cursor:pointer;}
-.shutter-btn::after{content:'';position:absolute;inset:7px;border-radius:50%;background:var(--gold);transition:all 0.2s;}
+.shutter-btn{width:78px;height:78px;border-radius:50%;border:3px solid var(--gold);background:transparent;position:relative;transition:all 0.2s;cursor:pointer;}
+.shutter-btn::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--gold);transition:all 0.2s;}
 .shutter-btn:hover::after{background:#fff;}
-.shutter-btn:active{transform:scale(0.92);}
-.photo-preview-wrapper{position:relative;width:110px;height:110px;margin:0 auto;}
-.photo-preview-wrapper img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:2px solid var(--gold);}
-.photo-remove-btn{position:absolute;top:-4px;right:-4px;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;border:2px solid #060608;transition:background 0.2s;}
+.shutter-btn:active{transform:scale(0.91);}
+.photo-preview-wrapper{position:relative;width:120px;height:120px;margin:0 auto;}
+.photo-preview-wrapper img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:2.5px solid var(--gold);}
+.photo-remove-btn{position:absolute;top:-5px;right:-5px;width:28px;height:28px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:2px solid #04040a;transition:background 0.2s;}
 .photo-remove-btn:hover{background:#ff4444;color:#fff;}
 .flash-overlay{position:fixed;inset:0;background:white;opacity:0;pointer-events:none;z-index:9999;animation:flashA 0.4s ease-out forwards;}
 @keyframes flashA{0%{opacity:0.9}100%{opacity:0}}
 .row-hover:hover{background:rgba(212,168,83,0.04);}
 .success-pop{animation:sPop 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards;}
 @keyframes sPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-.field-err{color:#f87171;font-size:11px;margin-top:3px;font-family:'Rajdhani',sans-serif;}
-.tab-pill{padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);transition:all 0.25s;color:rgba(255,255,255,0.45);font-weight:600;letter-spacing:0.05em;}
+.field-err{color:#f87171;font-size:12px;margin-top:4px;}
+.tab-pill{padding:8px 20px;border-radius:24px;font-size:13px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);transition:all 0.25s;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:0.06em;}
 .tab-pill:hover{border-color:var(--gold);color:var(--gold);}
 .tab-pill.active{background:var(--gold);color:#000;border-color:var(--gold);}
-.att-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.att-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
 
 /* ── CHECK-IN SUCCESS BURST ── */
-@keyframes checkInBurst{0%{box-shadow:0 0 0 0 rgba(34,197,94,0.8);}100%{box-shadow:0 0 0 60px rgba(34,197,94,0);}}
-.checkin-burst{animation:checkInBurst 0.6s ease-out;}
+@keyframes checkInBurst{0%{box-shadow:0 0 0 0 rgba(34,197,94,0.9);}100%{box-shadow:0 0 0 90px rgba(34,197,94,0);}}
+.checkin-burst{animation:checkInBurst 0.75s ease-out;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -181,142 +181,156 @@ nav.kiosk-nav{background:rgba(4,4,6,0.96);backdrop-filter:blur(24px);border-bott
 
 <!-- TOP NAV -->
 <nav class="kiosk-nav">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-14">
-      <div class="flex items-center gap-3">
-        <div class="relative flex-shrink-0">
-          <div class="w-9 h-9 bg-gradient-to-br from-gray-800 to-black border border-yellow-600/40 rounded-lg flex items-center justify-center" style="box-shadow:0 0 12px rgba(212,168,83,0.2)">
-            <span class="font-oswald font-bold text-base leading-none"><span class="text-white">E</span><span class="gold-text">F</span></span>
-          </div>
+  <div class="max-w-7xl mx-auto px-6 sm:px-10">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-4">
+        <div class="w-11 h-11 bg-gradient-to-br from-gray-800 to-black border border-yellow-600/40 rounded-xl flex items-center justify-center" style="box-shadow:0 0 18px rgba(212,168,83,0.25)">
+          <span class="font-oswald font-bold text-xl leading-none"><span class="text-white">E</span><span class="gold-text">F</span></span>
         </div>
-        <div class="hidden sm:block">
-          <h1 class="font-oswald text-sm tracking-[0.25em] text-white leading-none uppercase">Evolve Fitness</h1>
-          <p class="text-[9px] text-yellow-600/50 tracking-[0.3em] uppercase mt-0.5 font-semibold">Gym & Fitness Center</p>
+        <div>
+          <h1 class="font-oswald text-base tracking-[0.28em] text-white leading-none uppercase">Evolve Fitness</h1>
+          <p class="text-[10px] text-yellow-600/50 tracking-[0.3em] uppercase mt-0.5 font-semibold">Gym & Fitness Center</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="showSection('home')" id="nav-home" class="nav-btn active px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 font-semibold"><i class="fas fa-home"></i><span class="hidden sm:inline">Home</span></button>
-        <button onclick="showQRModal()" id="nav-register" class="nav-btn px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 font-semibold"><i class="fas fa-qrcode"></i><span class="hidden sm:inline">Register</span></button>
-        <a href="admin.html" class="nav-btn px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 border-yellow-600/30 text-yellow-600/60 hover:text-yellow-500 font-semibold"><i class="fas fa-shield-halved"></i><span class="hidden sm:inline">Admin</span></a>
+      <div class="flex items-center gap-3">
+        <button onclick="showSection('home')" id="nav-home" class="nav-btn active px-4 py-2 rounded-xl text-sm flex items-center gap-2 font-semibold tracking-wide"><i class="fas fa-home"></i><span class="hidden sm:inline">Home</span></button>
+        <button onclick="showQRModal()" id="nav-register" class="nav-btn px-4 py-2 rounded-xl text-sm flex items-center gap-2 font-semibold tracking-wide"><i class="fas fa-qrcode"></i><span class="hidden sm:inline">Register</span></button>
+        <a href="admin.html" class="nav-btn px-4 py-2 rounded-xl text-sm flex items-center gap-2 border-yellow-600/30 text-yellow-600/60 hover:text-yellow-500 font-semibold tracking-wide"><i class="fas fa-shield-halved"></i><span class="hidden sm:inline">Admin</span></a>
       </div>
     </div>
   </div>
 </nav>
 
 <!-- KIOSK MAIN CONTENT -->
-<main id="kiosk-main" class="flex-1 pt-14 flex flex-col items-center justify-start pb-8 min-h-screen">
+<main id="kiosk-main" class="flex-1 pt-16 flex flex-col items-center justify-start min-h-screen">
 
   <!-- HOME -->
-  <section id="home-section" class="w-full min-h-screen flex flex-col fade-in" style="padding-top:56px;position:relative;z-index:1;">
+  <section id="home-section" class="w-full min-h-screen flex flex-col fade-in" style="position:relative;z-index:1;">
 
-    <!-- Live clock bar -->
-    <div class="w-full flex items-center justify-between px-6 sm:px-10 py-4 border-b border-white/5">
+    <!-- ── TOP BAR: Clock + Stats ── -->
+    <div class="w-full flex items-center justify-between px-8 sm:px-14 py-6 border-b border-white/5" style="background:rgba(4,4,10,0.5);">
+      <!-- BIG Clock -->
       <div>
         <p class="kiosk-clock" id="kiosk-clock-time">00:00</p>
         <p class="kiosk-date" id="kiosk-clock-date">Loading...</p>
       </div>
-      <div class="hidden md:flex items-center gap-4">
-        <div class="stat-bubble min-w-[88px]">
-          <p class="stat-num text-2xl font-bold text-white font-oswald" id="quick-total">0</p>
-          <p class="text-[9px] text-gray-500 uppercase tracking-wider mt-1 font-semibold">Members</p>
+      <!-- Stats (desktop) -->
+      <div class="hidden md:flex items-center gap-5">
+        <div class="stat-bubble">
+          <p class="stat-num text-5xl font-bold text-white font-oswald" id="quick-total">0</p>
+          <p class="text-xs text-gray-500 uppercase tracking-widest mt-2 font-bold">Members</p>
         </div>
-        <div class="stat-bubble min-w-[88px]">
-          <p class="stat-num text-2xl font-bold text-green-400 font-oswald" id="quick-today">0</p>
-          <p class="text-[9px] text-gray-500 uppercase tracking-wider mt-1 font-semibold">Checked In</p>
+        <div class="stat-bubble">
+          <p class="stat-num text-5xl font-bold text-green-400 font-oswald" id="quick-today">0</p>
+          <p class="text-xs text-gray-500 uppercase tracking-widest mt-2 font-bold">Checked In</p>
         </div>
-        <div class="stat-bubble min-w-[88px]">
-          <p class="stat-num text-2xl font-bold text-blue-400 font-oswald" id="quick-walkin">0</p>
-          <p class="text-[9px] text-gray-500 uppercase tracking-wider mt-1 font-semibold">Walk-ins</p>
+        <div class="stat-bubble">
+          <p class="stat-num text-5xl font-bold text-blue-400 font-oswald" id="quick-walkin">0</p>
+          <p class="text-xs text-gray-500 uppercase tracking-widest mt-2 font-bold">Walk-ins</p>
         </div>
       </div>
     </div>
 
-    <!-- Center kiosk area -->
-    <div class="flex-1 flex items-center justify-center px-4 py-4 gap-4" style="position:relative;z-index:1;min-height:0;">
+    <!-- ── MAIN AREA ── -->
+    <div class="flex-1 flex items-center justify-center px-6 py-8 gap-10 xl:gap-16" style="position:relative;z-index:1;">
 
-      <!-- LEFT: Logo + RFID + Register -->
-      <div class="flex flex-col items-center gap-3 w-full max-w-xs flex-shrink-0" style="animation:titleSlideIn 0.8s 0.1s cubic-bezier(0.16,1,0.3,1) both;">
+      <!-- LEFT COLUMN: Logo + Check-in + Register -->
+      <div class="flex flex-col items-center gap-7 w-full max-w-lg flex-shrink-0" style="animation:titleSlideIn 0.9s 0.1s cubic-bezier(0.16,1,0.3,1) both;">
 
-        <!-- Logo + Title (compact) -->
+        <!-- Logo + Branding -->
         <div class="text-center">
-          <div class="logo-container mx-auto" style="transform:scale(0.72);transform-origin:center;">
+          <div class="logo-container mx-auto mb-5">
             <div class="logo-halo"></div>
             <div class="logo-hex">
-              <span class="font-oswald text-4xl font-bold leading-none logo-glow">
+              <span class="font-oswald text-6xl font-bold leading-none logo-glow">
                 <span class="text-white">E</span><span class="gold-text">F</span>
               </span>
             </div>
           </div>
-          <div style="margin-top:-8px;">
-            <p class="title-welcome" style="font-size:0.6rem;letter-spacing:0.35em;">Welcome to</p>
-            <h1 class="title-main" style="font-size:clamp(1.4rem,3vw,2rem);">Evolve Fitness</h1>
-          </div>
+          <p class="title-welcome">Welcome to</p>
+          <h1 class="title-main">Evolve Fitness</h1>
+          <p class="text-sm text-gray-600 tracking-[0.3em] uppercase font-bold mt-2">Your Fitness Journey Starts Here</p>
         </div>
 
-        <!-- RFID card (compact) -->
-        <div class="w-full checkin-card rounded-2xl bg-[rgba(12,12,16,0.97)] px-5 py-5 relative overflow-hidden" onclick="focusRFID()">
+        <!-- ── RFID CHECK-IN CARD ── -->
+        <div class="w-full checkin-card rounded-3xl bg-[rgba(8,8,14,0.99)] px-10 py-10 relative overflow-hidden" onclick="focusRFID()">
           <div class="scan-line"></div>
           <div class="corner-tl"></div><div class="corner-tr"></div>
           <div class="corner-bl"></div><div class="corner-br"></div>
-          <div class="flex flex-col items-center gap-3">
-            <!-- Smaller rings -->
-            <div class="rfid-ring-wrap" style="transform:scale(0.65);transform-origin:center;margin:-10px 0;">
-              <div class="rfid-ring-1"></div><div class="rfid-ring-2"></div><div class="rfid-ring-3"></div>
-              <div class="rfid-outer"><div class="rfid-inner"><i class="fas fa-wifi gold-text text-xl tag-icon"></i></div></div>
+
+          <div class="flex flex-col items-center gap-8">
+            <!-- Full-size RFID rings — NO scale hack -->
+            <div class="rfid-ring-wrap" style="padding:20px 0;">
+              <div class="rfid-ring-1"></div>
+              <div class="rfid-ring-2"></div>
+              <div class="rfid-ring-3"></div>
+              <div class="rfid-outer">
+                <div class="rfid-inner">
+                  <i class="fas fa-wifi gold-text text-4xl tag-icon"></i>
+                </div>
+              </div>
             </div>
+
             <div class="text-center">
-              <h3 class="font-oswald text-lg tracking-[0.25em] text-yellow-500 uppercase">Tap Your Tag</h3>
-              <p class="text-[10px] text-gray-500 tracking-widest uppercase mt-0.5 font-semibold">Place RFID tag on reader</p>
+              <h3 class="font-oswald text-4xl tracking-[0.2em] text-yellow-500 uppercase">Tap Your Tag</h3>
+              <p class="text-base text-gray-500 tracking-widest uppercase mt-2 font-semibold">Place RFID tag on the reader</p>
             </div>
-            <div class="w-full space-y-2">
-              <input type="text" id="rfid-input" class="input-dark w-full rounded-xl px-3 py-2.5 text-center font-mono tracking-widest text-sm" placeholder="Or type RFID here..." onkeydown="if(event.key==='Enter')processRFID()" autocomplete="off">
-              <button onclick="processRFID()" class="w-full btn-gold py-2.5 rounded-xl font-oswald uppercase tracking-wider text-sm"><i class="fas fa-sign-in-alt mr-2"></i>Check In</button>
+
+            <div class="w-full space-y-4">
+              <input type="text" id="rfid-input"
+                class="input-dark w-full rounded-2xl px-6 py-5 text-center font-mono tracking-widest text-xl"
+                placeholder="Or type RFID here..."
+                onkeydown="if(event.key==='Enter')processRFID()"
+                autocomplete="off">
+              <button onclick="processRFID()"
+                class="w-full btn-gold py-5 rounded-2xl text-xl uppercase tracking-widest">
+                <i class="fas fa-sign-in-alt mr-3"></i>Check In
+              </button>
             </div>
           </div>
         </div>
 
         <!-- Register strip -->
-        <div class="w-full checkin-card rounded-xl bg-[rgba(12,12,16,0.97)] px-4 py-3 flex items-center gap-3 cursor-pointer" onclick="showQRModal()">
-          <div class="w-8 h-8 rounded-lg bg-yellow-600/10 border border-yellow-600/25 flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-qrcode text-yellow-500 text-sm"></i>
+        <div class="w-full checkin-card rounded-2xl bg-[rgba(8,8,14,0.99)] px-7 py-5 flex items-center gap-5 cursor-pointer" onclick="showQRModal()">
+          <div class="w-14 h-14 rounded-2xl bg-yellow-600/10 border border-yellow-600/25 flex items-center justify-center flex-shrink-0" style="box-shadow:0 0 20px rgba(212,168,83,0.08)">
+            <i class="fas fa-qrcode text-yellow-500 text-2xl"></i>
           </div>
-          <div class="min-w-0">
-            <p class="font-oswald text-sm uppercase tracking-wider text-white leading-none">New Member?</p>
-            <p class="text-[10px] text-gray-500 font-semibold mt-0.5">Scan QR to register</p>
+          <div class="min-w-0 flex-1">
+            <p class="font-oswald text-xl uppercase tracking-wider text-white leading-none">New Member?</p>
+            <p class="text-sm text-gray-500 font-semibold mt-1">Scan QR code to fill out the registration form</p>
           </div>
-          <i class="fas fa-chevron-right text-gray-600 text-[10px] ml-auto"></i>
+          <i class="fas fa-chevron-right text-gray-500 text-lg ml-auto flex-shrink-0"></i>
         </div>
 
-        <!-- Mobile stats (small screens only) -->
-        <div class="grid grid-cols-3 gap-2 w-full lg:hidden">
-          <div class="stat-bubble py-2 px-2"><p class="stat-num text-lg font-bold text-white font-oswald" id="quick-total-m">0</p><p class="text-[8px] text-gray-500 uppercase tracking-wider mt-0.5 font-semibold">Members</p></div>
-          <div class="stat-bubble py-2 px-2"><p class="stat-num text-lg font-bold text-green-400 font-oswald" id="quick-today-m">0</p><p class="text-[8px] text-gray-500 uppercase tracking-wider mt-0.5 font-semibold">Checked In</p></div>
-          <div class="stat-bubble py-2 px-2"><p class="stat-num text-lg font-bold text-blue-400 font-oswald" id="quick-walkin-m">0</p><p class="text-[8px] text-gray-500 uppercase tracking-wider mt-0.5 font-semibold">Walk-ins</p></div>
+        <!-- Mobile stats -->
+        <div class="grid grid-cols-3 gap-3 w-full md:hidden">
+          <div class="stat-bubble py-4"><p class="stat-num text-3xl font-bold text-white font-oswald" id="quick-total-m">0</p><p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1.5 font-bold">Members</p></div>
+          <div class="stat-bubble py-4"><p class="stat-num text-3xl font-bold text-green-400 font-oswald" id="quick-today-m">0</p><p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1.5 font-bold">Checked In</p></div>
+          <div class="stat-bubble py-4"><p class="stat-num text-3xl font-bold text-blue-400 font-oswald" id="quick-walkin-m">0</p><p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1.5 font-bold">Walk-ins</p></div>
         </div>
       </div>
 
-      <!-- RIGHT: Today's Check-ins -->
-      <div class="hidden lg:flex flex-col flex-shrink-0" style="width:260px;animation:titleSlideIn 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) both;max-height:calc(100vh - 130px);">
-        <div class="dark-card rounded-2xl overflow-hidden flex flex-col" style="height:100%;">
-          <!-- Header -->
-          <div class="flex items-center justify-between px-4 py-3 border-b border-white/8 flex-shrink-0">
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-              <h3 class="font-oswald text-xs uppercase tracking-[0.2em] text-white">Today's Check-ins</h3>
+      <!-- RIGHT COLUMN: Today's Check-ins panel -->
+      <div class="hidden lg:flex flex-col flex-shrink-0" style="width:340px;animation:titleSlideIn 0.9s 0.3s cubic-bezier(0.16,1,0.3,1) both;max-height:calc(100vh - 200px);">
+        <div class="dark-card rounded-3xl overflow-hidden flex flex-col h-full">
+          <div class="flex items-center justify-between px-6 py-5 border-b border-white/6 flex-shrink-0" style="background:rgba(212,168,83,0.03);">
+            <div class="flex items-center gap-3">
+              <span class="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
+              <h3 class="font-oswald text-base uppercase tracking-[0.22em] text-white">Today's Check-ins</h3>
             </div>
-            <span class="text-[10px] text-gray-500 font-semibold" id="checkin-list-count"></span>
+            <span class="text-xs text-gray-500 font-bold bg-white/5 px-3 py-1.5 rounded-full" id="checkin-list-count"></span>
           </div>
-          <!-- List -->
           <div id="checkin-list" class="overflow-y-auto flex-1" style="scrollbar-width:thin;">
-            <div id="checkin-list-empty" class="flex flex-col items-center justify-center h-full py-12 text-gray-600">
-              <i class="fas fa-clock text-2xl mb-2 opacity-20"></i>
-              <p class="text-[10px] uppercase tracking-widest">No check-ins yet</p>
+            <div id="checkin-list-empty" class="flex flex-col items-center justify-center h-full py-16 text-gray-600">
+              <i class="fas fa-clock text-5xl mb-4 opacity-10"></i>
+              <p class="text-sm uppercase tracking-widest font-bold">No check-ins yet</p>
+              <p class="text-xs text-gray-700 mt-2">Check-ins will appear here</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
+    </div>
   </section>
 
   <!-- MEMBERS -->
