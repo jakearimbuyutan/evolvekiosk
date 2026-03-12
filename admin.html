@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Evolve Fitness — Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+.font-oswald{font-family:'Oswald',sans-serif;}
+.font-mono{font-family:'DM Mono',monospace;}
+body{background:#080808;color:#fff;overflow-x:hidden;}
+
+/* Color tokens */
+:root{
+  --gold:#d4a853;
+  --gold-dim:rgba(212,168,83,0.15);
+  --gold-border:rgba(212,168,83,0.22);
+  --surface:#111111;
+  --surface2:#1a1a1a;
+  --surface3:#222222;
+  --border:rgba(255,255,255,0.07);
+  --text-muted:rgba(255,255,255,0.35);
+  --text-dim:rgba(255,255,255,0.18);
+}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;}
+.card-gold{background:var(--surface);border:1px solid var(--gold-border);border-radius:16px;}
+.glass{background:rgba(17,17,17,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+
+/* Inputs */
+.input-dark{
+  background:var(--surface2);
+  border:1px solid rgba(255,255,255,0.1);
+  color:#fff;
+  transition:all 0.2s;
+  font-family:'DM Sans',sans-serif;
+}
+.input-dark:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,83,0.1);}
+.input-dark::placeholder{color:var(--text-dim);}
+
+/* Buttons */
+.btn-gold{background:var(--gold);color:#000;font-weight:700;transition:all 0.15s;letter-spacing:0.04em;}
+.btn-gold:hover{background:#e0b86a;transform:translateY(-1px);}
+.btn-gold:active{background:#c49743;transform:scale(0.98) translateY(0);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);transition:all 0.15s;}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.2);color:#fff;}
+.btn-danger{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;transition:all 0.15s;}
+.btn-danger:hover{background:rgba(239,68,68,0.25);}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:0.03em;}
+
+/* Stat cards */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s;}
+.stat-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.12);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent,var(--gold)),transparent);opacity:0.6;}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,rgba(255,255,255,0.025),transparent);pointer-events:none;}
+.stat-card.accent-green::before{--accent:#4ade80;}
+.stat-card.accent-blue::before{--accent:#60a5fa;}
+.stat-card.accent-red::before{--accent:#f87171;}
+
+/* Member cards */
+.member-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:8px;transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s;}
+.member-card:hover{border-color:rgba(255,255,255,0.14);box-shadow:0 4px 20px rgba(0,0,0,0.3);transform:translateY(-1px);}
+
+/* Attendance rows */
+.att-row{border-bottom:1px solid var(--border);padding:11px 0;}
+.att-row:last-child{border-bottom:none;}
+
+/* Bottom nav */
+#bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(6,6,6,0.98);
+  border-top:1px solid rgba(255,255,255,0.06);
+  display:flex;z-index:50;
+  padding-bottom:env(safe-area-inset-bottom);
+  backdrop-filter:blur(24px);
+  box-shadow:0 -4px 30px rgba(0,0,0,0.6);
+}
+.bnav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:10px 4px 8px;
+  color:var(--text-muted);font-size:9px;letter-spacing:0.06em;
+  text-transform:uppercase;font-weight:600;cursor:pointer;
+  transition:color 0.2s;border:none;background:none;
+  position:relative;
+}
+.bnav-btn i{font-size:17px;transition:transform 0.2s,color 0.2s;}
+.bnav-btn.active{color:var(--gold);}
+.bnav-btn.active i{transform:translateY(-2px);filter:drop-shadow(0 0 6px rgba(212,168,83,0.6));}
+.bnav-btn.active::after{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:32px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:0 0 4px 4px;
+}
+
+/* Top bar */
+#top-bar{
+  position:fixed;top:0;left:0;right:0;height:58px;
+  background:rgba(8,8,8,0.98);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;z-index:40;
+  backdrop-filter:blur(20px);
+}
+
+/* Main content */
+#main-content{padding-top:58px;padding-bottom:calc(70px + env(safe-area-inset-bottom));min-height:100vh;}
+.tab-section{padding:14px;}
+
+/* Animations */
+.fade-in{animation:fadeIn 0.28s ease-out;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.modal-enter{animation:modalPop 0.22s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes modalPop{from{opacity:0;transform:scale(0.93) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.notif-enter{animation:slideR 0.28s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes slideR{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(212,168,83,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;}
+
+/* Progress bars */
+.progress-bar{height:5px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:10px;transition:width 0.6s ease;}
+
+/* Bar chart */
+.bar-wrap{background:rgba(212,168,83,0.07);border-radius:4px;position:relative;}
+.bar-fill{background:linear-gradient(to top,var(--gold),rgba(212,168,83,0.7));border-radius:4px;position:absolute;bottom:0;left:0;right:0;transition:height 0.5s ease;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(212,168,83,0.3);border-radius:4px;}
+
+/* Print */
+@media print{#notifications,.no-print{display:none!important}body{background:white;color:black}}
+
+/* Section headers */
+.section-header{font-family:'Oswald',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;}
+
+/* Renewal success pulse */
+@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(212,168,83,0.4)}50%{box-shadow:0 0 0 8px rgba(212,168,83,0)}}
+.pulse-gold{animation:pulse-gold 1.5s ease-in-out;}
+
+/* Login screen */
+.login-bg{
+  background:radial-gradient(ellipse at 20% 80%, rgba(212,168,83,0.08) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 20%, rgba(212,168,83,0.05) 0%, transparent 50%),
+            #080808;
+  min-height:100vh;
+}
+
+/* Sort button */
+.sort-btn{padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;transition:all 0.15s;border:1px solid var(--border);background:transparent;color:var(--text-muted);}
+.sort-btn.active{background:rgba(212,168,83,0.12);border-color:var(--gold-border);color:var(--gold);}
+
+/* Quick stats row */
+.quick-stat{text-align:center;padding:10px 8px;}
+.quick-stat-num{font-family:'Oswald',sans-serif;font-size:22px;font-weight:600;line-height:1;}
+.quick-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-top:3px;}
+
+/* Timeline dot */
+.timeline-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+
+/* Birthday card */
+.bday-card{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.bday-card:last-child{border-bottom:none;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-bg flex items-center justify-center p-5">
+  <div class="card-gold rounded-2xl p-8 w-full max-w-sm modal-enter text-center" style="border-color:rgba(212,168,83,0.25);">
+    <div class="w-20 h-20 mx-auto mb-5 rounded-2xl flex items-center justify-center overflow-hidden" style="background:rgba(212,168,83,0.1);border:1px solid rgba(212,168,83,0.2);">
+      <img id="login-logo" src="" class="w-16 h-16 object-contain" alt="Evolve Fitness">
+    </div>
+    <h3 class="font-oswald text-2xl uppercase tracking-widest mb-1 text-white">Admin Panel</h3>
+    <p class="text-xs mb-7" style="color:var(--text-muted);">Evolve Fitness Management</p>
+    <div class="relative mb-3">
+      <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-xs" style="color:var(--text-muted);"></i>
+      <input type="password" id="admin-pass-input" class="input-dark w-full rounded-xl pl-10 pr-4 py-3.5 text-center tracking-widest text-base" placeholder="Enter password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    </div>
+    <p class="text-red-400 text-xs hidden mb-3" id="admin-pass-err"><i class="fas fa-exclamation-circle mr-1"></i>Incorrect password. Try again.</p>
+    <button onclick="doAdminLogin()" class="w-full btn-gold py-3.5 rounded-xl font-oswald uppercase tracking-widest text-sm">
+      <i class="fas fa-sign-in-alt mr-2"></i>Enter Admin Panel
+    </button>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="admin-app" class="hidden">
+
+  <!-- Top bar -->
+  <div id="top-bar">
+    <div class="flex items-center gap-3">
+      <img id="topbar-logo" src="" class="w-8 h-8 object-contain rounded-lg flex-shrink-0" alt="EF">
+      <div>
+        <p class="font-oswald text-sm text-white tracking-wider leading-none" id="top-bar-title">Dashboard</p>
+        <p class="text-[10px] mt-0.5 font-mono" id="admin-clock" style="color:var(--text-muted);"></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="refreshCurrentTab()" class="w-8 h-8 rounded-full flex items-center justify-center btn-ghost" title="Refresh">
+        <i class="fas fa-rotate-right text-xs"></i>
+      </button>
+      <button onclick="logout()" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-ghost">
+        <i class="fas fa-right-from-bracket text-xs"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div id="main-content">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div id="tab-dashboard" class="tab-section fade-in">
+      <div id="dash-loading" class="flex items-center justify-center py-20">
+        <div class="text-center"><div class="spinner mx-auto mb-3"></div><p class="text-xs" style="color:var(--text-muted);">Loading...</p></div>
+      </div>
+      <div id="dash-content" class="hidden">
+        <!-- Stat cards 2x2 -->
+        <div class="grid grid-cols-2 gap-2.5 mb-3">
+          <div class="stat-card">
+            <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Total Members</p>
+            <p class="font-oswald text-3xl font-bold text-white" id="adm-total">0</p>
+            <p class="text-[10px] mt-1" id="adm-total-sub" style="color:var(--text-dim);">All registered</p>
+          </div>
+          <div class="stat-card" style="--accent:#d4a853;">
+            <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Active Monthly</p>
+            <p class="font-oswald text-3xl font-bold text-yellow-500" id="adm-monthly">0</p>
+            <p class="text-[10px] mt-1" id="adm-monthly-sub" style="color:var(--text-dim);">Valid subscription</p>
+          </div>
+          <div class="stat-card accent-green">
+            <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Today's Check-ins</p>
+            <p class="font-oswald text-3xl font-bold text-green-400" id="adm-today">0</p>
+            <p class="text-[10px] mt-1" id="adm-today-date" style="color:var(--text-dim);"></p>
+          </div>
+          <div class="stat-card accent-red">
+            <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Expiring Soon</p>
+            <p class="font-oswald text-3xl font-bold text-red-400" id="adm-expiring">0</p>
+            <p class="text-[10px] mt-1" style="color:var(--text-dim);">Within 7 days</p>
+          </div>
+        </div>
+
+        <!-- Revenue quick stats -->
+        <div class="card mb-3" style="padding:0;overflow:hidden;">
+          <div class="grid grid-cols-3 divide-x" style="border-color:var(--border);">
+            <div class="quick-stat">
+              <div class="quick-stat-num" style="color:var(--gold);" id="dash-rev-today">₱0</div>
+              <div class="quick-stat-label">Today</div>
+            </div>
+            <div class="quick-stat">
+              <div class="quick-stat-num text-blue-400" id="dash-rev-month">₱0</div>
+              <div class="quick-stat-label">This Month</div>
+            </div>
+            <div class="quick-stat">
+              <div class="quick-stat-num text-white" id="dash-rev-total">₱0</div>
+              <div class="quick-stat-label">All Time</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bar chart -->
+        <div class="card-gold mb-3 p-4">
+          <div class="flex items-center justify-between mb-4">
+            <p class="section-header m-0">Check-ins — Last 7 Days</p>
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold" id="dash-peak-label" style="background:rgba(212,168,83,0.12);color:var(--gold);"></span>
+          </div>
+          <div class="flex items-end gap-2 h-24" id="bar-chart"></div>
+        </div>
+
+        <!-- Member breakdown -->
+        <div class="card mb-3 p-4">
+          <p class="section-header">Member Breakdown</p>
+          <div class="space-y-3.5" id="plan-breakdown"></div>
+        </div>
+
+        <!-- Upcoming birthdays -->
+        <div class="card mb-3 p-4" id="dash-birthdays-wrap">
+          <div class="flex items-center justify-between mb-3">
+            <p class="section-header m-0">🎂 Upcoming Birthdays</p>
+          </div>
+          <div id="dash-birthdays"></div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="card p-4">
+          <div class="flex items-center justify-between mb-3">
+            <p class="section-header m-0">Recent Activity</p>
+            <button onclick="adminTab('logins')" class="text-xs font-semibold" style="color:var(--gold);">View all →</button>
+          </div>
+          <div id="dash-recent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ATTENDANCE LOG ═══ -->
+    <div id="tab-logins" class="tab-section hidden fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-oswald text-xl uppercase text-white tracking-wider">Attendance</h3>
+          <p class="text-xs mt-0.5" id="att-count-label" style="color:var(--text-muted);">All check-ins</p>
+        </div>
+        <button onclick="exportAttCSV()" class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold" style="color:var(--gold);border:1px solid var(--gold-border);">
+          <i class="fas fa-download"></i> CSV
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="card p-3 mb-3 space-y-2">
+        <div class="flex gap-2">
+          <input type="date" id="att-filter-date" class="input-dark flex-1 rounded-lg px-3 py-2 text-xs" onchange="renderAttLog()">
+          <select id="att-filter-plan" class="input-dark rounded-lg px-3 py-2 text-xs" onchange="renderAttLog()">
+            <option value="">All Plans</option>
+            <option value="monthly">Monthly</option>
+            <option value="entry">Walk-in</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[10px]" style="color:var(--text-muted);"></i>
+            <input type="text" id="att-search" class="input-dark w-full rounded-lg pl-8 pr-3 py-2 text-xs" placeholder="Search name / RFID" oninput="renderAttLog()">
+          </div>
+          <button onclick="clearAttFilters()" class="btn-ghost text-xs px-3 py-2 rounded-lg whitespace-nowrap"><i class="fas fa-xmark mr-1"></i>Clear</button>
+          <button onclick="openClearTodayModal()" class="btn-danger text-xs px-3 py-2 rounded-lg whitespace-nowrap"><i class="fas fa-trash-can mr-1"></i>Today</button>
+        </div>
+      </div>
+
+      <div id="att-list" class="card px-3" style="display:none;"></div>
+      <div id="att-empty" class="hidden text-center py-16" style="color:var(--text-muted);">
+        <i class="fas fa-calendar-xmark text-4xl mb-3 block opacity-20"></i>
+        <p class="text-sm">No records found</p>
+        <p class="text-xs mt-1 opacity-60">Try adjusting filters</p>
+      </div>
+      <div id="att-pagination" class="flex items-center justify-between py-4 text-xs mt-1" style="color:var(--text-muted);"></div>
+    </div>
+
+    <!-- ═══ ALL MEMBERS ═══ -->
+    <div id="tab-allmembers" class="tab-section hidden fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-oswald text-xl uppercase text-white tracking-wider">Members</h3>
+          <p class="text-xs mt-0.5" id="adm-mem-count" style="color:var(--text-muted);"></p>
+        </div>
+        <button onclick="exportMembersCSV()" class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold" style="color:var(--gold);border:1px solid var(--gold-border);">
+          <i class="fas fa-download"></i> CSV
+        </button>
+      </div>
+
+      <!-- Filters + Sort -->
+      <div class="card p-3 mb-3 space-y-2">
+        <div class="flex gap-2">
+          <select id="adm-plan-filter" class="input-dark flex-1 rounded-lg px-3 py-2 text-xs" onchange="renderAdmMembers()">
+            <option value="">All Plans</option>
+            <option value="monthly">Monthly</option>
+            <option value="entry">Walk-in</option>
+          </select>
+          <select id="adm-status-filter" class="input-dark flex-1 rounded-lg px-3 py-2 text-xs" onchange="renderAdmMembers()">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[10px]" style="color:var(--text-muted);"></i>
+          <input type="text" id="adm-mem-search" class="input-dark w-full rounded-lg pl-8 pr-3 py-2 text-xs" placeholder="Search name, RFID, email, phone..." oninput="renderAdmMembers()">
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Sort:</span>
+          <button onclick="setMemberSort('name')" id="sort-name" class="sort-btn active">Name</button>
+          <button onclick="setMemberSort('registered')" id="sort-registered" class="sort-btn">Newest</button>
+          <button onclick="setMemberSort('visits')" id="sort-visits" class="sort-btn">Visits</button>
+          <button onclick="setMemberSort('expiry')" id="sort-expiry" class="sort-btn">Expiry</button>
+        </div>
+      </div>
+
+      <div id="adm-members-list"></div>
+      <div id="adm-mem-empty" class="hidden text-center py-16" style="color:var(--text-muted);">
+        <i class="fas fa-users text-4xl mb-3 block opacity-20"></i>
+        <p class="text-sm">No members found</p>
+      </div>
+    </div>
+
+    <!-- ═══ REVENUE ═══ -->
+    <div id="tab-revenue" class="tab-section hidden fade-in">
+      <h3 class="font-oswald text-xl uppercase text-white tracking-wider mb-4">Revenue</h3>
+
+      <div class="stat-card mb-3 flex items-center justify-between" style="--accent:#d4a853;">
+        <div>
+          <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Total Revenue (All Time)</p>
+          <p class="font-oswald text-4xl font-bold" style="color:var(--gold);" id="rev-total">₱0</p>
+        </div>
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(212,168,83,0.08);border:1px solid var(--gold-border);">
+          <i class="fas fa-peso-sign text-2xl" style="color:rgba(212,168,83,0.4);"></i>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 mb-3">
+        <div class="stat-card accent-green">
+          <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">This Month</p>
+          <p class="font-oswald text-xl font-bold text-green-400" id="rev-month">₱0</p>
+        </div>
+        <div class="stat-card accent-blue">
+          <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">This Week</p>
+          <p class="font-oswald text-xl font-bold text-blue-400" id="rev-week">₱0</p>
+        </div>
+        <div class="stat-card">
+          <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Today</p>
+          <p class="font-oswald text-xl font-bold text-white" id="rev-today">₱0</p>
+        </div>
+      </div>
+
+      <div class="card-gold mb-3 p-4">
+        <div class="flex items-center justify-between mb-4">
+          <p class="section-header m-0">Revenue — Last 30 Days</p>
+          <div class="flex gap-3 text-[10px]" style="color:var(--text-muted);">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:var(--gold);"></span>Monthly</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block"></span>Walk-in</span>
+          </div>
+        </div>
+        <div class="flex items-end gap-0.5 h-28 mb-1" id="rev-chart"></div>
+        <div id="rev-chart-labels" class="flex justify-between mt-1"></div>
+      </div>
+
+      <div class="card overflow-hidden">
+        <div class="px-4 py-3 border-b" style="border-color:var(--border);">
+          <p class="section-header m-0">Recent Transactions</p>
+        </div>
+        <div id="rev-list" class="divide-y" style="border-color:var(--border);"></div>
+        <div id="rev-empty" class="hidden text-center py-10 text-sm" style="color:var(--text-muted);">No transactions yet</div>
+      </div>
+    </div>
+
+    <!-- ═══ EXPIRING SOON ═══ -->
+    <div id="tab-expiring" class="tab-section hidden fade-in">
+      <div class="mb-4">
+        <h3 class="font-oswald text-xl uppercase text-white tracking-wider">Expiring Soon</h3>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted);">Memberships expiring within 7 days</p>
+      </div>
+      <div id="exp-list"></div>
+      <div id="exp-empty" class="hidden text-center py-16" style="color:var(--text-muted);">
+        <i class="fas fa-circle-check text-4xl mb-3 block opacity-30 text-green-500"></i>
+        <p class="text-sm text-green-400 font-semibold">All clear!</p>
+        <p class="text-xs mt-1 opacity-60">No memberships expiring soon</p>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- Bottom Navigation -->
+  <nav id="bottom-nav">
+    <button class="bnav-btn active" id="bnav-dashboard" onclick="adminTab('dashboard')"><i class="fas fa-chart-line"></i>Dashboard</button>
+    <button class="bnav-btn" id="bnav-logins" onclick="adminTab('logins')"><i class="fas fa-right-to-bracket"></i>Attendance</button>
+    <button class="bnav-btn" id="bnav-allmembers" onclick="adminTab('allmembers')"><i class="fas fa-id-card"></i>Members</button>
+    <button class="bnav-btn" id="bnav-revenue" onclick="adminTab('revenue')"><i class="fas fa-peso-sign"></i>Revenue</button>
+    <button class="bnav-btn" id="bnav-expiring" onclick="adminTab('expiring')"><i class="fas fa-clock"></i>Expiring</button>
+  </nav>
+</div><!-- /admin-app -->
+
+<!-- ══ EDIT MODAL ══ -->
+<div id="edit-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);">
+  <div class="card-gold w-full sm:max-w-md modal-enter max-h-[94vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6" style="border-color:rgba(212,168,83,0.25);">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-oswald text-xl uppercase tracking-wider" style="color:var(--gold);">Edit Member</h3>
+      <button onclick="closeEditModal()" class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center"><i class="fas fa-times text-sm"></i></button>
+    </div>
+    <div class="space-y-4">
+      <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Full Name</label><input type="text" id="edit-name" class="input-dark w-full rounded-xl px-4 py-3"></div>
+      <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Email</label><input type="email" id="edit-email" class="input-dark w-full rounded-xl px-4 py-3"></div>
+      <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Phone</label><input type="tel" id="edit-phone" class="input-dark w-full rounded-xl px-4 py-3"></div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Plan</label>
+        <select id="edit-plan" class="input-dark w-full rounded-xl px-4 py-3" onchange="toggleEditExpiry(this.value)">
+          <option value="entry">Walk-in / Daily (₱50–₱70)</option>
+          <option value="monthly">Monthly (₱600–₱900)</option>
+        </select>
+      </div>
+      <div id="edit-expiry-row" class="hidden"><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Expiry Date</label><input type="date" id="edit-expiry" class="input-dark w-full rounded-xl px-4 py-3"></div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Status</label>
+        <select id="edit-active" class="input-dark w-full rounded-xl px-4 py-3">
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Notes (internal)</label>
+        <textarea id="edit-notes" class="input-dark w-full rounded-xl px-4 py-3 text-sm resize-none" rows="2" placeholder="Add internal notes..."></textarea>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="closeEditModal()" class="px-5 py-3 btn-ghost rounded-xl text-sm">Cancel</button>
+      <button onclick="saveEdit()" class="flex-1 btn-gold py-3 rounded-xl font-oswald uppercase tracking-wider text-sm">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DELETE MODAL ══ -->
+<div id="delete-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);">
+  <div class="card w-full sm:max-w-sm modal-enter text-center rounded-t-2xl sm:rounded-2xl p-8" style="border-color:rgba(239,68,68,0.25);">
+    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);">
+      <i class="fas fa-trash-alt text-red-500 text-xl"></i>
+    </div>
+    <h3 class="font-oswald text-xl uppercase tracking-wider mb-2">Delete Member?</h3>
+    <p class="text-sm mb-6" id="delete-msg" style="color:var(--text-muted);"></p>
+    <div class="flex gap-3">
+      <button onclick="closeDeleteModal()" class="flex-1 py-3 btn-ghost rounded-xl text-sm">Cancel</button>
+      <button onclick="confirmDelete()" class="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CLEAR TODAY MODAL ══ -->
+<div id="clear-today-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);">
+  <div class="card w-full sm:max-w-sm modal-enter text-center rounded-t-2xl sm:rounded-2xl p-8" style="border-color:rgba(239,68,68,0.3);">
+    <div class="w-14 h-14 bg-red-500/10 border border-red-500/25 rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-trash-can text-red-400 text-xl"></i>
+    </div>
+    <h3 class="font-oswald text-xl uppercase tracking-wider text-white mb-2">Clear Today's Logs?</h3>
+    <p class="text-sm mb-1" style="color:var(--text-muted);">Permanently delete <span class="text-red-400 font-semibold" id="clear-today-count">all</span> check-ins from today.</p>
+    <p class="text-xs mb-6" style="color:var(--text-dim);">This <span class="text-red-400">cannot be undone.</span></p>
+    <div class="flex gap-3">
+      <button onclick="closeClearTodayModal()" class="flex-1 py-3 btn-ghost rounded-xl text-sm">Cancel</button>
+      <button onclick="confirmClearToday()" id="btn-confirm-clear" class="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
+        <i class="fas fa-trash-can"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RENEWAL MODAL ══ -->
+<div id="renew-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);">
+  <div class="card-gold w-full sm:max-w-sm modal-enter rounded-t-2xl sm:rounded-2xl p-7" style="border-color:rgba(212,168,83,0.3);">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-oswald text-xl uppercase tracking-wider" style="color:var(--gold);">Renew Membership</h3>
+      <button onclick="closeRenewModal()" class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center"><i class="fas fa-times text-sm"></i></button>
+    </div>
+    <div class="card p-4 mb-4 flex items-center gap-3">
+      <div id="renew-avatar" class="flex-shrink-0"></div>
+      <div>
+        <p class="font-semibold text-white" id="renew-name">—</p>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted);">Current expiry: <span id="renew-current-expiry" class="text-red-400">—</span></p>
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="text-[10px] uppercase tracking-wider mb-2 block" style="color:var(--text-muted);">Renewal Duration</label>
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="setRenewDuration(30)" id="renew-30" class="py-3 rounded-xl text-sm font-semibold border transition-all renew-dur active-renew" style="border-color:var(--gold-border);background:rgba(212,168,83,0.12);color:var(--gold);">30 days</button>
+        <button onclick="setRenewDuration(60)" id="renew-60" class="py-3 rounded-xl text-sm font-semibold btn-ghost renew-dur">60 days</button>
+        <button onclick="setRenewDuration(90)" id="renew-90" class="py-3 rounded-xl text-sm font-semibold btn-ghost renew-dur">90 days</button>
+      </div>
+    </div>
+    <div class="card p-3 mb-5 flex items-center justify-between">
+      <span class="text-xs" style="color:var(--text-muted);">New expiry date</span>
+      <span class="font-semibold text-green-400 text-sm" id="renew-new-expiry">—</span>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="closeRenewModal()" class="px-5 py-3 btn-ghost rounded-xl text-sm">Cancel</button>
+      <button onclick="confirmRenew()" id="btn-confirm-renew" class="flex-1 btn-gold py-3 rounded-xl font-oswald uppercase tracking-wider text-sm">
+        <i class="fas fa-rotate-right mr-2"></i>Renew ₱1,500
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MEMBER PROFILE MODAL ══ -->
+<div id="profile-modal" class="hidden fixed inset-0 z-[65] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);">
+  <div class="card-gold w-full sm:max-w-lg modal-enter rounded-t-2xl sm:rounded-2xl max-h-[96vh] overflow-y-auto" style="border-color:rgba(212,168,83,0.2);">
+    <!-- Header -->
+    <div class="sticky top-0 glass border-b flex items-center justify-between px-5 py-4 rounded-t-2xl z-10" style="border-color:var(--border);">
+      <h3 class="font-oswald text-lg uppercase tracking-wider" style="color:var(--gold);">Member Profile</h3>
+      <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center"><i class="fas fa-times text-sm"></i></button>
+    </div>
+
+    <div class="p-5 space-y-4" id="profile-content">
+      <!-- Avatar + name -->
+      <div class="flex items-center gap-4 pt-1">
+        <div id="prof-avatar-wrap" class="flex-shrink-0"></div>
+        <div class="flex-1 min-w-0">
+          <h2 class="font-oswald text-2xl text-white truncate" id="prof-name">—</h2>
+          <div class="flex flex-wrap items-center gap-1.5 mt-1.5" id="prof-badges"></div>
+          <p class="text-xs font-mono mt-1.5" id="prof-rfid" style="color:var(--text-muted);"></p>
+        </div>
+      </div>
+
+      <!-- Info grid -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="card p-3.5">
+          <p class="text-[10px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Plan</p>
+          <p class="text-sm font-semibold" id="prof-plan">—</p>
+        </div>
+        <div class="card p-3.5">
+          <p class="text-[10px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Status</p>
+          <p class="text-sm font-semibold" id="prof-status">—</p>
+        </div>
+        <div class="card p-3.5">
+          <p class="text-[10px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Valid Until</p>
+          <p class="text-sm" id="prof-expiry">—</p>
+        </div>
+        <div class="card p-3.5">
+          <p class="text-[10px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Total Visits</p>
+          <p class="text-sm font-bold text-yellow-500" id="prof-visits">—</p>
+        </div>
+      </div>
+
+      <!-- Recent visits -->
+      <div class="card p-4" id="prof-recent-visits-wrap" style="display:none;">
+        <p class="section-header">Recent Visits</p>
+        <div id="prof-recent-visits" class="space-y-1"></div>
+      </div>
+
+      <!-- Contact info -->
+      <div class="card overflow-hidden divide-y" style="border-color:var(--border);">
+        <div class="flex items-center gap-3 px-4 py-3">
+          <i class="fas fa-envelope w-4 text-xs text-center" style="color:var(--text-muted);"></i>
+          <div><p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Email</p><p class="text-sm text-white" id="prof-email">—</p></div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-3">
+          <i class="fas fa-phone w-4 text-xs text-center" style="color:var(--text-muted);"></i>
+          <div><p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Phone</p><p class="text-sm text-white" id="prof-phone">—</p></div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-3">
+          <i class="fas fa-map-marker-alt w-4 text-xs text-center" style="color:var(--text-muted);"></i>
+          <div><p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Address</p><p class="text-sm text-white" id="prof-address">—</p></div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-3">
+          <i class="fas fa-cake-candles w-4 text-xs text-center" style="color:var(--text-muted);"></i>
+          <div><p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Birthday</p><p class="text-sm text-white" id="prof-birthday">—</p></div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-3">
+          <i class="fas fa-phone-volume w-4 text-xs text-center" style="color:var(--text-muted);"></i>
+          <div><p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Emergency Contact</p><p class="text-sm text-white" id="prof-emergency">—</p></div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-3">
+          <i class="fas fa-calendar-plus w-4 text-xs text-center" style="color:var(--text-muted);"></i>
+          <div><p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Registered</p><p class="text-sm text-white" id="prof-registered">—</p></div>
+        </div>
+        <div id="prof-notes-row" class="hidden flex items-start gap-3 px-4 py-3">
+          <i class="fas fa-sticky-note w-4 text-xs text-center mt-0.5" style="color:var(--text-muted);"></i>
+          <div><p class="text-[10px] uppercase tracking-wider mb-0.5" style="color:var(--text-muted);">Notes</p><p class="text-sm text-yellow-300/80" id="prof-notes">—</p></div>
+        </div>
+      </div>
+
+      <!-- Student section -->
+      <div id="prof-student-section" class="hidden">
+        <div class="flex items-center gap-2 mb-3">
+          <i class="fas fa-graduation-cap text-blue-400 text-sm"></i>
+          <span class="font-oswald text-sm uppercase tracking-wider text-blue-300">Student Verification</span>
+        </div>
+        <div id="prof-not-student" class="hidden card p-4 text-center">
+          <p class="text-sm" style="color:var(--text-muted);">Registered as <strong class="text-white">Regular</strong> member</p>
+        </div>
+        <div id="prof-is-student" class="hidden space-y-3">
+          <div id="prof-verified-banner" class="hidden flex items-center gap-3 rounded-xl px-4 py-3" style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);">
+            <i class="fas fa-check-circle text-green-400 text-lg flex-shrink-0"></i>
+            <div><p class="text-sm text-green-300 font-semibold">Student Verified</p><p class="text-xs text-green-600" id="prof-verified-by">—</p></div>
+          </div>
+          <div id="prof-rejected-banner" class="hidden flex items-center gap-3 rounded-xl px-4 py-3" style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);">
+            <i class="fas fa-times-circle text-red-400 text-lg flex-shrink-0"></i>
+            <div><p class="text-sm text-red-300 font-semibold">Verification Rejected</p><p class="text-xs text-red-600" id="prof-rejected-by">—</p></div>
+          </div>
+          <div id="prof-pending-banner" class="hidden flex items-center gap-3 rounded-xl px-4 py-3" style="background:rgba(250,204,21,0.07);border:1px solid rgba(250,204,21,0.2);">
+            <i class="fas fa-clock text-yellow-400 text-lg flex-shrink-0"></i>
+            <div><p class="text-sm text-yellow-300 font-semibold">Pending Verification</p><p class="text-xs text-yellow-600">Review the school ID photo below</p></div>
+          </div>
+          <div id="prof-school-id-wrap">
+            <p class="text-[10px] uppercase tracking-wider mb-2" style="color:var(--text-muted);">School ID Photo</p>
+            <div class="rounded-xl overflow-hidden border bg-black" style="border-color:var(--border);aspect-ratio:16/9;">
+              <img id="prof-school-id-img" src="" alt="School ID" class="w-full h-full object-contain">
+            </div>
+          </div>
+          <div id="prof-no-id" class="hidden card p-4 text-center" style="border-color:rgba(250,204,21,0.2);">
+            <i class="fas fa-id-card text-yellow-500 text-2xl mb-2 block"></i>
+            <p class="text-sm text-yellow-300">No ID photo uploaded</p>
+          </div>
+          <div id="prof-verify-actions" class="flex gap-3">
+            <button onclick="rejectStudent()" id="btn-reject-student" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-colors btn-danger">
+              <i class="fas fa-times-circle"></i> Reject
+            </button>
+            <button onclick="verifyStudent()" id="btn-verify-student" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-colors" style="background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80;">
+              <i class="fas fa-check-circle"></i> Verify Student
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer actions -->
+    <div class="sticky bottom-0 glass border-t px-5 py-4 flex gap-3" style="border-color:var(--border);">
+      <button onclick="closeProfileModal()" class="px-5 py-3 btn-ghost rounded-xl text-sm">Close</button>
+      <button onclick="closeProfileModal();openEditModal(currentProfileId)" class="flex-1 btn-gold py-3 rounded-xl font-oswald uppercase tracking-wider text-sm">
+        <i class="fas fa-edit mr-2"></i>Edit Member
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div id="notifications" class="fixed top-16 right-3 z-[70] space-y-2 max-w-[88vw]"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  🔥 FIREBASE CONFIG
+// ══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBjvcid8BGvrY71z1u3Eva6FI6tqCy7fb0",
+  authDomain: "gym-attendance-e231d.firebaseapp.com",
+  projectId: "gym-attendance-e231d",
+  storageBucket: "gym-attendance-e231d.firebasestorage.app",
+  messagingSenderId: "771252079470",
+  appId: "1:771252079470:web:2750c64eedb45eec718f7f"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Logo (base64 inlined for offline use)
+const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAACtCAYAAADbJBHlAABaV0lEqUhEUgAAANwAAACtCAYAAADbJBHlAAA="; // placeholder - set on load
+document.addEventListener('DOMContentLoaded', () => {
+  // Set logo from original file — we embed it inline below
+  const realLogo = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAACtCAYAAADbJBHlAABaV0lEQVR4nO39abAt2XXfB/7W3pl5xju8sYZXcxUGokABIECiCiRFijJEwpZIhjnYNAcBUnRQHxQMB4Lu/sBW9CfQsoJWq6mm2G1GsEWLAUlh0yLkbtGCrZbhIGwaAkSCYmEmq4BCod58pzNm7r2XP+ydefLcd++7941176v7r8p3bp7Mk2efzL32mteSlZU1AFSVExxdHPR8ROQ+jeQEt4P6+Zg3eBwnOMGbCtn94mxvdg56EAe60/ujYdf1JdzX7z/uuNcSQn1/TzjcCU5wH5G90QM4wV3CLo52gqOJEw53ghPcR9xzDidJNXhzawgnOEHEoTmcckI0JzjBneJQHE6BIJE2TaK6mnMJu3WHuK/J6FO/Lv54c2L3YrX7buy3mNXnibbva1on1bRua0jn77JO1hcWeyvDPcE9wqFFyvq5BQlYjRPBKhhtP+BAkDQpNP4dYQBNxGqIk+Nuvt573IlJQgVomZ1FW4RQv4cuEc9iQYuLXE1Imu5hINtFpPF+qNx47fo73+Rr3pFAQ3DNQrjrBJWAF4NDyTJDOZ5hvOPsygo6r/DTin6vo6WrREXxAt4EVAJGaYhOgsSJoCZa1O7mK3fiR2lY8M33zeJ8VW2+t/Gv1AxEzZJPy6OoBIIxcdaHeOl4LzRxqYAYQdPiJaKIBCQoVg0Z4EpPCDBc7bG9MyWYjJVTZ7l2fZNOr4vTwHA44PrVi6yvrtHr9bh29Sr9Th+MwTm3JyHuvgu3i4P8eAcdN+bmC6f3/o4+fxDkgDtQOk9RFHjv6Xa75HnOpUuXOHv2LDs7O+R5frjvGQ5Xgf0ILqRVMYA1zEYjzgzg0dN9rbYnlDuQKxgPWQEe8BaCiYQmwkL68csrb02Mh32VALt9u+3r4G+TP9afD8v7u49r/XsSNNTcJsImgmu/p4mrBAHpQAAxilpAXMugJOANeBAMGIPmFkIF4sEF6A0NIWTsjEqpVChDzhxDp9snGMNoZwtTWE6vDtjYuAYeTp8+jQTh+vXrZEVxs3lwIA6a0AcdP2hBvNPjIdyZW+SgBcEFZXU10srm5iZlWfL888/rSy+9JA899BDj8fhQ39NwuBt/TvwBJoDFM8g8Dz3W17/8F/8c737beeYbr3B6KDx2Zp3L33oNawqUjIDFC6hRVFxzHVVBdPFQahHnsK/qw54iUX08OB/PJ6CAJP1m8Rp27e99/X3HIRqvrAZJD0hECBr/1tbg6odXvwZg6qYAagIYNZjQOk/AoXgTVDHN5FIVXCWMXI8R53n59Qn/6lOfVdFCRAsmown5Ss7maMR//l/8F/qDH/r3mI9HDId9MjFcv77J448+zre+9S3WTp061ITYD1l2c+3jIIIwWVyR2otMex8jNz0u1tz0eLffu/n1d2H38d6gf9Pzi26H1157jbNnz3P16lUee+wxqqris5/9rP7wD//woQWEm9xFg2jAADYI880ZFZCXEx4/XVCc6pG5S6wWm3TPjiikA2pBCxRDkBBnF3Epr1W9m4k1N0O9gh10I3f/hsOeE4Lb94zdhL5YDaP4GDCo09Zx3xxrYNMCpgbjBVFpjnsDpTrEGLwEqsrjgwGTo9JlpKv0n3gvo0+9hDEwHs3pDXoM+gOc8/iqxLmSh86d5/zz72C0vcn66hqocOXiFd7/4osHimQH3qWDCOYA7D7/fu8fNB4X/E3Pt1nGk08+SVk6nnzycZwLdLtRatjY2GA4HO79wV04wGiSJX+AYdDr6c72Bn/wv3+Vpy+s8B3f3mXr4iYblza5cKaPr0YYb5HQwZATBcyA2oBq1XDQmgTCLe6zKxZt93HdFY3dHE9ctRZHaytrkChY1sc9ftfxG++GSoDQJraFKba9AiuKioliQ1AgkGnUYWNAiAEVNAmuPii5erK8ixdh6jxODSbrIdkAzCp//Pkv8PnP/wmzUqVyEGZzusMVtrbHDIdDPvnJT/KjP/rDrJ9abUSfnZ0dzp0/jzrF2HtrXDpowt9gJLrFffVpwd39vfXrQTrkAeOzBywoW1tbrK6uUhQZo9GEwaDPxYuX+bt/9+/y7LPP6qVLlw7F5Rod7sYR1hNIojVyBrlMyHXOtz2H/uQPP8H7vn2drr9MJ0yQ6YzMG2zId01yh5pIfNH6Fo0dB5golvfVLIscEprJWl8vpBt+w+e1XlOWSVRTKFQUcwVNd3b3DW9uhyohGYIarqaKqU+0tdskcT0BixBCtDi62QyRqMtGgsuS8BtF2Sp4sm4PJ5aZtwTpo3aV7VnBpXGP/9d/+xm+8hqS9btc35rhsPRW1tna3uHs+bNMp2Mee+pR/ZVf+Tt86C/9IKhiJIMgTHYm9Ff6ez/nQ6J+YrcrEr7ROIjgfG2w2ue4ySzz+Zyi6OB9oCxLfvEXf5F/9I/+kYxGo7vA4ZIFUAWcGEyvy2BlXavZa/KH3yjFf/IbWnULvvNtZ9ncepkVa+jgyUUxiT0sGEC0usVrwi3H/WlrBZPF2EhcCgl7KKH1ndtvTVyWcZeuvwtBAlp/TgyKIqJLupvWImlLVFRVLAIayHqCQZBgCNFPEIcmggJWCioLjgxf9PB2le1Zl5de3eTzX3mFr30TcQasWPrDAdO5Mp9MyYxlNpkymmzzpZe25P/2f/1beubUOi985wtMxmP6vSG9Xq8e2m2LZKa+McsvzR8H0dV+Lom7JTLuFglv+fcdwOFmsxndbpdr1zbw3vNX/+pf5V/+y38pZ8+exVp7aJF9fw6XoBhQS7e/pteuXZKVYWCl55lulDz/NPrTf+Vh3vu2FYr5FTphQteH5Jszzeej0cHvIrRb4nGHMCvXn9v784sQs71Fq4OsXD6NXZNIqI3/MYmyjZXOLAwqIXJEg6IhRA4XDKqmuS+qFUEiB3GaMwkWb9ap8vO8egX+5f/yRf6Xf1NJZaAYrui1jR0pOh2CdJjMS06tn+baxjVW1vusrvb1G6++JhcuPKS/8f/+DT70Q/8B5cxTFDkkP9/d0oFuuD8HcAjZR6Stjx/EQQ8c3wEc9qD9g75frCGEwJUr1/joRz/K7/zO70iWZfT7fUajEdYeLrBgQXC1BXE390lcrgoecPQ6OcwndMXRdehzD8FP/tAZPvD8Kn29Qo85Fp90GcGFOhoicrjFA7w1grsRe59fi3hBDvr8Mm6mu0F8IAEWHK1lOKnPqPcb35ySrLMsccSgBi8mPWQHAnmeMa6UUWkoVp7iTy8V/OY/fonLY3htA5ECnAhBcwIWpSDUi5Eoedfg/ZyymrM6XGG8M+bv//1f07/2kf8T3gesPbQh7QR7wQhf+crX+Ot//a/z5S9/Wa5du8aZM2eYTqfM53M6nc6hLnNwpEkSBfMCytLjqhzxPTyWcr4p1y6jF7+pyNtXsTrCRKEIDSGJX7VxwewTBmbu6n7tejDUetrulbX2sLV+Yktktewt/kj0BWDURL+cLgg6crTFCqdBFsYc1bTIRF3NBUMQg2KTuGsQdVRlgGCRkDMvDVvbytUt2PHR+OtFUDHJbx5f0cVYp9Mpzs0YDvpMp1Nms4r/8ZP/ip/6j3+WoiiIC88RUaiOISaTGV/84hf50pe+JKPRCJOCCZxz9Hq9Q/sBFwR3E71KNGDFUGHxrkC9pZ8PFayU82tcuuhRfxrVLYQpRkrA4INFtANYEN+K62t9V6OL3Z39SBAt8UYPJrgI31xvN71pTWwSjSxGSKb/moNJyw9lWkQGEqJpUjWgBlQzFEvQjIDH4lEcwZVY28FID+d6bO3M2RzBxCKadXG4JA5bQm3llPRbJFBYSzmHLDPMZjMGKz0+94f/FoxgMnNCa3eIbrfL9vY2165do9vt0u/38d4zn8/pdru3QXD7ojbHRn+aF8BkqC3QvMB5Q5A8xvZJTggCAl6jmSEYQ8BEPaYRKVtimOy3Xxs1Dnt+3Pd7Hm+/t+t4rWs2RpMbOagKKB6PYiW+K4nLiJIskq3IGAxGlsevEggIXqI46TFR7FUf41LzDI8hz3NmQQhYqgAuA7U5PtQ6WJQalscJnW5O5SyTyQSAtbU1ALrdw4k6J7g5jIFer0en06EoCvI8x7loKLuV8hSHyxaQQBUqNBNEPG4+YSIqhR3hswB9pcrmOK0I4nEmTkpHwFGiZAgOIRoRljTx/aJt9zt+O/tL2M3hUtDvvjct+cqSSBhU4iUTARAkZVNIE+ESkIXybaIAqOoJmMjPTIYXn7hkle6NoiJ4N0XyQNaz0ImhclNXYoyJTEr25lbjnRHdTofN7Qm9XsZ4PObU+jkA5vOS7h2Gdr3Z4X3UwbMsoyxLnHMN8RljDm2lPBTBCRBCFFfEKCUzSjdH/QSfQ8WcYBwhxEBnlbbJOxDEYfAsMghaE172E/H2Ob6bfm5yPIqCuzmbb50amv0lgmuLqZpEwvq8xo+XTP91GJZEfUwlBlkurKFKIGBEk4lT0v9pLOKiBTeA+gpfCcGUiOQYA95B6Ss6nd7i+0WQxkoaxzGbOVZWhgwGDmsztjZ3uPBomzJPZMo7wWw2w1pLlmXM53NCCE3AclmWhw6eP5DgRKOTVlwVfUqZx4SKPDMUFqzEiRJhMJqDd4g4TK33pHST5A5vXTw08yDZFm9kSO150hDBLkNJ/e2tlKDIjUxtu0wcJxpvIjzR5d1yZicC1da4IiUsRMfF+JU2t4zR5sk/qLp4X7WVypQiXIJBxUPwGKK7gCAEtRAEcaCVYqr4DVYySMaa2vZRe0FqTprnlqpy9Lt9ZrMZWZYRPRUaQ5DCCcHdCbrdorH0ZlnW6Gzee6y1d4/gGh0nWIIDK45cA73M0suhEHAIc9NhpsOo42iG1TFGKmyo3Q1+cb09CKcxy98sz63xkaSJjYlGDAKikfCEqGcGhCAGTwfIELXRoBLtkBiZAyVFmCP4Jhsh1PpVGoFENok2+Xx1MDZLr9K+V/smnkVjiiUSXZRBQSVjpgXBrFDlOc4M8MGBhyK3aNahatGLqT/IwsG+trbG9evXGQx6jEYzTp1eT9bJZCndZ0QnOBxUlfF4zHg8JsuyRpQ0xtDtdinL8lDXaWa1iDRbG0GVoELW6eJRqDyDPMNPKuajmJazXcG2GbDVOcdk+Axfu24I3VNI1kNmnqF0sEFSyJdJXGB5C0RzObvOMWqi8zhtmowWQRLxaI6EnGFnlcmOkmeG3qDL1lSZZV388CFGcoYdt0a+/lauz84wCedw5jRb2w4RSx5impENgFqC5igWTw5aYEIHUZtu196bqsSUnZD+TltQIWhcBDQzVK4iMwJVSSgr+p0+49JS9R7jqnmYyfBZtouH2ZgKK+tQzT1alhA8EhQJHtRHGV99EnUD48mEldVVtnemdLoFOztjrM2ZzWZLz7OqojSyPdpB5eA8s7sGI2AEryH5NLV5r/Ku+VsFKu9QgdJVTOezBTu/x+MrXZXmV1zIptMpEO9ZlsUYypWVFabTaUOAKysrN9zjm+GQRhNwGg0GYsCaDAyEqmI8g0ubjt/9n/4IG3Y4ZTr4zcu47+zx9BlLP2RNope2udxe4co1x9vDlF+n19RsIf67IM7ZZE7e5KQJg/UhoXue165l/OnLG1z8xjWEi2RZnz/3557j7c88TNErYPqtGFztdbEgtMZl1CR9ybS4dHvcrZu0dGzZMFOpw6hFjYCxjSg7myvXtwOf/rdf4bpfI3SGYFa5+M0d5iHGeHa7XUZVlQIHdgcoxNeyLLHWMhhES5qqsLOzwz/7Z/+MqqrwlSPPc5577jlefPFFVlZW0r26P6Km956rV69y/vz5ZlF/5ZVX2NnZ4Qtf+AJra2u84x3v4IknniDPc3Z2dpoxTiYT+t3ePR2fquK9J89zRIRvvfYtPvWpT5FlGapK5QOf/exnERFWVlbodDqUZdls3W73UN9zIMGpRFHLq4KYaHa3FpsZqsqxPVFxV71e/l+/SZjDUGFN4NnH5zy0vkYvszhqI0J020bs5R/bawA0zvfd1kxtBUGregaDLlWomE0CdniOV14r+Z8/8zqf+aMJ22PY2p6QFRPe+rWr/MUPPM77n19jUApdp/RsNLUvArZcw1WjoBti7tuhFttlYguSPpvskU4skglOPVUJV7aEf/GvlCt+k8puSpajoYTJBJkHKOdz1Jo9rr1Ana+WZQXj8ZSyLNnY2JBf+qVf0o2NDam9iz/3cz+n73nPe+j04gS500zpw8Jay0MPPYSqMp/P+e3f/m1+8zd/k5dffllef/111tfXefLJJ/VnfuZn+IVf+IWG2OoM6/uBqqrI85zxeMwnP/lJfumXfkmuXr1Kp9OhP1xhMpmws7OzFFVijKHX6x164Tp0TRNjLF4Vr54qGApjwSpzX1GOvWRe8bPA2EGVoROfI8WQQKDS+V21kTWhYnWZAwGMUHR6zGbK3OfgV/nsH32RT/1vnteugXRhO1rfufoSVPKqvv3tD3Nq7Txua4pvU5LEhUFiTgAQSyXcEcTixVBpIFPITY6KpQyGnZmwNZszAikDuBlSAKbToZPlVGoIun++HsTJoqoURYyA6Ha7iAivvvqqhBDodbpMZ9PmmALOOawYyrJs9L17hWvXrrGyskKe57z66qv8vb/393jppZek1j+rquLzn/+8bGxs6EMPPcTP/uzPMp1OCSEwGAzui9GnJvLV1VWGwyGTyYTKVVhr2djYoN/vc+rUKVS10dmcczFr5JAL1yHOiiuqySxiDV4tzgtOs5irla/hTB+yLtKBrG+RAjQr8HmHyuaUEg0Y+8UpRtQmuJucscc9D4kDzypl7oTSZ0h+hsqf5Qtf8VzegIkiOxipehn29GmuK7y6Ad/c8Oz4glnIcCZLoVPRwmhwWPE1T0ouhFvMcmjdPxFJkgJUXqiCBdtHsgHeFJBB3ivI+gVaCHOxOJvhTY5D9hCzl5HnHfK8gzGmMV+vrKxgjOHs2bOcPn2aQX/QpJGISLJkmvvC5c6cOUNRFFRVxR/90R/xta99TQaDQSPCnTlzRvv9Pjs7O/Lrv/7reO/p9Xr0er1Dly+4E2xvbzc6m6pSVRXGGIaDYeRw/T5ZlpHn+ZIfDrilejqH5HABaVJOPC4YBMGYHMSqiJHxdAMr0LGCU5irMA/gREmxEYewlO29iomCaIYaR+Q8mkKJ41ZH3s+8x0uOmgHbs4I/+zrMPPTWTumV+VRGrqI7V0oL18bwh1/8Oo+vnObR3iq+mmLUIZLClJOOZJu4ybZL4dahqlhrMSY62UMAJENNgVrPeI6Mg8NTMPMCHlwV8L7CoxRGbvrtxhiyLKOqKkSE0WjUxPptbW2hPuC8Y3t7m/l8HiWCxNUOKp9wN1CWZWOw+f3f//3mO0+fPs3m5iabm5uSZRkiwuc+9zmpqkrj/TLM53MGvTvL5zsIddIuLAioNv2PRiN8ch0VRUFZluR5Tq/Xawwoh8Wh73RQhxGPNQGCI2hIvicL5LiQEbTEBcPUIXOv6oiWJ5GFX2qPK6fXmwUl18aUDNFqiXINDsGQ5QaxoGRMfWBzXHF9DBVIOVWkO8RmgbkzZFnOzFUymZa6snqKrg2ErWnDLVWiQzuoEkRvTKm7DXjnyTPIrcGIpMyBGKHinWAzNMv64m1G3uuSFwZsqpamilY3NzvXlrLJZMKZM2cYjUYMBgO63W4krBCtanV4kkoUh0xKkj1s1anbhTGGfr+PiDCdThGJRh3nHPP5nAsXLrC5ucl8PkdEuHTpEqdOnWJ1dZXTp0/fc5HSe4+IMJtMG3G85nJZlnH29JlovEnpODVRTiYTrLWHFskPXLKFZDioKqzGiIkY9ecgOLz3uErpdnoUeQ8hi9WqiKKNtYKYW7lZexCmCrFeiiUSeD24ZEiRgKqLTmXjKUNFqSA5FP2uzpxje3tEbnJykwEGCdHAUGQ53/z6N9IqFdLiUBNd4rl3aJY2MWQSQ6AwQmYVqw58un8u+hCryjOZlJRzT+k8ZVkyL6fM5pO970sLKysrjXHBmKiXjcdjqqpiY2ODqqqYzWaMRqNFcaMQGsvc/YCINOJhWZacOXMGVeXUqVNsbm4yHo8xxvDII4/ofD6n349crY4PvZdoO6+ttQyHw+Y+FUXB1tZWIx1UVUVVVU0s5a0YdRoOd7NoZyGQC0jwiegM4AjqMRJEjMF7RZxiEHKL5kYQPMHP0VARo0h0Dz3sIGtlEuU0i9dAF5bLJmzMIFmgchM075NnQpg4goFJORNjBwzynFDNwBsKEyhAdT7HzSecWVsho8IQouhgkvNaFScgQZoQrv3QTGLRJjs8lmCIxzs23j+tfPQwkGOMIxMlz0jRI5bCGrwIRmMoWGYgZMSwsKXA72XUk6Df7zecDOJzbYuaRVEkR7iQ5zmmSS+6t76u2rxeR9kbYxquPJ/PgThxrbVcvHhRer2eZlmGcy4S3r02mgTFiDAYDBqOL7LI3jfGMBgMKMuyEYfrTIGaOx4Ghwjtqv+IpnHThFI5DGVyEMfVu9Z0RMFqiBvR8HAnsXyxIoFZ7CyJlCmxlRheJcaj4gniWLjVHFYNJiV/Ft6TG8gJZMFhcVE0bQ2xDqPyarCNMeX2IFrfkxTqpbGwkhGLUCxVr46RKDFMTSVE9wQ0dWJOcLxxeLeAGoQ4WQxKwCdHsI+6nCYzuhpsitqIBOcwmuIF73CRWljul31S0sQWJnN+mqzYOoDZI/gUtWLICORAoYpVj1EfrZCixMCrOjMgmnt8GvthfHAxLjONNxGaIQaG2FDbYgOS7qHgWg71kCJaFv4/tOaXLaf3HvfgBMcDh1w2a1YRxbvIcaI4FyQQcE0VrMb0Lws/ltwFL5zKbrN8SJwjEpGGtCgk0aPOLpc01qXPESf0IqB6wYXaMZ0xzMcsfvMd/QCDkjVUG8Sh4lBTEcRFqbntCqTtBgncW4HvBPcLhw5eDmqjWCfzKLYllSKIi05jExATmve19h2JYOocsttAaCycLhlJYm2VBmoWE1NBW7GYi/dTSQNsGnNJrAmd6pQscd+UPQBNCb3FfbgdbmIa93kgx1PGYkIGgonZ3mpiNnjQqOfG9CaTQtdSEixxKG0iPMHxwyHbVUk61eDFYVG8ib6woBBSOx3DwhFdm9fvzrTQRGhtLhfFP6M2MjAxSAiYFMxsUj3KaDG1eMkQsQSjZKkMQ8y+luTHM0idK9dS5trtuW590VjEhgYyPAVeZjGHNPjoCCdWBKsJ3zcNGXz0XupNsidOcOywP8HVYVNJjPQSo+WjBhRSGkzUb1KZxUhk1FucxHUe152JRHW5gnZMZT0x42ZCwKjFhBwjsaOI+DqPLcOLJZgcNODE4ExIxBb7IWhK8akDpfeKahFdcLnF4XpsskSRkaspJma04cUikggfTYYdcCaWOg8WCWFxiYCtw6eb0g0nRHf8cYgnqIvJJcsJnotT7sNEaHS4pKO19K2FObIlTtb+uuQT9FJHRUairT+r2Eh0kupn1smySTeMKUMZy6LlPgaLGxz8i3NjOYVFmBeJEOO1TYuC6z8SYd9gKDrBccb+T7HhJlFvElMixpFJFRM2NfqnJAgEbZm9w8ISp7cbf9gaYGvymyWdChoRUxxBHJIFfJijeLq9giAwT8no1lrKaka3UKgCbg4r3SHWdhjNShyKCx7vHZkRcptjJKfylqnTZPCIImx7DIZFJE3M06sNRy1DkwSsOETmWHWYoNhgsSHDBIv1FhNQoyHFbVaNCF0T/6Kjji5tcGuxfEcVZVk2caCdTodLly4B0X83Ho+bfDlM7I/kgr8ht67yjnlVLuXaBRSfUrtutomNrp/6b5tnzefvZj7eoZbN2toYfVXaWNDaVsLIMRaVPIzuXu3vDE3ZuTZnS2gspHEP0KbmSP0LZlOHlYxBp8ugA7lEZ7FXoT9cjeKwARHFVyXVvMRXAWst3W4vWS1Ncyca4iIVd931TAyhpf8pUi9UKXM8LlgWE7J0D4nW3IaTL+I53wzodrvMZjOm0ylFUfDKK6/wta99DVWN2QLQ5J7V4VZ1dEgdb5nnOZ1ODOCuo2j2Sqq+Ge714nULcsri4bcnfJwo+1/UcCOB3B7aotxB2MVZNaMwA2zog7Ooi8aUqqrYmU2otIIsYLuGomOwmUKowM2jDzFpY14MzqSqyWIJSTeriRAkceS65IOL/j9i+ff6dfF79rh37XulsYSE3A+R/Q2Gamx4uLKywrVr1/iJn/gJ+cAHPiAf+9jHuHr1Ks45iqJoYhbrsKq6pHwIoYnL3N7ebor+wOFy/nYHIN8rwrulJym614prWsf3TqG5b9iHI4hCvztUvLKzNaIsoeiA7QwJpofprjIuYe6USsEHyKxQ5IYMT3AzxKQyCZBqpixKQsQqyosYT2nGEtN8YrvT5bHtbwRJ6VBvAiJro9PpsLm5yfXr11ldXeWhhx6iqir+9t/+2/LMM8/IL//yL/O5z30OiOFq29vbTU5anQRa1xpZXV1t4jBVtSHOm6FNYO2/26L73cA9eapHpUVRDaNQlVMxte5DNMdvzwzjsks+fAxnz1DJCjOXU4YYQ1dk0CkCRhyBOWpcU9UZWDLWyJLhJumeSY/de6Had7RLeyqhEZkfZNQxk+vr63S7XS5dusTW1hbee0IIfOxjH5O/8lf+ivz8z/88X/rSlzh9+jRFUTCZTBiNRmxvbzOZTJaIZTKZNPVIbhVtUfTIE9xRQuQ2DleOsLmj08vxAtcnyOe/+Bqf+jcv87kvbCH9Z8lWnqNYfRLJ16jIovkieFwoo+Eo1ZGs40qt0tJlNdU/IXI9I4se5/ejCM4xx2QyYTqdsrOzw9bWFlmWsbq6SqfTYTabEULsyfYP/+E/lOeff14+9KEP8elPf5p+v0+v12N1dRVrLVtbW8xmM1S1SUU6DHZzsprY7rZoeU8I7o7DoG5+9Vv/iFTYfA7ZlGBKNLfMFb72GvL/+/+/wj/+3T/mX39mg5deNmzMzlBmD+GydWZYSo0FlIzElJpMKzKdk6nHqktB2sla2RITVWM9rbi1x3wruuibBysrK/T7/SajOs9z5vN5kz5UFAXXrl1DRHj66af1M5/5jHzwgx+Un/zJn+TTn/40s9mMTqfD2tpak5lQE8toNLrtcR1pkfLeEtqto/lx4rCdQOknbE3GBCt0VlfxecG3NpDPfsnJf/Xbn+d3/8cv8id/VnF9epqpOU9pz1LaFTTrgBoytNmsOiy+yYpoWyW17h8gtf/P3EV77YOJ8XjMbDZrrI69Xo/ZbMZ8PqfOBO/3+xhjeP3112UymRBC4BOf+IR88IMflB/+4R/mn/7Tf4pzjizLmEwmjY532O6k9wOHJria0kMIN/iC7leptYi9qTqE0MjdIQT6/SFlCb0eBK2iJbJjyAaGChiVJVMpqOyQuS0Yi+F//uwWv/r/+Qz/6Hf/kK+8Zik7TxN6jzHVAUhBXRU58wargnjFpnQb0VgOPYSACwEfYh6FJzXw0PoeLhzg9f2sa0PezJpb3/fdqK+xl/n7jXk+t4d21nRRFEyn08YQUutxbb9jTZgxydnymc98Rn72Z39WXnzxRX7rt35rKfcPFvMDYh5bnYNXX6uqYrGgyWSC935pLHczQfcBlW1MK107xaeophBoia19jcGJMLeWuekwopAdkNdHyP/276b817/77/jH//3n+Xd/5qD/DJWcQWWNIH2qkOF8tE6qmCZ5V1KekKT4zMj3stRi+OZeyaNmaDpu2NraYjgc8uUvf1k+/OEPywc+8AH+wT/4B7z++uuEEJqqZiJCt9ttyih479nZ2WlcCP1+H2steZ431blupdDrQbj31WOOBEysiNyk2aQKYtajQVHjKN2cQTejVMdrI+TKV+BPX9vWl1/7Ot/+zCr/3nc+zEAyrB8jYU63Yxl0clw1pRxt08nz2Ha3DnLWmDVuNCZrvxl8aW8kzp8/z+XLlwFYX1/nq1/9qvzCL/wCv/Vbv6Uf+tCH+Jt/828SQmh6udVFnay1rKysMB6PGQwGTCYTOp1OwwE7nQ7WWmazw5UyPwhvCoKLbYiz1FtgOfA4mAAasJnFGYsxGYhnMquYTZDf/3dj/uTLY3355df57vc+wne96+30bMnm5je5Pt5h0DUMVs8wn42aJDZJ3NUosTRAYm3t3LtlhnZjvt0iYPkEh0EtguZ53kSgeO/53Oc+Jy+//DIf//jH9Ud+5Ef48Ic/zPPPP998pi40W0ezdLtdjDFN74C6Foy1d0esPIYEdxuzUDNMyEAkuQm05dsKCIEsdZ+Zzz2ZWLJOgRHDxFfMSy//wx/Cy9df1y99C9753DmefPQRzpx/GFde5+LOZbq5IRNPlrqhZiKR1rROwN1HoGxxvt3hYTev43mCNsbjMcPhkKqq2N7eRkR49NFHUVUuX77M1atX5Vd+5Vf4J//kn/AjP/Ij+uEPf5j3ve99QNTvag5Xly2vidY5R1mW9PtvCMHtHxlx/7BPrYZGCbpxPE38pdKUeqhTiurfVM49InVpOnA+YAxkeYfMCuoq/u0rpXzhldd525Ov61/4wJN817se5+zKeczQMiuvED0+0YopInVz4JSMuwjsPsHdx+rqKpubmxhjeOihhzDGcPnyZZyLPRXOnTvHbDbj4sWL/Nqv/Zr8zu/8Dj/wAz+gH/7wh/ngBz/YRKbUxpLZbNZUpO52uzh3d+b5LRDc7WY83wu0U2WU/SyX9ZmCi1ZFManeSJ3YuSiJVFVzim5OnucECVRhxjx45uqhMmTaIetaMFO+ehV59f/7df30577O933Xw3z/dz2DD9MYMC0VgpITrWgSQuyeszSolDHYNChpo5Xjp2Ep3fYE+6PmUCLCxsYGqkqn02FlZQUR4eLFi/T7fU6fPk1Zlly8eJGPf/zj8ulPf1rf8pa38LGPfYxnn32W9fV1IBJebUGOkSr3k+DULHGDZYSl13vni0tJoXXLXVk4kOviRnUfNGkFVCugogRTN6Wvc88WNVoA+v0BXj3Tch6rZeWQd/JYMkIteTZkNpniq4qQB+bzIJ//GmxsXdSXvnyRn/qx91PKNl6mBOaIVuRaYnGpZ176RlVsiOUUYj9yAbWL+ipqULGJwKLl7IQzHox25kBNLCLCfD5vAqNnsxnXr1+nKApWVlbw3nP58mW5fv0673//+/mxH/sx/amf+ik+9KEPNW4K733y590do9fBBFdnfseZe2OQp2gTrCuioNpSSxacZJELfutY5NbFoF5P6tWmAB6jAZvBrCrpdvvsOMWKodOB6xX4TJrA44jQ2ol/aAgECbGXthCL3Fa+KXFQ+ml0epscrSo8YG3gtQ3k0hb6b770v/N9L6zzl77nnTy+psxGr1PMNjiVKf08YzqfY9TSTyX9ZiHqjpJ1yLMMI9eSsSVPtU/ib8uS306lTgQ2Nz6DEzQpOe36qgt3jeBcIMsW1ZG9V+K9jH+fO/cQ/91/97vyuc/9of6X/+X/nbe+9a0MBrFjTkz9uV8EF4ecWFe7v1vrQe/rRLp7ImgdqxE0S1wulnqweIIECpHU2zRZAdtiXGyvs4tLLI9NEKyyaDesJvEXQ92VNaYaGYRYqqGsbZ7eiesaPvGpTT7/hd/XD/35p/je5y9wur/CeHaF4OaY3jpTV1LOPJ2OodvtkWWrjGcZO6MRce2q72O77XEdxSJNCYsT3H0YY1BVLl26JJcuXeLSpUt6/fp1er1eU+z1buAWjSaLAjcHn3p39b39LHZBAiIhtQpWkFSYr70eAFlYpLwsFwRqlz1oY9HtRwFvQnMt6ipaxAqdwQiXNyt6PXjlKvLbn3hFX/qTb/ChD7yD5x97jJ3qCuKmrA0H2LxDILA1njBnjO+scOrMaYxewaIpf66KpiHjYgn3lNWsd0msOcGN2NnZod/vE0JgNpvxzW9+U2rndx2Fcjdwd90CexFZk8F8F0SfRpeEJiM6LflNMSNotS5myaZS+7a0td8Mc9/h1URaZ2DXdSpN4jgZXgKdYY6agFPPtq/kf30p8Kev/Im++O0dPvDeZ3nqwnl2zIRqGshNhXRWUOlTacbOeCcWWpK6ZaOkimeeUEdinjjO7ylmsxnr6+s45xgMBk0H1vF4fFdD446PH07NMleS+jUScywxB4gkQ0nU8epp6kw8bnTvPnU314XqEu9hUfpPM5pSt2pxqqivYmB0YajCnFe2kY3PzvWPX/4C3/2+R3n702s8fv48p1ct8/EW46ljhhCynIUw6WrTauJrgZDI7kSevHeoA6Mnk9jHuyxLptMpVVUxHA7vWnjXsSC43ZbPKNgugoBDqi/jTXytCcpASp3RRg31rWstRXPIjdEd9b4kXYrkwF6UsjNNo8lyNqO/2idoycZoh06Wcf6xM8zHI3npW2Ne+Rff4t1v/5a+5x0P8863XmBtcJq8b8npkXW2YvGaEEvCR6HdEExsLmL0hNjuNUSEsiwb66YxJnU2cndNf4NjQHBB9jLI1pEbcROpC5svCtCKhti5LqC5BAkiEEzzaaROIDXJy7C8vzhO/J66MpeYpVHUWD9zhs3rVwBluHYOYwzfvLxFLvDoY4/o1pXX5Q++iPzhFy/y595+Rb//hW/jHW97GsVw8do3m/FHc5Q24nnNUWsPwkmQ871Bu8li3a7KWktVVYxGo0Mnsh6EI09wwB76y6KqVZv5RXUtpcsQyAPkQK6KDwrGLURTrTlYMoY0cmZYXKz1fSGVOmiLdto6f/PaFfqDAdYaxpMJIShZHvuGff3ipgx7A4YrFjfe5o//1MvL3/gTfeuzX+MDL7yPhy68haBfbb5NVJaCnaOILCexlfcQdZtm5xwbGxtNTl6n02laEd8NHAuCC7KwMNZ0IUBdMjBorD3oPXSspZNnBPFQwUoB5RS8+Mi9JNxgwQTwrvX+0gkpracCLPQHHYSM0bgi+ECv12NeTukVBVrNcS7QEQjWxDQBMoqiz2Re4oPSzXq4aoqbIn/8lZl+/Vu/z3AwwAckYGNfOpOBxprNIRWtlVZLrjZqhf6o57zVqTG1TlQnitaNFw8z/rpHeB3xX1UVIYRbrsq1nx+zbolcc7O6+FCn07lr/s5jQXAQ9TNYFqniih/lrE6nQ7CkjqGbTMtvcX4NnIXMoJMQa/ir7uNiaFt9Ww9HBZzAyvkBf/bqWOaTMU4F6GHyWB8xaA5aIjiS9yBZSqHpcC5FbE4lFsRTaYWbq1QBtmdTDSJoEERyYlhX1FKNGhaVoo9KaN2tY3t7u4n2qIv79Hq9Jom0TofZD957VlZWGI1GzGazuNClWpSrq6tsb2/fp19yZzjyBLcwUEQYaVUjTpNQFLa25khhmHvH2nCVhwYZP/vjK6ycfgIkJ7O+8Z61K281ZRH2KPSjEpNMJ2aVl14r+a/+8R8wB7bGStYTXIBZNcNXJUUWsOqj3ieKBkkWRvDkiGaEAE4NRjpgoQwVVanYMogtiqasulFpvBntgrbHWX9bW1sDIrfodruNrlRVFePxuAke3g917+8syyjLsin4Wgcp30rb3zcSR57gINkHazdAmnSNjpM4QJF5il6f+fYIyxTjr/HOt66yMsyw1lCNx03VYyQsGSkAXAoDMkvfafDkTEyHc488y7/45B/o5W2YpuiqmStjYqt6inQnJfXFQ6VpN6WACR5UCBbEGExexOaLQQk+UPcYCHUvK6njW3ggLJR1YmdZlrznPe/hp3/6p3V1dRVVZTabHVjGYD6fN323nXN0Oh2892xubvKbv/mbxya+7VgQHLBUztxqLKFQdwvFGIbdAUW3x2g0wU23KSdjjIPtK9fITE4378YJv+u6zX4Iy/vxwggZYoRuZ4dTHbg0i7aXECpAMVlOnncJYQqkBszJub7IggsURnAaCD4SHgUYk8eoFx/1zza51zl0dUjbrdW2PHro9XqICMPhkI985CP8+I//OCsrK83xg3S42mxfp8/U4uTrr7/O7/3e77G1tXVPx3+3cDwIrpUsuuhksyi4GgJMJlOchtiPOzh6HYvtWXwVyPOMajZNn4XlnLraabdrH6Uuco7McdMrvP2xHi+/MqVfwFRTo3hTYIoCN6+AgNPow4kipTQZcZkhBkSHEA08zqQCNjYZRepYT230tboZijYRLscXIsLW1hZFUdDr9ZpofVVtSuEd9PnJZNIQnKo2uW/HCcf2KS70uNRMBIubV3TynOBj84xqNqaaTXHzbZA5mDEqI1R20mv99w7ejPBmhMo4bSNExiDbGHboyYTveudz9A0M8kIlKEWWoQLzyqWSeBlOLBWxXIMzGUFihCRhRmYcWeaxJqBUeHVxQ1sVlmMrZ5otNgARjn+Kzm6iqnWyWhe72QaRS9acsNbZsizjR3/0R4+N0H08CC724132TQnJNxatjtbamHSYF1igV3SwArmBbp5hxGNswGa69yYeKx6pN+MRU2HFYUxJNb3CI+e6hDlQlviyQmIvWLyvAIlRJ7FqZVOLstY/564iBI8xQpbZpvtL7f9Z/K4by+E1SbPHHN1ut/mtZVk2ZniIVsibbXWh17rsAcDrr78OwLve9a77/2NuE0f+KdaJmSbVI6ljRVRiASBvAsE4nHiwEh9MnjMdzwGJfeFKh6qgnn232P/X0jR48zaKhSqIVgyGnl53xjNPQVVCNy+YTiYUORjriYqbwWiGaJbGXUeoKKbo4GxGpYpPffWktrSGutlHXW0oxYNiYnJqIuBjnS0QFIOQ2wyCUmQ5nbyAoOQ2w4q56VZztLpGJcAjjzzCxsYGL774YhMDWReBHQwGTKfTPTloXYvyfuYS1vVBj8UTrGuSLOIaIYgSUjGgkLzgS91C9+iKeuBWf7bJEKgzyj3CDA0jHjrfJROwYigyiwSPUq/UKeq4wSLWM6QKzK0OektFz/c3+Z+URoeFU9pau+ToXllZ4dFHH+Xs2bOMRqNGt6uqqikKfJRwbJ7kfn3SgiwyyZcnbSSi0CSQHnZrfb61Lxrwbs5zTz9OBlgcuRWCuqahR9NocR/iqWtigmk1Adnv/BNCa6NNOMaYRqzMsoyzZ8/ynve8R8fjMcYY8jynqqoYDLFPxeo3Cg/4E717P88QfWnPPfUY1kJVuZiu4z17Rha1nOvKScm7O0Vb/KuL+9RWToDv/d7vBSIBdjqdpoFjWwQ9CnjACe7OUetZcQucPj1g0IuuiBDiA7fGLLjbg+ClPoJoZ1y3Ww6HEJjP57z73e9uir9CjINs62tHBScEdwgYFfCBjrV0c8f5M2AFRH3KubMpMqQmttBq0Hh0VtfjjHbf7jr+EmgsvU899RQrKyvM53Occ02TkzzPTwjuOMJXgU6RIWHCo48U9Ao0k0CGQUNo6WELAmvea1sgT3BbuJllMcsynn76aR577DGtk0frVBtr7V1NIL1TnBDcISBAcJ6OBQljzp/p0i0gE4mmf59SaFiOx9z7rxPcLmpiqqNTyrJsiGk4HPLoo4/S6XTIsiwW9E3Z2ycEd4xgNAYTDzp9ysmY4Hd473e8g8k4magR1IemAK1pLJbLt3a/Ffq49G97o7G7111tjWwT4E/8xE8wGo0aC2ZdHqEOB7uV68PNueqtovED3vGV3gQwgEVS5EpFt1NxZh2MOtR7shSEHGtW7i06ngiU9xbWWh5++OEl4qr1vqOEE4I7BESjYcSi5KZi2FMeeQiCh+ACucmb/LzlRNHaaHK0HvqDiueee4719fUbCgEdJZwQ3AFoHNM+YIJHmNPreB5/fBgzFVwKO0t5douaKCe39n7jiSee4LHHHtOayGq3wWFKMNwvHJ2RHGkYfBV7v6Ez0BlPXDiNtYmsfGiILZhFQPUijOuEw90PDIdDnn/++Sa6RESaUK+jgqMzknuCuzfRg3PEukAVGqY8duEMvQLyLEY+LFfUuvF7H/Ab/YajNpS88MILS7pbTXhHBcdmHizyxZZhFp0VdxWMDckZXWdN79alDrO/jKIoyFQJ5YzzZ9foF9DLARdSpkCKOGldr4mfbGJBTTPWuoJYO8Zy77jOEw55EGrr4gsvvNC0C97L8vhG41gQXC2iBVkQlVHBpPqNdfWuJeeztIks7cst7LNIrzEaEFUyiR12jHOc6nYYFNDPRGPBWEvApnw4UhZD23gSU23QmDEQ0vH6nP2mRDsx9QT7o+ZizzzzTBNdUouWJwR3C6grDwfVVo2QRGjBYIOJ/bsrj7pAv99nexTLHRRFTrdboOpjcR9RxKTtoP3mPY+YQNASawx+FhjYLlk1491vWcOPFesV0QzVDk4ynDF441HjUiUuC74ALQCbFo6ANzG9yDfEzlKqUCRa36Qh7cXhj01WgRG8BlzwsZho2moOX3cI2m87CHUgc7/f53u+53t0NBoRQmiaMx44vD3y5e4FjsGTIk5GI0sTrl0qz+gifX9Wzun14oOczku2RlOmZWy6573iXb1J2uK+q0hbWGwubqV3VHgqP8EYyK1i/JgLD68w6EK/m+miHPoiEx3ABBMTUkWSj64uo6CL16XftbvU625R+XhiNps12e11nCOwlMF9J6gzyUWE559/njzPb8gQPwo4HkWE9kBcFVMpOQFF8QRm0ymDlSHWRgtVcIq1Gb70xDy0vdeYvf01qWuOBuyqQfuBzArzbM6susLDFwbMPezMt8Xk/VgISFxs7AigGRIsKFhKwOPFYYgFaZG0lrQyEmxK79OUtCpSVyzbj5MdD1Gz7ZCuqybXuhZwIEc56HjM7I/9Ad7//veTZVmT7R1CXDiPAo4HwaU6jYsJ1ypAl0SSoiiw3Zzr29tMq4pqrHgFISO4Gb1Op0mx2Qve7/2+SZWdPQ6ZeiYa0A4Ehafe8hRnzn+Z0SUomWOwKEpQUvvgKPbGC1UgVcO9rEJQ2xRCWjjNY9Wuurx7rU0edy7XzsCufWO1blU3PrxT1NesXQPXrl1ren93Or07vv7dwPEgOBaR96b1Rl0cVgVG0xGdlQHBCJVm0BlCyFlfP89kMkL9BKhSv/CFmFZftybEer8+rgSQgiwfMvUVM+cJ2mOqBZ1Oj6wHVQCsr6uuY+qGkE02d8CLQ4wHjfoearFEcROITUWWjCN1GcCMumzt3jrc8cBe3We891RVdVcILnKxWCD2ueee461vfat+9atflX6/j4gwm5V3dP27hWNBcHtllamEJW5VugDzOVnRwdGn6D3Cn/3ZZSq7xsaWMlhZAymbzzSZM3WNlLpMQ339peNKz/YYuxnb5RwfeoxcF7Ytq2fOsba1ode2XEMOraoPGKLhIxopNRYqUkE0w4R88evqytKEhTV2qc7K8SU2gOl02gQS1+Jl24p4pyJlnfsWQsBay/PPP88Xv/hFRqMRZVkyGKzc9PP3C0ee4BaczbT2ozndEGPmVGBltWBWKZntMi0Lrl+z/PZ/8xr5ymu8fg2mAYK59VIHTfGiOVgbu5ubLvgcsv6XePn1Ha5uBcHmTeXIupw6OIJZmPaDSuR+ZNjQQRLBqbhF+XXjm/52kC1lHRzn3gJZltHrRbHOe890OqXb7TbGrjvlcPV1yrKkLEve+9738q//9b/GGMPGxsadDf4u4sgTXI0FN1tMwCBgm1mobG9X9E8Zit4qRXaeL78SrfFXp0iZxQ48gYVK2H5d6E2L1/i9Ud/KK+h3Cy2dpwxeKgMTv0Vn2KGiQmRRAkAlNAuDweFNwBtiqT41WM2jq6B2iBuLJ3I1b4gOezWgIZVgP/4cruZkV65c4Z//83/OZz7zmSZ7u11ReT8cxOFq7jmZTFhbW+PixYtcunSJU6dOJc53N3/N7eOYENyixn5935KvmwBNkuHqah4NJsDUK51VeH0TQgaVgEuNMhSJfeUAayQ61aNhHxO1NkxDkYLTDGc7TMssdmkzgjceMscsgBYZQbVxYhuN1kWjgWA8QQJiC+ajGZkKa6trOtueiatmiLF0ewXOxXbI3pA4XNLraIvObcPR8UJRFKgq586d4w/+4A/4+Mc/LnX1rbqIb429+rcdpvfAbgwGA8qy1t3u7X07rN/uWBCcoSVaCskZACTzugiRG2ABQcUQsDhgDjInw2GoMCAGQZpe36F+oOkL6vc9ASSa4o1YnMkJqUAeItFpbUrUlGCFEOqe41kkCwVvAoqPjQjLin5/hQ4dxpubYr1wZm1NrRUuXb8k0s9SAxBJ/eTqxSQs/f4THG8ceYIzyV/VIHGdKI5lgENUMWIIrYxrFXBAZcAZoRKDM6km5KFW0ETUKmADMEelAs1RsUBATYWYOeBBop9PgwfypCvGsSpgNWc+mtHpCOvDHDeeMt++KGICBY5Ajk8/VMRElkvkcjFaNEWf3HiH0uvRyvs6wd448gQHi5y0JV+UWpBFlrURwRA32/ShSVXLDU1wMUj8L13PaDS6EBaiXPsVtOnvHdJ5UodZSU1oDiMBDSDkC+tizSEJ9PtdxrMddLoDmZA5T2bQU+vCyrmH+JOvXxKvOV4tqjYuIqlX+Ql3e3BwLAgOAAmpRzepUUYdtBxLohmvGPWYEFLDABOJTWN4VV7rQUm/EiJBGqmjQnTRdbT1igS8cfgs4EVQmSPkyfTvMCb6AFRBQ+K6mkeCVMBUWAU/nXCqV2DnE2yFDgt44TtP89RbnmZj7PnaNy7FVlZ08GqxAQweq6ngLPtZWI+INeAEh8LxIThYijlMsfzJeRwap7MQWmb5iGAC4qMVMbZ9iiKppCvECa2N5Np+VVziMgGLQUMKblWALBI40UpmRCCkjAABxCMBLB4/9ngD5wbokw/Bu992hve97+3YosdLr1ylUHQeEI/BkKXfAjZxOXc8bSUn2IXjRXB7QWvTetyN+WiK1DqZiYYQbalk0mrwGNsghoXjeynSpNWTTTUSj88RisjJxMV8PCkxaoEsOvvStdU6RAO5wKCPnhvC+75twIvf8RRPP9olz6Zc3rhK5kpyIENwQQDb5NWZ1Cgkjsss67MnOHY4FgS3FHUhkUMZYgR4EAExeEJLxwtYUWzKTVVJTu90VGrqrA0OSfSM/q90hcbET8qJW/jmFvltGWj8jOKTrukwqoiU2DDDGugo+p63CN/9vud47zsfRdxVyu1X6Kz0GXYyjE6wpN8o0TUh9XdjUGNQOWFxDwKOPMGF2iKZiMlqTPOMpv84Nb2Y1CM06jnR1uGbWpF1F50m27pFPC4pa6YlUib3eIz+SP40F6DXySEExpMtrOkz6K9oUCM7OzPOnVplsnUN40d0LBQSjZpvexy+78WH+a53PspKZ8Z8/DUK6+gWAcoZHbqYUFEGqERjHh0lmY9eeScGlRhPebMA5jrqvm1tPUqJlwdhPz/W4jcctODcnPXv5ed7I0ovHHmCg+ibChKtfRJSfKICBiqxqEgil4Upvd1LLr63O4IkhWGlf+PNb2d7LzhiEOj2uozGM4x41k6dxlXC9a3LYsVwZm2VyfZ1cp2zvoJ2FXoG3vftff7Sn/82Hlnz2PJ1+uqACZbEbsXiJHUST8abJkA5mUmbgkRy/KNNTnBMCG5PNHrYIqSqbcWTFhcTAiIeu1RXxKQg4niGSBLbxCVO4hfiJRnTuSPv9NBg2dragiAMehmFsWi1SRFmrPfQvIS3Pw0/9pffy7MXhoTZZc4MAtNqRKaCpcKQp+s2o931ukjVgQcjAfUEEceW4Nocy98wIW8UPxahUrAIkVou6lOb32siVGws5SCG0gWKvIMRmFFRZIGVjqCzbfxceeIMutaFf//738r3fedzlDuvEEYXOT2wbF95nV4GlgyDb1oIw4ILy24Hfz3SE2J7oHCMCC7pcrcoVtXGDk19t5vPN5ws6X1JV2w4oGZpPxplBp2c8WiH3MD59VWo5kw2t1nJ0McfgXc+a/mJ/+ADPLxu2br0x6z3Ax1mTDY2WOnmEBwH6iGtzIC2+HuCBwfHiODuBDHhk1baDADiUZOoTlIEs5Csjxap02MUbPB0JSCuZHJ9Rgd48gz6ne9c5wPvfpxvf8tpJtdfxm07TvVmlDvXOXV6jfMXzvHyy5fpD+HGxaJlCT3BmwJvDoJTE6M/MKAuBgZLyaKkZQARxJiUDhMwKYVG1GDw6GzMeuHIOmjPwLMX4APvvcAL73yMx88XbF78Mmd6JcbN6BXC+qkhVy5tccnBU0+d4drGdQ7i0HKMswFOcDg8oAS3PKmDmFiurhZLk4FEat+cgG3CgmPgmBC7mxoFy5xT/VKrsXJ2Hf7S9z/BX3jxWU7154TR60wubXO668DPgJJyqpQKp8/0IFhee+0a3b5lf5ywuDcLHlCCWyCQTO25x4XYRwwNZNLB2tRQUT3BVWQiZNZQiEU0oNUcdSWFwqkCvvv9A77n/d/Go2czsvA6xXREJ5uSmRm4ElsHOFuDV8t0rqBKpz8g+BKb35x73cwaGf1IKRpmj2yHBx0H5csdhDvtL1B//53e+wee4GKkiWPuSrAZtshTdrbgvGCwmCD08oJyuoPzVaw9aaAjcO4c+uR5+KHvfoZnL/R49IynYJtqeo1Mp1g/h+BjVItG/15QQcma/DlBCVRYNXtS1Ykl8s2DB57gooXfo9ZjM0GMoMHiS0FdtErmmiFBySuhXxgGnaDqYb0PP/BCjx/5wfexLtsM7Qz8NvPRdQpmdDODGIMrfYrIjGXaYrnzmLCqkiG4Jp8tDupET3uz4oEnuNq3lWUGTMC7OWiOqCU3GRmWDkqYX+f8aqFZmGEcvP89Bf/xf/jdPPWo4co3/hjMjFLnqHdICHS6QscaQkh+QK2TTWv3RRJl96mDeYI3Jx54gpMk5uEVvGKCYnFkmSVTh/UVeZhx7myhk40Zz1yAn/nxd/HCd1xgtvkK26+8ymOrOdVkQiYBkwmqsfZ86aJRs1IwEt8P1FmqLhk/PUYDKj5lqsNyUdsTvJnwwBMcKXg5pxOdyVRocIRqjA+QS9zODip+6C+/he9/37OsmA1Gr/5bBvmMU30lTDZZLaI+piqULlCVDsVjTIaxvVap9KRc48lEAdfk1UF2UpzkTY4HnuBiEHOBkT5WBdEpldvCAGfW0KcfgSfOwV/+gXfx8BoMzdeR2TVWzZSBBDpOqYLgq1hX0qvg1VCF6NfLTE6e5Tg/AwlocIiJRGabXj+GqlWe/eY44X4PMh54ggNAhXJWxuYOCMbD+gDe8XSPH/reJ/jAux+BySW6fgdbjsjCnEwc6gIaBCuC8+A1oCIYyckywafKwZV3YGIdyWgqrltdJXFWdDlZfXlwe7yXKjEvGVdOdMEHAQ88wQUBpMLkSsCh3lNkYAP61PkhL7ztDMXmn9ELnlznsemGjSFfTgXxdRJqLE4UhFgzBYmVmDWgWhtHFkShKjgNqUNr1PVq8pG6fgKLAql7opWZ3sZeOW9HqY/1Xmj7sdq92Op+bAfl7r3Rv+9uff8DT3AxCzUAFWAIEuMoLVCEOb2wQy/s0PUWq45KXGwBKLHwnDUBVcPSfJCAhDqfTlK3nFaCqJpY3hzTdMFpZdctXedgznXC2R4kPPgEB6RszxvejQWHQswiT7lxN6b7LEfwLz5cVwGThqiTMNn6nILuRzJ7vXtiUHnQcbTlkLuOReecRe3/2nWQ6GaPTxyUAHrzaP/D3OITLvZmwZuM4E5wgjcWbwqCa5orHiIz/AQnuJc4mXEH4Rh3HT3B0cMDTHAnhHKCo4dDWylFYhMMahO3JB9S+u/eZ5iYWw8EvhuDOiaR/Xv5sd4suXJwdOpOHoTjMZvuGU644AnuL27BD7coNb7oL3M/EW498PfErXWCI4YHlMMt6k0eDxynsZ7gTnALT/owYUj3Eruj7Y8bUR0GR0/nOMHdxS3O2H1ktMbRdf8I4FZIX9Qsv6b3je6OJNlfBr2zuiOLKst1+FgTdlm/SvvcB20hOUGNQ+pwugi0jR0nkj7Vmvb6Bk0UUUQFI8vNN3T3jG7adhy+8KpKbKwYWnX+7wqkrsC1T+5bKj7bail59777BG8oDkdwUjcmDCnyPbbDDRJi7ycsaLEgxtbcXLSQut0JW1cJib2ugyFG70vdgiq1mlLFairkk1oSN0HIalIlZbChxAK24TLpXBOw6tL3BZQMVGJrY1L/t1v4DQ1NUZdaj9exqtgQWrkD0nKqKGiGYvFS93g9wYOEgwkucTYjsZuMSIGqB+PJBJxXBBsnis9AYsfOgNlNe3eA2HYXAY8hSGyGEQnRYzVg1NHrrHB5s6RY6TOZOOYeygBIjmiG9YrxM/o5miusDlaZjCtWBwN0toVKhZj4O2PV8wzVDA8g81YzkBt/l62JxpjGJxQZo8REVDFkKhQImrITvBEwRXoKGxAUNYYgWfRz4hAqjCi++e7lJiA1J6/FZb1JZMxxEVT38qMd1OruqNSdPAi3MMr6CdvU6KKlf0BTjx9dbh8VhNQp5nYHH0BCqowcCMQqypqqKUvKRZOgEDxFUeCcI8s7dLrQ7xuyLMd7yIoOvW4PHxDnIcsyOt0hs7LCm4Baj4RY8i5rtbKqx347epyklsi1bmY0Je6ke+PF4sXSfrYqgpfYaDLW0LxzHBdie9Bx6OcQJ0GWNhsnPtoQVdSbAkFSc8FEaLEgqrlDottrQK2hS8BaQwiOfrdDVc4QAt6BrwLT6QSHMJ7PcSimiO08xvOSMghznwhAFTWxmZTgsTis+lj2XKPoesvDTPciAF4M3qRXEQLxfurSY2hzUdNsu40p9XUX++Gm3O0ERwOHJ7jm4VuUKGZ5lWayGKpUj98t+aejaHl319elnmoJxhjKsiTLDMYomfFIAD+HTDydTkYVHDM/pzPoKAZcCLjgsXnR6IN1ur8Vjb26cUmXurPJHAlM8GpTJrhJrZIX98ZIJHTBU8sPWrdcvkOckOLRwKGe5MIIEQ0RXkhi3cLsIDLHyhRLhZVFJ5jYDvjOJ0yUsffhkmqoQmBWKnM3p+gIRVZyahV6GawPu+SZI+8qKoFpORfJYPXUCt3hADKbRDyDBE1CZKwtafCg1S1HudQuAEiGEYm6WcDiyfFkqX95aM7NUDKpMMwRHFGEbi12Sxzt4MTY3TghujcetyBSLl5rY0idJW3Vk+mMnJJcK80BG+KkvXtlGJeHKrUhJdUfEWvIO1C5KSFMCX6TJx6BrkH9dJtydI1TPUsePLMd6Ofw6EMrdAqYznZYagAsUJvtFc+d6c77TfO0WGnAqidXyFXJgifTEkuVuOsJHiQc+nmKRqugqDaT3aBkWpKHko4GehroqdBV6KiShZBa7NYi2Z1Tn0lG9GVCDnjv6Pe7hOCp5tsYv8H73/MIzzwMxRz6HjrlmH6IjRQ/8G546qECP7mG1WgJlBCrdS18b7Wl6tZ5wxIHqn2W4qLVV+K9s6pYKjIt6Ql0Ue0SKNSR6ZyMeRIxww2LV5uDnuD44FB+OCHqFxpi91DFI6qgjlwDmfo4YQTti2cAdHVKESoyXBKP7gBqYmm5hmCjuNp2YE+nMFzvECYzVKesD9f4i9/zDv705evMJnPdHINWDpvB979rwA9+33M8edayffUKZ4dd/GwzEp0qqlEndOkrVczBdumbwGjqN9cYYGITEauOjDkdHdFLBGpFNRNlpkFKXDRMvVlqPb0JIMPhKrB3PtUCgSwzhBAwpqCcTekUAa1i77Tved9z+t3f8SgDs8Mpo6wXU9Z711gtxvQLpTAHXf8gRK5AcnhH1pFBapyIOCxKEMWLxUnOTPqUrDLnNEGHXLy8SSez9LuWQeboZyMKMyUPYwgTsqSvicLCdJFRi34SEktJbKvxte3ah5YfrvWbQ3DNca/RvFSS48kpGfCFP93Ad84z1SG+OMdXvznmn37iM6KFwYtFTRG55h41Kdt/dzodAKbTKU888YR+4hOfYGdnB4LS7/dZX19nbW2Nwcow1oRU0nO9x8Kricao8XjMtWvXuH79OpPJBIjumb/xN/4GX/nKVwQWhqssy5jP5xRFERvT3gR36jO7X364wy+dqmhwIILBkSGoQqbQ0RHf/pZTDLSkV03oakVXAxkB6z0hBMRa7rY3SOosITV4cakqnUewZFQIo+i/022eXJljDXSskIvD6hzjK6yfoWGOzRr5D1VBJRKbplukUt3B6AM2LToaQqxlGSCXEkvASOBtj2e4LLDtAlMDGxuGfg7eQCkWR0g9WfeGtRbnHGVZNsVWT58+zTPPPIOqIhrPybIsTuj0c51zhBAoiuK2f91hISIMh0OGwyEXLlwghECe50cyUfRe4dAEp+qTrSyu/ZLi/fKAdqlYy+cMdUpXpnTCLOpvWlfUlcZtfUdEJ6GJqCA5kFFJ7YRN44cSDeQaQ7hy4meKriAayCQgIVoeNVQQXBQhvSYnfbqeCkjt+7p9+16tZ9Vh014ECZClQrMSSowEeoM+Vabkc8dIS3q2Ilc0aBDvKsiLxH1b110wXLIsI4TQbBAneLfbjbdLNU7ssCxpZFl2h9LH4TCZTMjznDzPgQXxv9lwSwmogRg7WRsEDHHiGC2pJleo5BKFm6NUQBXN6mk1vduPNLYKNknii402BJPiPiORGUqMRr+gCQEJLoZPSUBEsaQGjRrtkfF6BqPRBbK4/p1Dk0iFwiLSOiTCq/CzbbypwJdAF3x0tpNEvoOGUXfvsdZijMF7j/ee+XyOaYWbSdJPxdZLgNwXDtPtdm8QW51z94XYjxIOSXCGoBontUgTXiXi0QBGPN1C6eLoUJGHCrxDUFxdAtxk3Al3q6VHqDvikETINHGMJUhoDCmidZFXn/QUhzYBiPElSLJ4GpvYjYklzMUgGIwAGggSGvH1hiQE6mstxgYLm6xpzWUv0QAT1DZjCXgsinMBIyWWnExK8izDWrAWMvLoCpfFF+9exMqyRFUpiqKp118UBUVRxGcWYqOR3ZbNurfBvdbhdl9fRE443H5QSMbpqIcFqaIjVkmBuQJSxcltHEZ9rPmDIMamiXGnD9SgBOx+C6IuIjKEWL5cCNgkDZo8hqJFPUoIdRMMtdEYkwIchcjZFoJkwBJD1tr341YQw94iB42BybEPuKin7k1gLagVjCim7iuXiNVrIJDf9DvyPG+4nHMO5xxVVTXH9+NitQh6rwmu5mZtcbfd0OPNgkMvMXUcoIqkKWiXSKiqKirm+FDh1WPExsBbY4ly0T0QHZpOovVIYnBzJMrQBAoHokjn07m1eKdeCXVTDjGNAQYiB637u9UOid1cJdRpgTdBHSmCRMunisGrRTSm5QiKpDoxYqA2x8XJCaUncr+M9DsjUbWDDwDEpjDrZOHz3lOWJWVZ0ul0Gg6HgpiFm8Nai7V3J0D6ZngzcrO9cKi7UAcmx6cbCcmGDBtiFxobYNAd0GNA5gLiFR9AQ6BysZFGbhcT+dZRk03djUaTgWRvg0YteoWk0wWB0vkYfZ90FlUwYgl1Lk66lhFot4lqp8E039givLBLxtzLva8S8/gCFg1mQdRYRF00zpgQCdBG7pqZ+HAyAWti0IFvXa/+tvrv6TTqankvp2u7ZFlGr9ej0+ksiYwxiEYXRpT7hJr71pytjXCQzf8BQvPLd/frqjdN+XBr6z0Nbsqg148t1GaBU3lPewFkOkNnAVeG2GTeQLABzWJPbJPFGMy0ji9Vsaz3FyFje+xLPVTTpLUEUYJE/aoe4yIUOBo9nDE4k+EkQ0xGJhlWBKMxf01EMYbYtztdJyxtpOj+Oh5SmnSjdoibQlTedm1i4/tqFIfGbARVbIjpP1kAm/rO9ftDtrdnzGYzet0CG0pWumBKWO90yVTo5AXee0SEtbUVPJ5ZOUeNkndzJIu/aTIZMR6PGfT6XL18LTaFTBGiTQSMad3j+7Dt7gXX3kSE6XTKZDJhZWWFqqrw3pPnOYPBgJ2dnaU5udd2x4Swx9y/FzhYeE6r8bUrV+T06VOUoy1yPycPEzI3pQO8+F1vI9Oq0a8UENGot+zugbY7Jukw+w2SuCUhPUifvsMvwqfSeXV5BC910K9ZvuYNW7yGmnjN9rZI344W2qXy5ylU64b99laHtklsj2UIGE0JS+nnbW+P6PUsp0+tYMXRyec8eg76FvXTEdVsTDmb0O3kTKdjrly5hDEGmwmdTsFwOKCqKra2RnT7PS5cuMDb3/4Ozp45g/dHn4P8tb/211hdXeXq1ausrKwQQmBjY4OyLFldXX2jh3fX0EqwWog6bQhg1NC1QybXdzi7NlAbPGvDoOur8B/9+HmefVKwZnsR5a4arX3J4doEGqfJJ7qYhKK3sHGHr7e51cQSr6O3vJnkPhddRMYsCDFSXJZBXhjmszHT8XWeeHiFv/i9z/KutxZ0FO1aBTdjfWWohTUED928IDcZVeXY3NyiKArOnDnNeDzm537u5/T/8fd/FQXG43H9kO/hVLozfOQjH+GjH/2onjp1imvXrrG+vs6pU6cYjUYMh8M3enh3DQfrcMli18ly8syy+dplefoR0bxUfuY/eisvfPtpCn+RzO1g1WFCtBbWWhHUek5YVKu6E25dc5Pbfd3/h+7/lYDR1G64uY7uet3/WqLJDJ7c/9J0RNVGRK5Nkr6cI8Fwfu0c6+uPoi5nWn6VL17yOh6pGI1Jtm40pchz5rMZbu5wlScfdvDe88u//Lf1//Kf/Z8BqOYlq6tD9AgTG8C5c+f4xV/8RUII+qu/+quysbHBqVOnsNa2FozjjyaWcrl+ROvhBIk6R6V0bEnfzvTUAP7Tn/82zg23ePrhHjq+QuHmZCEgycwOtaHFo+oRsbuiLo4WbuaATbx4z/P3+tzuGMdW4k80QmoGmqfzAirKaD6nP+wgNmcyF5xfodJ1JrMBr4+6/Nf/w2f57FenIgWYPKd0gf5gyGg6Q0wGEh3ev/Ebv6E/+ZM/jqsq8txy/do1Tp8508R8HlVUVUVRFMxmM37913+dv/W3/paMx2Mef/xxXn31Vep5eq9wvwxIN+Vwdb0Qq9ABOm6mF87Cz//17+PCmSs8dmbAtYtf5fywj3EaiS30WJCUhzpbQE1jxj6KGsX+BJd0wCXCuTWCi1dJf6e6L7H0BJCMP50uVB7wHrwhVBMkGFa7HXpra/zAn38fVefL+oWvXJYQPJ08YzqZkNsOKpaz5x7Sv/9r/09+8Ac/CMDVq5c5c/YUp0+vc/XKJc6cPc/RXOoirLXMZjM6nQ4f+chHUFX9O3/n78hoNGrCwR4EZI1NIhH47ukjgFXHer+rjOFHf+hF3vbEGXLZYmvjW5w/dQY/HiN08FpgtBdXcALBOFCPGtcyhR9N7CtypYVCU0jb7vP3+tzSexr/8Zr8Z1rXeclaWYJK0csYjbcppzMy26VfdADLvJozH1/nnd/2FsZmhW988/d0exYkt4ad8YyVlRUms4r/5D/5af7C9/0FDOAqzyOPPAIELl+6yPnz56njWo4q0VlrERGqqmJlZYWPfvSjfOpTn9Lf+73fkwfJh3fgL1GiafzqzpY899gp7ayf4xtXZ3TyggsPv4uvfP3PuPDQM5SjEjFdhE7Sd6KFUsURCIipTdMRdabLUXmNMZb7H/e7OFkU0ULz2vYVqnoWUS/JUhvquBUIxNqTjqTvimOyM6bITtNZ7+KDMikrvIegA+Z2ja2JY3XtFMEpbg5FJ3ofet0u26Mp588+RLebMRrNGK50gcBsPuPcuXPphoc9jWJHCdPplMEgWluttfT7fS5cuKCvvPKKDIcPBpeTQ8nGGiMTDGWsW2Igrx2zoCa0rOsxvjleXNJHJc639pRNvulj8wq3VyavNhTZaLSNBKd1Fa/kh5bo+4YmbkZt7Y3wi0XPxYQHHLEYURBL0C4+OvwafyRosoQ6RBe87WbVsY96isydlgu8X/luB+FQvNqbWFbO2AJVG2s3hoV/1yTTPyim5ZeqJ2gUo2Rv3a22+u21+h6xVbnWQSPnEzSVWW+/tklVUmqSQZE6ZEsMocmgiGFmjWCpsVyTKBJjQTVGrwpk6XqNbVSI4u4+qgDUbp7Q+sAJ3mg0Olz7we1+NIYSIy66oxBECzRkQA7ETHCkBPF4KSGFVMULpspdzQNfxD3G43bX+7uP7Tr/Ddvf7QiIwdQ3vKppLRTxfU+IaUr4JhamcdMHA1hSPXRqoTOWWA94E31/Hm1OWVQBa90vSeNKfhdRA5KB1gvgCcEdBRxopazFlCz1EhBfJDmxAC1QFUXqKv5lvKQ4YpRl+gqllRpTT2BzE+6W9pc4nLmz/Xq+3cn1tLGBpFdzw2v7OxblAU2Kg7QsFpM2KZtFCQFdhKqFpOOlKExqsmm4ZDpLW8m3S1gaj7/x+AnuO7LdkkZ7tz5Wv2d3T7j6nPYWQ2/bXxGvkax0DQeo/96N3cfv1v6e/ulDfv6GO3Nr0PYCUhtXZFGPEmI0T/zTEovtaiQxCQ2piQTqjAYv9XVDw3FjYHf9rTH3zVBzwoannuANxAE6XB1+RQoyNWniBkQgRM1OQktva0ioUdBlsb877nAv7D5+t/dv5/tistzNr7P/FyStzjQCJtCEnJnamqmLc2LwdSASn4k5h+girDSJjzVXC42DYcFRpUV4aM0Zb/MnnOCuYUFw2l6FoV4NG+6GRYM2JQqUWdTmW2UOVLSZMO2J1FxPj8IKe7/HUOt4C0i0M0YDSeI8pklObbkXhCaLXbV+VHVKTn3V1iKm8fva371Qynfrpid4I3CoWEoEgg+IGESS6JN6xmldfrkV/HRjw8Pb5Q5HBe1JeqtGl/TeroVs+dqmiTetP28IN2hdtc3zIKJZWFIXIuxxfwIPChYEd4PoVcdDpsOmWDw0MQ1x1dltbb9wPNaagBKIwbm370s5KEnxXvtUbrz+7t+y/74kUrHUAqYQOwlEbmUUSM0+6nPrs6K9ktb9JhmhUv2WpNPRPt7U8EzipmirkO7t3qd7656518/vqJRxOHQRoZvJ/ze9VSctlBLaHK7mOnHhCi2iUVmcG22UocmwaLIMpOXt2+XWaSBtjlvreCd4o/HgBKkdcSxzfWgkiOUT2E0Y7fzb3aZ/aV1n31DQkwXvSOH/ABCtr/0JX9XDAAAAAElFTkSuQmCC`;
+  document.querySelectorAll('#login-logo,#topbar-logo').forEach(el => el.src = realLogo);
+});
+
+// ══════════════════════════════════════════════
+//  DATABASE LAYER
+// ══════════════════════════════════════════════
+const DB = {
+  async getMembers(){
+    try{const snap=await db.collection('members').get();return snap.docs.map(d=>({...d.data(),id:d.id}));}
+    catch(e){console.error(e);return[];}
+  },
+  async updateMember(id,u){await db.collection('members').doc(id).update(u);},
+  async deleteMember(id){await db.collection('members').doc(id).delete();},
+  async getAttendance(){
+    try{const snap=await db.collection('attendance').orderBy('time','asc').get();return snap.docs.map(d=>({...d.data(),id:d.id}));}
+    catch(e){return[];}
+  },
+  async getTodayAtt(){const t=new Date().toDateString();const all=await this.getAttendance();return all.filter(a=>new Date(a.time).toDateString()===t);},
+  async getRecentAtt(n=10){const snap=await db.collection('attendance').orderBy('time','desc').limit(n).get();return snap.docs.map(d=>({...d.data(),id:d.id}));}
+};
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const ADMIN_PASS = 'admin123';
+let deleteTargetId=null, editTargetId=null, attPage=0, clockTimer=null, currentProfileId=null;
+let renewTargetId=null, renewDuration=30;
+let memberSort='name';
+let currentTab='dashboard';
+const ATT_PAGE_SIZE = 20;
+
+// ══════════════════════════════════════════════
+//  LOGIN / LOGOUT
+// ══════════════════════════════════════════════
+function doAdminLogin(){
+  const pass = document.getElementById('admin-pass-input').value;
+  if(pass === ADMIN_PASS){
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('admin-app').classList.remove('hidden');
+    adminTab('dashboard');
+    startAdminClock();
+  } else {
+    document.getElementById('admin-pass-err').classList.remove('hidden');
+    document.getElementById('admin-pass-input').value='';
+    document.getElementById('admin-pass-input').focus();
+  }
+}
+function logout(){
+  document.getElementById('admin-app').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('admin-pass-input').value='';
+  document.getElementById('admin-pass-err').classList.add('hidden');
+  clearInterval(clockTimer);
+}
+
+// ══════════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════════
+function startAdminClock(){
+  clearInterval(clockTimer);
+  function tick(){
+    const now=new Date();
+    document.getElementById('admin-clock').textContent =
+      now.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'}) +
+      ' · ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  }
+  tick(); clockTimer=setInterval(tick,1000);
+}
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+const TAB_TITLES = {dashboard:'Dashboard',logins:'Attendance Log',allmembers:'All Members',revenue:'Revenue',expiring:'Expiring Soon'};
+
+function adminTab(tab){
+  currentTab = tab;
+  ['dashboard','logins','allmembers','revenue','expiring'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.add('hidden');
+    document.getElementById('bnav-'+t).classList.remove('active');
+  });
+  document.getElementById('tab-'+tab).classList.remove('hidden');
+  document.getElementById('bnav-'+tab).classList.add('active');
+  document.getElementById('top-bar-title').textContent = TAB_TITLES[tab];
+  window.scrollTo(0,0);
+  if(tab==='dashboard') renderDashboard();
+  if(tab==='logins'){attPage=0; renderAttLog();}
+  if(tab==='allmembers') renderAdmMembers();
+  if(tab==='revenue') renderRevenue();
+  if(tab==='expiring') renderExpiring();
+}
+
+function refreshCurrentTab(){ adminTab(currentTab); }
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function avatar(photo, name, size='w-10 h-10', text='text-sm'){
+  if(photo) return `<img src="${photo}" class="${size} rounded-full object-cover border flex-shrink-0" style="border-color:rgba(212,168,83,0.3);" alt="">`;
+  return `<div class="${size} rounded-full flex items-center justify-center ${text} font-bold flex-shrink-0" style="background:linear-gradient(135deg,#333,#1a1a1a);border:1px solid rgba(255,255,255,0.08);">${(name||'?').charAt(0).toUpperCase()}</div>`;
+}
+function memberPrice(att, membersMap){
+  const m = membersMap ? membersMap[att.memberId] : null;
+  if(att.memberPlan==='monthly') return (m&&m.isStudent)?600:900;
+  return (m&&m.isStudent)?50:70;
+}
+function calcRev(arr, membersMap=null){ return arr.reduce((s,a)=>s+(a.amount||memberPrice(a,membersMap)),0); }
+function formatPeso(n){ return '₱'+n.toLocaleString(); }
+function daysUntil(expStr){ return Math.ceil((new Date(expStr)-new Date())/864e5); }
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+async function renderDashboard(){
+  document.getElementById('dash-loading').classList.remove('hidden');
+  document.getElementById('dash-content').classList.add('hidden');
+
+  const [members, att] = await Promise.all([DB.getMembers(), DB.getAttendance()]);
+  const membersMap=Object.fromEntries(members.map(m=>[m.id,m]));
+  const today = new Date().toDateString();
+  const todayAtt = att.filter(a=>new Date(a.time).toDateString()===today);
+  const active = members.filter(m=>m.active!==false&&m.plan==='monthly'&&m.expiry&&new Date(m.expiry)>new Date());
+  const expiring7 = members.filter(m=>{if(m.plan!=='monthly'||!m.expiry)return false;const d=daysUntil(m.expiry);return d>=0&&d<=7;});
+
+  // Stats
+  document.getElementById('adm-total').textContent = members.length;
+  document.getElementById('adm-monthly').textContent = active.length;
+  document.getElementById('adm-today').textContent = todayAtt.length;
+  document.getElementById('adm-today-date').textContent = new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric'});
+  document.getElementById('adm-expiring').textContent = expiring7.length;
+
+  // Revenue quick
+  const now=new Date(), monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  document.getElementById('dash-rev-today').textContent = formatPeso(calcRev(att.filter(a=>new Date(a.time).toDateString()===today),membersMap));
+  document.getElementById('dash-rev-month').textContent = formatPeso(calcRev(att.filter(a=>new Date(a.time)>=monthStart),membersMap));
+  document.getElementById('dash-rev-total').textContent = formatPeso(calcRev(att,membersMap));
+
+  // Bar chart - last 7 days
+  const bars=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toDateString();
+    bars.push({label:d.toLocaleDateString('en-US',{weekday:'short'}),count:att.filter(a=>new Date(a.time).toDateString()===ds).length,isToday:ds===today});
+  }
+  const maxB=Math.max(...bars.map(b=>b.count),1);
+  const peakDay=bars.reduce((p,c)=>c.count>p.count?c:p,bars[0]);
+  document.getElementById('dash-peak-label').textContent=peakDay.count>0?`Peak: ${peakDay.label} (${peakDay.count})`:'';
+  document.getElementById('bar-chart').innerHTML=bars.map(b=>`
+    <div class="flex-1 flex flex-col items-center gap-1">
+      <span class="text-[10px]" style="color:${b.count?'var(--gold)':'transparent'};">${b.count||''}</span>
+      <div class="bar-wrap w-full" style="height:78px;position:relative;">
+        <div class="bar-fill" style="height:${b.count?Math.max(Math.round((b.count/maxB)*74)+4,6):4}px;${b.isToday?'opacity:1;':'opacity:0.65;'}"></div>
+      </div>
+      <span class="text-[9px] font-semibold" style="color:${b.isToday?'var(--gold)':'var(--text-muted)'};">${b.label}</span>
+    </div>`).join('');
+
+  // Member breakdown
+  const monthly=members.filter(m=>m.plan==='monthly').length;
+  const entry=members.filter(m=>m.plan==='entry').length;
+  const expired=members.filter(m=>m.plan==='monthly'&&m.expiry&&new Date(m.expiry)<new Date()).length;
+  const total=members.length||1;
+  document.getElementById('plan-breakdown').innerHTML=`
+    <div><div class="flex justify-between text-xs mb-2"><span style="color:var(--text-muted);">Monthly Members</span><span class="text-yellow-500 font-bold">${monthly}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${(monthly/total*100).toFixed(1)}%;background:var(--gold);"></div></div></div>
+    <div><div class="flex justify-between text-xs mb-2"><span style="color:var(--text-muted);">Walk-in / Entry</span><span class="text-blue-400 font-bold">${entry}</span></div><div class="progress-bar"><div class="progress-fill bg-blue-500" style="width:${(entry/total*100).toFixed(1)}%;"></div></div></div>
+    <div><div class="flex justify-between text-xs mb-2"><span style="color:var(--text-muted);">Expired Monthly</span><span class="text-red-400 font-bold">${expired}</span></div><div class="progress-bar"><div class="progress-fill bg-red-500" style="width:${(expired/total*100).toFixed(1)}%;"></div></div></div>
+    <div class="pt-3 border-t flex justify-between text-xs" style="border-color:var(--border);color:var(--text-muted);"><span>Total registered</span><span class="text-white font-bold">${members.length}</span></div>`;
+
+  // Upcoming birthdays (next 14 days)
+  const today2=new Date(); today2.setHours(0,0,0,0);
+  const bdayMembers=members.filter(m=>{
+    if(!m.birthday)return false;
+    const bd=new Date(m.birthday+'T00:00:00');
+    const thisYear=new Date(today2.getFullYear(),bd.getMonth(),bd.getDate());
+    if(thisYear<today2)thisYear.setFullYear(today2.getFullYear()+1);
+    const diff=Math.ceil((thisYear-today2)/864e5);
+    m._bdayDiff=diff;
+    return diff>=0&&diff<=14;
+  }).sort((a,b)=>a._bdayDiff-b._bdayDiff);
+
+  const bdayWrap=document.getElementById('dash-birthdays-wrap');
+  if(bdayMembers.length===0){
+    bdayWrap.classList.add('hidden');
+  } else {
+    bdayWrap.classList.remove('hidden');
+    document.getElementById('dash-birthdays').innerHTML=bdayMembers.slice(0,5).map(m=>`
+      <div class="bday-card">
+        ${avatar(m.photo,m.name,'w-9 h-9','text-sm')}
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">${m.name}</p>
+          <p class="text-xs" style="color:var(--text-muted);">${new Date(m.birthday+'T00:00:00').toLocaleDateString('en-PH',{month:'long',day:'numeric'})}</p>
+        </div>
+        <span class="text-xs font-bold px-2.5 py-1 rounded-full ${m._bdayDiff===0?'text-yellow-900 bg-yellow-400':'text-yellow-400 bg-yellow-400/12'}">${m._bdayDiff===0?'🎉 Today!':m._bdayDiff+'d'}</span>
+      </div>`).join('');
+  }
+
+  // Recent activity
+  const recent=await DB.getRecentAtt(10);
+  document.getElementById('dash-recent').innerHTML=recent.length
+    ? recent.map(a=>{
+        const time=new Date(a.time).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        const badge=a.memberPlan==='entry'
+          ?'<span class="badge" style="background:rgba(96,165,250,0.12);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);">Walk-in</span>'
+          :'<span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);">Member</span>';
+        return `<div class="flex items-center gap-3 py-2.5 border-b last:border-0" style="border-color:var(--border);">${avatar(a.memberPhoto,a.memberName,'w-9 h-9','text-xs')}<div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">${a.memberName||'Unknown'}</p><p class="text-xs" style="color:var(--text-muted);">${time}</p></div>${badge}</div>`;
+      }).join('')
+    : '<p class="text-xs text-center py-4" style="color:var(--text-muted);">No activity yet</p>';
+
+  document.getElementById('dash-loading').classList.add('hidden');
+  document.getElementById('dash-content').classList.remove('hidden');
+}
+
+// ══════════════════════════════════════════════
+//  ATTENDANCE LOG
+// ══════════════════════════════════════════════
+async function renderAttLog(){
+  let att=(await DB.getAttendance()).slice().reverse();
+  const dateF=document.getElementById('att-filter-date').value;
+  const planF=document.getElementById('att-filter-plan').value;
+  const searchF=(document.getElementById('att-search').value||'').toLowerCase();
+  if(dateF) att=att.filter(a=>new Date(a.time).toISOString().slice(0,10)===dateF);
+  if(planF) att=att.filter(a=>a.memberPlan===planF);
+  if(searchF) att=att.filter(a=>(a.memberName||'').toLowerCase().includes(searchF)||(a.rfid||'').toLowerCase().includes(searchF));
+  document.getElementById('att-count-label').textContent=att.length+' record'+(att.length!==1?'s':'');
+  const start=attPage*ATT_PAGE_SIZE, end=start+ATT_PAGE_SIZE, page=att.slice(start,end);
+  const list=document.getElementById('att-list'), empty=document.getElementById('att-empty');
+  if(!att.length){
+    list.style.display='none'; empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    list.style.display='block';
+    list.innerHTML=page.map(a=>{
+      const dt=new Date(a.time);
+      const date=dt.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+      const time=dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+      const planBadge=a.memberPlan==='entry'
+        ?'<span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);">Walk-in</span>'
+        :'<span class="badge" style="background:rgba(212,168,83,0.1);color:var(--gold);border:1px solid var(--gold-border);">Monthly</span>';
+      const paidBadge=a.paid
+        ?'<span class="text-green-400 text-xs"><i class="fas fa-check-circle mr-1"></i>Paid</span>'
+        :'<span class="text-xs" style="color:var(--text-dim);">—</span>';
+      return `<div class="att-row"><div class="flex items-center gap-3">${avatar(a.memberPhoto,a.memberName,'w-10 h-10','text-sm')}<div class="flex-1 min-w-0"><div class="flex items-center justify-between gap-2"><p class="font-medium text-sm truncate">${a.memberName||'Unknown'}</p>${planBadge}</div><div class="flex items-center justify-between mt-0.5"><p class="text-xs" style="color:var(--text-muted);">${date} · ${time}</p>${paidBadge}</div><p class="text-xs font-mono mt-0.5" style="color:var(--text-dim);">${a.rfid||''}</p></div></div></div>`;
+    }).join('');
+  }
+  const totalPages=Math.ceil(att.length/ATT_PAGE_SIZE);
+  document.getElementById('att-pagination').innerHTML=att.length>ATT_PAGE_SIZE
+    ?`<span>${start+1}–${Math.min(end,att.length)} of ${att.length}</span><div class="flex items-center gap-3"><button onclick="attPage=Math.max(0,attPage-1);renderAttLog()" ${attPage===0?'disabled':''} class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center disabled:opacity-30"><i class="fas fa-chevron-left text-xs"></i></button><span>${attPage+1}/${totalPages}</span><button onclick="attPage=Math.min(totalPages-1,attPage+1);renderAttLog()" ${attPage>=totalPages-1?'disabled':''} class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center disabled:opacity-30"><i class="fas fa-chevron-right text-xs"></i></button></div>`:'';}
+
+async function clearAttFilters(){
+  document.getElementById('att-filter-date').value='';
+  document.getElementById('att-filter-plan').value='';
+  document.getElementById('att-search').value='';
+  attPage=0; await renderAttLog();
+}
+
+// ══════════════════════════════════════════════
+//  CLEAR TODAY
+// ══════════════════════════════════════════════
+async function openClearTodayModal(){
+  const today=new Date().toDateString();
+  const all=await DB.getAttendance();
+  const n=all.filter(a=>new Date(a.time).toDateString()===today).length;
+  if(n===0){showNotif('No check-in records for today','info');return;}
+  document.getElementById('clear-today-count').textContent=n+' check-in'+(n!==1?'s':'');
+  document.getElementById('clear-today-modal').classList.remove('hidden');
+}
+function closeClearTodayModal(){document.getElementById('clear-today-modal').classList.add('hidden');}
+async function confirmClearToday(){
+  const btn=document.getElementById('btn-confirm-clear');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Deleting...';
+  try{
+    const today=new Date().toDateString();
+    const snap=await db.collection('attendance').get();
+    const batch=db.batch();
+    snap.docs.forEach(doc=>{if(new Date(doc.data().time).toDateString()===today)batch.delete(doc.ref);});
+    await batch.commit();
+    showNotif("Today's logs cleared",'success');
+    closeClearTodayModal();attPage=0;await renderAttLog();
+  }catch(e){showNotif('Failed to clear logs','error');}
+  finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-trash-can"></i> Delete';}
+}
+
+// ══════════════════════════════════════════════
+//  MEMBERS
+// ══════════════════════════════════════════════
+function setMemberSort(s){
+  memberSort=s;
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sort-'+s).classList.add('active');
+  renderAdmMembers();
+}
+
+async function renderAdmMembers(){
+  let members=await DB.getMembers();
+  const allAtt=await DB.getAttendance();
+  const planF=document.getElementById('adm-plan-filter').value;
+  const statusF=document.getElementById('adm-status-filter').value;
+  const searchF=(document.getElementById('adm-mem-search').value||'').toLowerCase();
+
+  if(planF) members=members.filter(m=>m.plan===planF);
+  if(statusF==='active') members=members.filter(m=>m.active!==false&&(m.plan==='entry'||(m.expiry&&new Date(m.expiry)>new Date())));
+  if(statusF==='expired') members=members.filter(m=>m.plan==='monthly'&&m.expiry&&new Date(m.expiry)<new Date());
+  if(statusF==='inactive') members=members.filter(m=>m.active===false);
+  if(searchF) members=members.filter(m=>(m.name||'').toLowerCase().includes(searchF)||(m.rfid||'').toLowerCase().includes(searchF)||(m.email||'').toLowerCase().includes(searchF)||(m.phone||'').includes(searchF));
+
+  // Sort
+  members.sort((a,b)=>{
+    if(memberSort==='name') return (a.name||'').localeCompare(b.name||'');
+    if(memberSort==='registered') return new Date(b.registered||0)-new Date(a.registered||0);
+    if(memberSort==='visits'){
+      const av=allAtt.filter(x=>x.memberId===a.id).length;
+      const bv=allAtt.filter(x=>x.memberId===b.id).length;
+      return bv-av;
+    }
+    if(memberSort==='expiry'){
+      if(!a.expiry&&!b.expiry)return 0;
+      if(!a.expiry)return 1;if(!b.expiry)return -1;
+      return new Date(a.expiry)-new Date(b.expiry);
+    }
+    return 0;
+  });
+
+  document.getElementById('adm-mem-count').textContent=members.length+' member'+(members.length!==1?'s':'');
+  const list=document.getElementById('adm-members-list'), empty=document.getElementById('adm-mem-empty');
+  if(!members.length){list.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+
+  list.innerHTML=members.map(m=>{
+    const daysLeft=m.expiry?daysUntil(m.expiry):null;
+    const isExp=m.plan==='monthly'&&daysLeft!==null&&daysLeft<=0;
+    const isSoon=m.plan==='monthly'&&daysLeft!==null&&daysLeft>0&&daysLeft<=5;
+    const statusBadge=m.active===false
+      ?'<span class="badge" style="background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid var(--border);">Inactive</span>'
+      :isExp?'<span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2);">Expired</span>'
+      :isSoon?'<span class="badge" style="background:rgba(250,204,21,0.1);color:#facc15;border:1px solid rgba(250,204,21,0.2);">Expiring</span>'
+      :'<span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);">Active</span>';
+    const planBadge=m.plan==='monthly'?'<span class="text-yellow-500 text-xs font-semibold">Monthly</span>':'<span class="text-xs" style="color:var(--text-muted);">Walk-in</span>';
+    const expiryText=m.expiry?`<span class="text-xs ${isExp?'text-red-400':isSoon?'text-yellow-500':'text-gray-500'}">${isExp?'Expired ':'Exp: '}${new Date(m.expiry).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</span>`:'';
+    const checkins=allAtt.filter(a=>a.memberId===m.id).length;
+    const studentBadge=m.isStudent?(m.studentVerified?'<span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);font-size:9px;"><i class="fas fa-graduation-cap mr-0.5"></i>Verified</span>':'<span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);font-size:9px;"><i class="fas fa-graduation-cap mr-0.5"></i>Student</span>'):' ';
+    const notesIcon=m.notes?'<i class="fas fa-sticky-note text-yellow-500/40 text-[10px] ml-1" title="Has notes"></i>':'';
+    return `<div class="member-card">
+      <div class="flex items-center gap-3">
+        ${avatar(m.photo,m.name,'w-11 h-11','text-base')}
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2">
+            <p class="font-semibold text-sm truncate">${m.name}${notesIcon}</p>
+            ${statusBadge}
+          </div>
+          <div class="flex items-center gap-2 mt-0.5 flex-wrap">${planBadge}${expiryText}${studentBadge}</div>
+          <div class="flex items-center justify-between mt-1">
+            <p class="text-xs font-mono" style="color:var(--text-dim);">${m.rfid}</p>
+            <p class="text-xs" style="color:var(--text-muted);"><i class="fas fa-right-to-bracket text-[10px] mr-0.5"></i>${checkins} visits</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-3 pt-3 border-t" style="border-color:var(--border);">
+        <p class="text-xs flex-1 truncate" style="color:var(--text-muted);">${m.phone||m.email||''}</p>
+        <button onclick="openMemberProfile('${m.id}')" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-ghost"><i class="fas fa-eye text-[10px]"></i> View</button>
+        <button onclick="openEditModal('${m.id}')" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold" style="color:var(--gold);border:1px solid var(--gold-border);background:rgba(212,168,83,0.06);"><i class="fas fa-edit text-[10px]"></i> Edit</button>
+        <button onclick="openDeleteModal('${m.id}','${m.name.replace(/'/g,"\\'")}') " class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-danger"><i class="fas fa-trash text-[10px]"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  REVENUE
+// ══════════════════════════════════════════════
+async function renderRevenue(){
+  const att=await DB.getAttendance();
+  const members=await DB.getMembers();
+  const membersMap=Object.fromEntries(members.map(m=>[m.id,m]));
+  const now=new Date();
+  const todayStr=now.toDateString();
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());weekStart.setHours(0,0,0,0);
+
+  document.getElementById('rev-total').textContent=formatPeso(calcRev(att,membersMap));
+  document.getElementById('rev-month').textContent=formatPeso(calcRev(att.filter(a=>new Date(a.time)>=monthStart),membersMap));
+  document.getElementById('rev-week').textContent=formatPeso(calcRev(att.filter(a=>new Date(a.time)>=weekStart),membersMap));
+  document.getElementById('rev-today').textContent=formatPeso(calcRev(att.filter(a=>new Date(a.time).toDateString()===todayStr),membersMap));
+
+  // 30-day chart
+  const days30=[];
+  for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days30.push(d);}
+  const maxRev=Math.max(...days30.map(d=>{const ds=d.toDateString();return calcRev(att.filter(a=>new Date(a.time).toDateString()===ds),membersMap);}),1);
+  document.getElementById('rev-chart').innerHTML=days30.map(d=>{
+    const ds=d.toDateString(),dayAtt=att.filter(a=>new Date(a.time).toDateString()===ds);
+    const rev=calcRev(dayAtt,membersMap),mRev=dayAtt.filter(a=>a.memberPlan==='monthly').reduce((s,a)=>s+memberPrice(a,membersMap),0);
+    const h=Math.round((rev/maxRev)*106)+2,mH=rev>0?Math.round((mRev/rev)*h):0;
+    return `<div class="flex-1 flex flex-col items-center" title="${d.toLocaleDateString('en-PH',{month:'short',day:'numeric'})}: ${formatPeso(rev)}"><div style="height:110px;width:100%;display:flex;align-items:flex-end;gap:1px;"><div style="flex:1;height:${mH}px;background:var(--gold);border-radius:2px 2px 0 0;min-height:${mRev>0?2:0}px;opacity:0.85;"></div><div style="flex:1;height:${h-mH}px;background:#3b82f6;border-radius:2px 2px 0 0;min-height:${rev-mRev>0?2:0}px;opacity:0.85;"></div></div></div>`;
+  }).join('');
+
+  // Week labels below chart
+  const labelDays=[0,7,14,21,29];
+  document.getElementById('rev-chart-labels').innerHTML=days30.map((d,i)=>
+    labelDays.includes(i)?`<span class="text-[9px]" style="color:var(--text-dim);">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:'<span></span>'
+  ).join('');
+
+  const recent=att.slice(-60).reverse();
+  const revList=document.getElementById('rev-list'),empty=document.getElementById('rev-empty');
+  if(!recent.length){revList.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  revList.innerHTML=recent.map(a=>{
+    const m=membersMap[a.memberId];
+    const isStudent=m&&m.isStudent;
+    const planLabel=a.memberPlan==='monthly'?'<span class="text-yellow-500 text-xs">Monthly</span>':'<span class="text-blue-400 text-xs">Walk-in</span>';
+    const amt=a.memberPlan==='monthly'?(isStudent?'₱600':'₱900'):(isStudent?'₱50':'₱70');
+    const dt=new Date(a.time).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+    return `<div class="flex items-center gap-3 px-4 py-3">${avatar(a.memberPhoto,a.memberName,'w-9 h-9','text-sm')}<div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">${a.memberName||'Unknown'}</p><p class="text-xs" style="color:var(--text-muted);">${dt} · ${planLabel}${isStudent?' · <span style=\"color:#60a5fa\">Student</span>':''}</p></div><span class="font-bold text-green-400 text-sm flex-shrink-0">${amt}</span></div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  EXPIRING
+// ══════════════════════════════════════════════
+async function renderExpiring(){
+  const members=(await DB.getMembers()).filter(m=>{
+    if(m.plan!=='monthly'||!m.expiry||m.active===false)return false;
+    const d=daysUntil(m.expiry);return d>=0&&d<=7;
+  }).sort((a,b)=>new Date(a.expiry)-new Date(b.expiry));
+
+  const list=document.getElementById('exp-list'),empty=document.getElementById('exp-empty');
+  if(!members.length){list.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+
+  list.innerHTML=members.map(m=>{
+    const dLeft=daysUntil(m.expiry);
+    const urgency=dLeft===0
+      ?'color:#f87171;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.25);'
+      :dLeft<=3?'color:#facc15;background:rgba(250,204,21,0.1);border-color:rgba(250,204,21,0.25);'
+      :'color:#fb923c;background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.25);';
+    return `<div class="member-card">
+      <div class="flex items-center gap-3">
+        ${avatar(m.photo,m.name,'w-11 h-11','text-base')}
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-sm">${m.name}</p>
+          <p class="text-xs mt-0.5" style="color:var(--text-muted);">${m.phone||m.email||''}</p>
+          <p class="text-xs mt-0.5" style="color:var(--text-dim);">Expires: ${new Date(m.expiry).toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})}</p>
+        </div>
+        <span class="badge font-bold flex-shrink-0" style="${urgency}border:1px solid;">${dLeft===0?'Today!':dLeft+'d left'}</span>
+      </div>
+      <div class="flex gap-2 mt-3 pt-3 border-t" style="border-color:var(--border);">
+        <button onclick="openMemberProfile('${m.id}')" class="flex-1 btn-ghost text-xs px-3 py-2 rounded-lg"><i class="fas fa-eye mr-1"></i>View</button>
+        <button onclick="openRenewModal('${m.id}')" class="flex-1 btn-gold text-xs px-3 py-2 rounded-lg font-semibold"><i class="fas fa-rotate-right mr-1"></i>Renew</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  RENEWAL MODAL
+// ══════════════════════════════════════════════
+let _renewMember = null;
+
+async function openRenewModal(id){
+  renewTargetId=id;renewDuration=30;
+  const members=await DB.getMembers();
+  _renewMember=members.find(m=>m.id===id);
+  if(!_renewMember)return;
+  document.getElementById('renew-name').textContent=_renewMember.name;
+  document.getElementById('renew-avatar').innerHTML=avatar(_renewMember.photo,_renewMember.name,'w-10 h-10','text-base');
+  const curExp=_renewMember.expiry?new Date(_renewMember.expiry).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):'—';
+  document.getElementById('renew-current-expiry').textContent=curExp;
+  updateRenewDate();
+  document.querySelectorAll('.renew-dur').forEach(b=>{ b.style.cssText=''; b.classList.add('btn-ghost'); b.classList.remove('active-renew'); });
+  const a=document.getElementById('renew-30');
+  a.style.cssText='border-color:var(--gold-border);background:rgba(212,168,83,0.12);color:var(--gold);';
+  document.getElementById('renew-modal').classList.remove('hidden');
+}
+
+function setRenewDuration(d){
+  renewDuration=d;
+  document.querySelectorAll('.renew-dur').forEach(b=>{ b.style.cssText=''; b.classList.add('btn-ghost'); });
+  const t=document.getElementById('renew-'+d);
+  t.style.cssText='border-color:var(--gold-border);background:rgba(212,168,83,0.12);color:var(--gold);';
+  t.classList.remove('btn-ghost');
+  updateRenewDate();
+}
+
+function updateRenewDate(){
+  if(!_renewMember) return;
+  const base=_renewMember.expiry&&new Date(_renewMember.expiry)>new Date()?new Date(_renewMember.expiry):new Date();
+  const newExp=new Date(base);newExp.setDate(newExp.getDate()+renewDuration);
+  document.getElementById('renew-new-expiry').textContent=newExp.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('btn-confirm-renew').innerHTML=`<i class="fas fa-rotate-right mr-2"></i>Renew ${renewDuration}d — ₱1,500`;
+}
+
+function closeRenewModal(){ document.getElementById('renew-modal').classList.add('hidden'); renewTargetId=null; _renewMember=null; }
+
+async function confirmRenew(){
+  if(!renewTargetId||!_renewMember)return;
+  const btn=document.getElementById('btn-confirm-renew');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Renewing...';
+  try{
+    const base=_renewMember.expiry&&new Date(_renewMember.expiry)>new Date()?new Date(_renewMember.expiry):new Date();
+    const newExp=new Date(base);newExp.setDate(newExp.getDate()+renewDuration);
+    await DB.updateMember(renewTargetId,{expiry:newExp.toISOString(),active:true});
+    showNotif(`${_renewMember.name} renewed for ${renewDuration} days ✓`,'success');
+    closeRenewModal();
+    renderExpiring();
+  }catch(e){ showNotif('Renewal failed','error'); }
+  finally{ btn.disabled=false; updateRenewDate(); }
+}
+
+// ══════════════════════════════════════════════
+//  EDIT MODAL
+// ══════════════════════════════════════════════
+function toggleEditExpiry(plan){
+  document.getElementById('edit-expiry-row').classList.toggle('hidden',plan!=='monthly');
+  if(plan==='monthly'&&!document.getElementById('edit-expiry').value){
+    const d=new Date();d.setDate(d.getDate()+30);
+    document.getElementById('edit-expiry').value=d.toISOString().slice(0,10);
+  }
+}
+async function openEditModal(id){
+  const members=await DB.getMembers();
+  const m=members.find(m=>m.id===id);
+  if(!m)return;
+  editTargetId=id;
+  document.getElementById('edit-name').value=m.name||'';
+  document.getElementById('edit-email').value=m.email||'';
+  document.getElementById('edit-phone').value=m.phone||'';
+  document.getElementById('edit-plan').value=m.plan||'entry';
+  document.getElementById('edit-active').value=String(m.active!==false);
+  document.getElementById('edit-notes').value=m.notes||'';
+  const exR=document.getElementById('edit-expiry-row');
+  if(m.plan==='monthly'){
+    document.getElementById('edit-expiry').value=m.expiry?m.expiry.slice(0,10):'';
+    exR.classList.remove('hidden');
+  } else exR.classList.add('hidden');
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+function closeEditModal(){document.getElementById('edit-modal').classList.add('hidden');editTargetId=null;}
+async function saveEdit(){
+  if(!editTargetId)return;
+  const plan=document.getElementById('edit-plan').value;
+  const expiry=plan==='monthly'?new Date(document.getElementById('edit-expiry').value).toISOString():null;
+  const notes=document.getElementById('edit-notes').value.trim();
+  await DB.updateMember(editTargetId,{
+    name:document.getElementById('edit-name').value.trim(),
+    email:document.getElementById('edit-email').value.trim(),
+    phone:document.getElementById('edit-phone').value.trim(),
+    plan,expiry,
+    active:document.getElementById('edit-active').value==='true',
+    notes:notes||null
+  });
+  showNotif('Member updated ✓','success');
+  closeEditModal();renderAdmMembers();
+}
+
+// ══════════════════════════════════════════════
+//  DELETE MODAL
+// ══════════════════════════════════════════════
+function openDeleteModal(id,name){
+  deleteTargetId=id;
+  document.getElementById('delete-msg').textContent='Delete "'+name+'"? This cannot be undone.';
+  document.getElementById('delete-modal').classList.remove('hidden');
+}
+function closeDeleteModal(){document.getElementById('delete-modal').classList.add('hidden');deleteTargetId=null;}
+async function confirmDelete(){
+  if(!deleteTargetId)return;
+  await DB.deleteMember(deleteTargetId);
+  showNotif('Member deleted','info');
+  closeDeleteModal();renderAdmMembers();
+}
+
+// ══════════════════════════════════════════════
+//  MEMBER PROFILE MODAL
+// ══════════════════════════════════════════════
+async function openMemberProfile(id){
+  currentProfileId=id;
+  document.getElementById('profile-modal').classList.remove('hidden');
+  const [members, allAtt] = await Promise.all([DB.getMembers(), DB.getAttendance()]);
+  const m=members.find(x=>x.id===id);
+  if(!m){closeProfileModal();return;}
+  const visits=allAtt.filter(a=>a.memberId===m.id).length;
+  const daysLeft=m.expiry?daysUntil(m.expiry):null;
+  const isExp=m.plan==='monthly'&&daysLeft!==null&&daysLeft<=0;
+  const isSoon=m.plan==='monthly'&&daysLeft!==null&&daysLeft>0&&daysLeft<=5;
+
+  document.getElementById('prof-avatar-wrap').innerHTML=m.photo
+    ?`<img src="${m.photo}" class="w-20 h-20 rounded-2xl object-cover" style="border:2px solid rgba(212,168,83,0.4);" alt="">`
+    :`<div class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold font-oswald" style="background:linear-gradient(135deg,#333,#111);border:2px solid rgba(212,168,83,0.25);color:var(--gold);">${m.name.charAt(0).toUpperCase()}</div>`;
+
+  document.getElementById('prof-name').textContent=m.name||'—';
+  document.getElementById('prof-rfid').textContent='RFID: '+(m.rfid||'—');
+
+  // Badges
+  let badges='';
+  badges+=m.plan==='monthly'
+    ?'<span class="badge" style="background:rgba(212,168,83,0.12);color:var(--gold);border:1px solid var(--gold-border);">Monthly</span>'
+    :'<span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);">Walk-in</span>';
+  if(m.active===false) badges+='<span class="badge" style="background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid var(--border);">Inactive</span>';
+  else if(isExp) badges+='<span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2);">Expired</span>';
+  else if(isSoon) badges+='<span class="badge" style="background:rgba(250,204,21,0.1);color:#facc15;border:1px solid rgba(250,204,21,0.2);">Expiring</span>';
+  else badges+='<span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);">Active</span>';
+  if(m.isStudent){
+    if(m.studentVerified) badges+='<span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);"><i class="fas fa-graduation-cap mr-1 text-[9px]"></i>Student ✓</span>';
+    else if(m.studentRejected) badges+='<span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2);"><i class="fas fa-graduation-cap mr-1 text-[9px]"></i>Rejected</span>';
+    else badges+='<span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);"><i class="fas fa-graduation-cap mr-1 text-[9px]"></i>Student</span>';
+  }
+  document.getElementById('prof-badges').innerHTML=badges;
+
+  const monthlyPrice=m.isStudent?'₱600':'₱900';
+  const entryPrice=m.isStudent?'₱50':'₱70';
+  document.getElementById('prof-plan').textContent=m.plan==='monthly'?`Monthly (${monthlyPrice}/mo)`:`Walk-in / Daily (${entryPrice})`;
+  document.getElementById('prof-status').innerHTML=m.active===false?'<span style="color:var(--text-muted);">Inactive</span>':isExp?'<span class="text-red-400">Expired</span>':isSoon?`<span class="text-yellow-400">${daysLeft}d left</span>`:'<span class="text-green-400">Active</span>';
+  document.getElementById('prof-expiry').textContent=m.expiry?new Date(m.expiry).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'—';
+  document.getElementById('prof-visits').textContent=visits+' visit'+(visits!==1?'s':'');
+  document.getElementById('prof-email').textContent=m.email||'—';
+  document.getElementById('prof-phone').textContent=m.phone||'—';
+  document.getElementById('prof-address').textContent=m.address||'—';
+  document.getElementById('prof-birthday').textContent=m.birthday?new Date(m.birthday+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'—';
+  document.getElementById('prof-emergency').textContent=m.emergency||'—';
+  document.getElementById('prof-registered').textContent=m.registered?new Date(m.registered).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'—';
+
+  // Notes
+  const notesRow=document.getElementById('prof-notes-row');
+  if(m.notes){ notesRow.classList.remove('hidden'); document.getElementById('prof-notes').textContent=m.notes; }
+  else notesRow.classList.add('hidden');
+
+  // Recent visits
+  const memberVisits=allAtt.filter(a=>a.memberId===m.id).sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,5);
+  const rvWrap=document.getElementById('prof-recent-visits-wrap');
+  if(memberVisits.length){
+    rvWrap.style.display='block';
+    document.getElementById('prof-recent-visits').innerHTML=memberVisits.map(v=>`
+      <div class="flex items-center gap-2 py-1.5">
+        <div class="timeline-dot" style="background:var(--gold);opacity:0.5;"></div>
+        <span class="text-xs" style="color:var(--text-muted);">${new Date(v.time).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})} · ${new Date(v.time).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
+      </div>`).join('');
+  } else rvWrap.style.display='none';
+
+  // Student section
+  document.getElementById('prof-student-section').classList.remove('hidden');
+  if(!m.isStudent){
+    document.getElementById('prof-not-student').classList.remove('hidden');
+    document.getElementById('prof-is-student').classList.add('hidden');
+  } else {
+    document.getElementById('prof-not-student').classList.add('hidden');
+    document.getElementById('prof-is-student').classList.remove('hidden');
+    document.getElementById('prof-verified-banner').classList.toggle('hidden',!m.studentVerified);
+    document.getElementById('prof-rejected-banner').classList.toggle('hidden',!m.studentRejected);
+    document.getElementById('prof-pending-banner').classList.toggle('hidden',!!(m.studentVerified||m.studentRejected));
+    if(m.studentVerified) document.getElementById('prof-verified-by').textContent='Verified on '+new Date(m.verifiedAt||Date.now()).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+    if(m.studentRejected) document.getElementById('prof-rejected-by').textContent='Rejected on '+new Date(m.rejectedAt||Date.now()).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+    if(m.schoolIdPhoto){
+      document.getElementById('prof-school-id-wrap').classList.remove('hidden');
+      document.getElementById('prof-no-id').classList.add('hidden');
+      document.getElementById('prof-school-id-img').src=m.schoolIdPhoto;
+    } else {
+      document.getElementById('prof-school-id-wrap').classList.add('hidden');
+      document.getElementById('prof-no-id').classList.remove('hidden');
+    }
+    const vBtn=document.getElementById('btn-verify-student'),rBtn=document.getElementById('btn-reject-student');
+    if(m.studentVerified){
+      vBtn.innerHTML='<i class="fas fa-check-circle"></i> Verified';vBtn.disabled=true;vBtn.style.opacity='0.4';
+      rBtn.disabled=false;rBtn.style.opacity='1';rBtn.innerHTML='<i class="fas fa-times-circle"></i> Revoke';
+    } else if(m.studentRejected){
+      rBtn.innerHTML='<i class="fas fa-times-circle"></i> Rejected';rBtn.disabled=true;rBtn.style.opacity='0.4';
+      vBtn.disabled=false;vBtn.style.opacity='1';vBtn.innerHTML='<i class="fas fa-check-circle"></i> Verify Student';
+    } else {
+      vBtn.disabled=false;vBtn.style.opacity='1';vBtn.innerHTML='<i class="fas fa-check-circle"></i> Verify Student';
+      rBtn.disabled=false;rBtn.style.opacity='1';rBtn.innerHTML='<i class="fas fa-times-circle"></i> Reject';
+    }
+  }
+}
+function closeProfileModal(){document.getElementById('profile-modal').classList.add('hidden');currentProfileId=null;}
+
+async function verifyStudent(){
+  if(!currentProfileId)return;
+  await DB.updateMember(currentProfileId,{studentVerified:true,studentRejected:false,verifiedAt:new Date().toISOString()});
+  showNotif('Student status verified ✓','success');
+  await openMemberProfile(currentProfileId);renderAdmMembers();
+}
+async function rejectStudent(){
+  if(!currentProfileId)return;
+  await DB.updateMember(currentProfileId,{studentVerified:false,studentRejected:true,rejectedAt:new Date().toISOString()});
+  showNotif('Student verification rejected','warning');
+  await openMemberProfile(currentProfileId);renderAdmMembers();
+}
+
+// ══════════════════════════════════════════════
+//  CSV EXPORT
+// ══════════════════════════════════════════════
+async function exportAttCSV(){
+  const att=(await DB.getAttendance()).slice().reverse();
+  const rows=[['#','Name','RFID','Plan','Date','Time','Payment'],...att.map((a,i)=>[i+1,a.memberName||'',a.rfid||'',a.memberPlan==='monthly'?'Monthly':'Walk-in',new Date(a.time).toLocaleDateString(),new Date(a.time).toLocaleTimeString(),a.paid?'Paid':'—'])];
+  dlCSV(rows,'attendance_log.csv');
+}
+async function exportMembersCSV(){
+  const members=await DB.getMembers();
+  const rows=[['Name','Email','Phone','RFID','Plan','Registered','Expiry','Status','Notes'],...members.map(m=>[m.name,m.email||'',m.phone||'',m.rfid,m.plan==='monthly'?'Monthly':'Walk-in',m.registered?new Date(m.registered).toLocaleDateString():'',m.expiry?new Date(m.expiry).toLocaleDateString():'',m.active===false?'Inactive':m.plan==='monthly'&&m.expiry&&new Date(m.expiry)<new Date()?'Expired':'Active',m.notes||''])];
+  dlCSV(rows,'members.csv');
+}
+function dlCSV(rows,filename){
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=filename;a.click();
+}
+
+// ══════════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════════
+function showNotif(msg,type='info'){
+  const c=document.getElementById('notifications'),d=document.createElement('div');
+  const styles={
+    success:'border-green-500/50 text-green-300 bg-green-900/40',
+    error:'border-red-500/50 text-red-300 bg-red-900/40',
+    warning:'border-yellow-500/50 text-yellow-300 bg-yellow-900/40',
+    info:'border-blue-500/50 text-blue-300 bg-blue-900/40'
+  };
+  const icons={success:'fa-check-circle',error:'fa-exclamation-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
+  d.className=`notif-enter ${styles[type]} border px-4 py-2.5 rounded-xl backdrop-blur-xl flex items-center gap-2.5 text-sm shadow-2xl`;
+  d.innerHTML=`<i class="fas ${icons[type]} flex-shrink-0"></i><span>${msg}</span>`;
+  c.appendChild(d);
+  setTimeout(()=>{d.style.transition='all 0.3s';d.style.opacity='0';d.style.transform='translateX(110%)';setTimeout(()=>d.remove(),300);},3500);
+}
+
+// ══════════════════════════════════════════════
+//  MODAL CLOSE ON BACKDROP
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  [['edit-modal',closeEditModal],['delete-modal',closeDeleteModal],['clear-today-modal',closeClearTodayModal],['profile-modal',closeProfileModal],['renew-modal',closeRenewModal]].forEach(([id,fn])=>{
+    document.getElementById(id).addEventListener('click',function(e){if(e.target===this)fn();});
+  });
+});
+</script>
+</body>
+</html>
