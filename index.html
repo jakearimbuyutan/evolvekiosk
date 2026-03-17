@@ -172,6 +172,7 @@ nav.kiosk-nav{background:rgba(4,4,10,0.97);backdrop-filter:blur(30px);border-bot
 .checkin-burst{animation:checkInBurst 0.75s ease-out;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<base target="_blank">
 </head>
 <body class="min-h-screen">
 
@@ -619,23 +620,24 @@ async function updateStats(){
 
 // ── RECENT CHECK-INS TICKER ──
 async function renderRecentCheckins(){
-  const records=await DB.getRecentAtt(50);
+  // Get today's check-ins only, not just recent entries
+  const records=await DB.getTodayAtt();
   const list=document.getElementById('checkin-list');
   const empty=document.getElementById('checkin-list-empty');
   const countEl=document.getElementById('checkin-list-count');
   if(!list)return;
   if(!records.length){
     if(empty)empty.style.display='flex';
-    if(countEl)countEl.textContent='';
+    if(countEl)countEl.textContent='0 today';
     // Remove any old rows
     Array.from(list.children).forEach(c=>{if(c.id!=='checkin-list-empty')c.remove();});
     return;
   }
   if(empty)empty.style.display='none';
   if(countEl)countEl.textContent=records.length+' today';
-  // Rebuild list
+  // Rebuild list - sort by time descending (most recent first)
   Array.from(list.children).forEach(c=>{if(c.id!=='checkin-list-empty')c.remove();});
-  records.forEach(a=>{
+  records.sort((a,b)=>new Date(b.time)-new Date(a.time)).forEach(a=>{
     const time=new Date(a.time).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
     const isPaid=a.memberPlan!=='entry';
     const badgeColor=isPaid?'text-green-400 bg-green-400/10':'text-blue-400 bg-blue-400/10';
