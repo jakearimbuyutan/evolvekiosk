@@ -502,6 +502,31 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// LISTEN FOR RFID SCANS FROM ESP8266
+db.collection("rfid_scans")
+.onSnapshot(snapshot => {
+
+  snapshot.docChanges().forEach(change => {
+
+    if(change.type === "added"){
+
+      const uid = change.doc.data().uid
+
+      console.log("RFID Scan:", uid)
+
+      const input = document.getElementById("rfid-input")
+
+      if(input){
+        input.value = uid
+        processRFID()
+      }
+
+    }
+
+  })
+
+})
+
 const DB = {
   async getMembers(){try{const snap=await db.collection('members').get();return snap.docs.map(d=>({...d.data(),id:d.id}));}catch(e){console.error(e);return[];}},
   async addMember(m){const id='M'+Date.now()+Math.floor(Math.random()*999);m.id=id;await db.collection('members').doc(id).set(m);return m;},
