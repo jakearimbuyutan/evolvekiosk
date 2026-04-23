@@ -984,10 +984,20 @@ select.input-dark{
           <span class="font-bold text-3xl font-oswald" style="color:var(--gold)" id="sum-amount">—</span>
         </div>
 
-        <!-- RFID notice -->
-        <div class="mt-4 bg-white/3 rounded-xl p-4 flex items-start gap-3 border border-white/6">
-          <i class="fas fa-wifi text-yellow-600/60 mt-0.5 flex-shrink-0 text-sm"></i>
-          <p class="text-xs text-gray-400 leading-relaxed">Your <strong class="text-white">RFID access tag</strong> will be assigned at the counter during your first visit. Use it for quick check-ins!</p>
+        <!-- RFID UID input -->
+        <div class="mt-4 border border-yellow-600/20 rounded-2xl p-5 bg-yellow-600/5">
+          <div class="flex items-center gap-2 mb-3">
+            <i class="fas fa-wifi text-yellow-500 text-sm"></i>
+            <p class="text-xs font-bold uppercase tracking-wider text-yellow-500">RFID Tag UID</p>
+          </div>
+          <p class="text-xs text-gray-400 mb-4 leading-relaxed">Type the UID printed or shown on the member's <strong class="text-white">RFID tag</strong>. This will be used for attendance sign-in.</p>
+          <div class="input-group mb-0">
+            <i class="fas fa-hashtag input-icon" style="font-size:13px;"></i>
+            <input type="text" id="reg-rfid" class="input-dark" placeholder="e.g. 04A2B3C4"
+              style="font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;"
+              oninput="this.value=this.value.toUpperCase();vf('reg-rfid','rfid-err',v=>v.trim().length>=4,'At least 4 characters required')">
+          </div>
+          <p class="field-err hidden mt-2" id="rfid-err">At least 4 characters required</p>
         </div>
       </div>
       
@@ -1322,14 +1332,21 @@ function markInv(id,errId,msg){
 }
 
 // ── COMPLETE ──
-function generateRFID(){return 'R'+Date.now().toString(36).toUpperCase();}
 async function completeRegistration(){
+  const rfidInput=document.getElementById('reg-rfid');
+  const rfid=rfidInput.value.trim().toUpperCase();
+  if(rfid.length<4){
+    markInv('reg-rfid','rfid-err','At least 4 characters required');
+    rfidInput.focus();
+    showNotif('Please enter the RFID tag UID','error');
+    return;
+  }
   const btn=document.getElementById('btn-complete');
   btn.disabled=true;
   btn.innerHTML='<span class="spinner"></span>Registering...';
   try{
     const name=document.getElementById('reg-name').value.trim();
-    const rfid=generateRFID();
+    const rfid=document.getElementById('reg-rfid').value.trim().toUpperCase();
     const expiry=selectedPlan==='monthly'?(()=>{const d=new Date();d.setDate(d.getDate()+30);return d.toISOString();})():null;
     const member=await DB.addMember({
       name,
@@ -1363,7 +1380,7 @@ async function completeRegistration(){
 }
 function resetAll(){
   selectedPlan=null;capturedPhotoDataURL=null;isStudent=false;schoolIdPhotoDataURL=null;
-  ['reg-name','reg-email','reg-phone','reg-address','reg-birthday','reg-emergency'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('valid','invalid');}});
+  ['reg-name','reg-email','reg-phone','reg-address','reg-birthday','reg-emergency','reg-rfid'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('valid','invalid');}});
   ['name-err','email-err','phone-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hidden');});
   setStudentStatus(false);
   document.getElementById('school-id-placeholder').classList.remove('hidden');
