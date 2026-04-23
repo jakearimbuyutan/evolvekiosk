@@ -26,6 +26,8 @@
   font-family:'Inter',sans-serif;
   -webkit-tap-highlight-color:transparent;
   box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
 .font-display{font-family:'Space Grotesk',sans-serif;}
@@ -33,8 +35,9 @@
 html,body{
   background:var(--bg-deep);
   color:#fff;
-  overflow-x:hidden;
-  min-height:100vh;
+  overflow:hidden;
+  width:100vw;
+  height:100vh;
 }
 
 /* ── AMBIENT BACKGROUND ── */
@@ -64,19 +67,15 @@ html,body{
   animation:float 20s ease-in-out infinite;
 }
 .orb-1{
-  width:600px;
-  height:600px;
+  width:600px;height:600px;
   background:radial-gradient(circle,rgba(232,197,71,0.3) 0%,transparent 70%);
-  top:-200px;
-  left:-100px;
+  top:-200px;left:-100px;
   animation-delay:0s;
 }
 .orb-2{
-  width:400px;
-  height:400px;
+  width:400px;height:400px;
   background:radial-gradient(circle,rgba(232,197,71,0.2) 0%,transparent 70%);
-  bottom:-100px;
-  right:-50px;
+  bottom:-100px;right:-50px;
   animation-delay:-10s;
 }
 
@@ -92,9 +91,7 @@ html,body{
   backdrop-filter:blur(20px);
   -webkit-backdrop-filter:blur(20px);
   border:1px solid var(--glass-border);
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.4),
-    inset 0 1px 0 var(--glass-highlight);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 var(--glass-highlight);
 }
 
 .glass-strong{
@@ -102,29 +99,24 @@ html,body{
   backdrop-filter:blur(30px);
   -webkit-backdrop-filter:blur(30px);
   border:1px solid rgba(255,255,255,0.12);
-  box-shadow:
-    0 25px 50px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow:0 25px 50px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .glass-gold{
   background:linear-gradient(135deg,rgba(232,197,71,0.1),rgba(232,197,71,0.02));
   backdrop-filter:blur(20px);
   border:1px solid rgba(232,197,71,0.25);
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.4),
-    0 0 20px rgba(232,197,71,0.1),
-    inset 0 1px 0 rgba(232,197,71,0.2);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 20px rgba(232,197,71,0.1),inset 0 1px 0 rgba(232,197,71,0.2);
 }
 
 /* ── NAVIGATION ── */
 .nav-glass{
   position:fixed;
-  top:20px;
+  top:14px;
   left:50%;
   transform:translateX(-50%);
   z-index:50;
-  padding:12px 24px;
+  padding:8px 20px;
   border-radius:50px;
   background:rgba(10,10,18,0.7);
   backdrop-filter:blur(20px);
@@ -133,15 +125,16 @@ html,body{
 }
 
 .nav-btn{
-  padding:10px 20px;
+  padding:8px 18px;
   border-radius:25px;
-  font-size:13px;
+  font-size:12px;
   font-weight:600;
   letter-spacing:0.05em;
   color:rgba(255,255,255,0.6);
   transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
   border:1px solid transparent;
   background:transparent;
+  cursor:pointer;
 }
 
 .nav-btn:hover{
@@ -160,102 +153,87 @@ html,body{
 /* ── CLOCK DISPLAY ── */
 .clock-display{
   font-family:'Space Grotesk',sans-serif;
-  font-size:clamp(4rem,8vw,7rem);
+  font-size:clamp(2.2rem,4vw,3.5rem);
   font-weight:300;
   letter-spacing:-0.02em;
   line-height:1;
   background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0.7) 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
-  text-shadow:0 0 60px rgba(232,197,71,0.3);
 }
 
 .clock-date{
-  font-size:clamp(0.75rem,1.2vw,0.9rem);
-  letter-spacing:0.3em;
+  font-size:0.65rem;
+  letter-spacing:0.25em;
   color:var(--gold);
   text-transform:uppercase;
   font-weight:600;
-  margin-top:8px;
+  margin-top:4px;
 }
 
 /* ── STAT CARDS ── */
 .stat-card{
-  padding:24px 28px;
-  border-radius:20px;
+  padding:14px 20px;
+  border-radius:16px;
   transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
   position:relative;
   overflow:hidden;
 }
 
-.stat-card::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg,rgba(232,197,71,0.1) 0%,transparent 60%);
-  opacity:0;
-  transition:opacity 0.3s;
-}
-
 .stat-card:hover{
-  transform:translateY(-4px);
+  transform:translateY(-3px);
   border-color:rgba(232,197,71,0.4);
   box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 30px rgba(232,197,71,0.15);
 }
 
-.stat-card:hover::before{
-  opacity:1;
-}
-
 .stat-value{
   font-family:'Space Grotesk',sans-serif;
-  font-size:2.5rem;
+  font-size:1.8rem;
   font-weight:600;
   line-height:1;
 }
 
 .stat-label{
-  font-size:0.7rem;
+  font-size:0.6rem;
   letter-spacing:0.15em;
   text-transform:uppercase;
   color:rgba(255,255,255,0.5);
   font-weight:600;
-  margin-top:8px;
+  margin-top:4px;
 }
 
 /* ── RFID SCANNER ── */
 .rfid-container{
   position:relative;
-  padding:60px 40px;
-  border-radius:28px;
+  padding:24px 28px;
+  border-radius:24px;
   cursor:pointer;
   transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+  flex:1;
 }
 
 .rfid-container:hover{
-  transform:scale(1.02);
+  transform:scale(1.01);
   box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 40px rgba(232,197,71,0.2);
 }
 
 .rfid-ring{
   position:relative;
-  width:180px;
-  height:180px;
-  margin:0 auto 30px;
+  width:110px;
+  height:110px;
+  margin:0 auto 16px;
 }
 
 .rfid-core{
   position:absolute;
-  inset:20px;
+  inset:16px;
   border-radius:50%;
   background:linear-gradient(145deg,rgba(232,197,71,0.2),rgba(232,197,71,0.05));
   border:2px solid rgba(232,197,71,0.4);
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:
-    0 0 60px rgba(232,197,71,0.3),
-    inset 0 0 40px rgba(232,197,71,0.1);
+  box-shadow:0 0 60px rgba(232,197,71,0.3),inset 0 0 40px rgba(232,197,71,0.1);
   animation:pulse-core 3s ease-in-out infinite;
 }
 
@@ -271,7 +249,6 @@ html,body{
   border:2px solid rgba(232,197,71,0.3);
   animation:ripple 3s ease-out infinite;
 }
-
 .rfid-ripple:nth-child(2){animation-delay:1s;}
 .rfid-ripple:nth-child(3){animation-delay:2s;}
 
@@ -282,8 +259,7 @@ html,body{
 
 .scan-line{
   position:absolute;
-  left:10%;
-  right:10%;
+  left:10%;right:10%;
   height:2px;
   background:linear-gradient(90deg,transparent,var(--gold),transparent);
   animation:scan 3s ease-in-out infinite;
@@ -300,9 +276,9 @@ html,body{
   background:rgba(255,255,255,0.05);
   border:1px solid rgba(255,255,255,0.15);
   color:#fff;
-  padding:16px 24px;
-  border-radius:14px;
-  font-size:1rem;
+  padding:13px 20px;
+  border-radius:12px;
+  font-size:0.9rem;
   font-weight:500;
   transition:all 0.3s;
   width:100%;
@@ -315,33 +291,23 @@ html,body{
   box-shadow:0 0 0 3px rgba(232,197,71,0.1),0 0 20px rgba(232,197,71,0.2);
 }
 
-.input-luxury::placeholder{
-  color:rgba(255,255,255,0.3);
-}
+.input-luxury::placeholder{color:rgba(255,255,255,0.3);}
 
 /* ── BUTTONS ── */
 .btn-primary{
   background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);
   color:#000;
-  padding:16px 32px;
-  border-radius:14px;
+  padding:13px 28px;
+  border-radius:12px;
   font-weight:700;
-  font-size:0.95rem;
+  font-size:0.85rem;
   letter-spacing:0.05em;
   border:none;
   cursor:pointer;
   transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
   position:relative;
   overflow:hidden;
-}
-
-.btn-primary::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,0.4),transparent);
-  opacity:0;
-  transition:opacity 0.3s;
+  width:100%;
 }
 
 .btn-primary:hover{
@@ -349,20 +315,17 @@ html,body{
   box-shadow:0 10px 40px rgba(232,197,71,0.5);
 }
 
-.btn-primary:hover::before{
-  opacity:1;
-}
-
 .btn-secondary{
   background:transparent;
   color:#fff;
-  padding:16px 32px;
-  border-radius:14px;
+  padding:13px 28px;
+  border-radius:12px;
   font-weight:600;
-  font-size:0.95rem;
+  font-size:0.85rem;
   border:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
   transition:all 0.3s;
+  width:100%;
 }
 
 .btn-secondary:hover{
@@ -373,34 +336,31 @@ html,body{
 
 /* ── CHECK-IN LIST ── */
 .checkin-list{
-  max-height:calc(100vh - 300px);
   overflow-y:auto;
+  flex:1;
 }
 
 .checkin-item{
-  padding:16px 20px;
+  padding:12px 16px;
   border-bottom:1px solid rgba(255,255,255,0.05);
   transition:all 0.2s;
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px;
 }
 
-.checkin-item:hover{
-  background:rgba(255,255,255,0.03);
-}
+.checkin-item:hover{background:rgba(255,255,255,0.03);}
 
 .checkin-avatar{
-  width:40px;
-  height:40px;
+  width:36px;height:36px;
   border-radius:50%;
   object-fit:cover;
   border:2px solid rgba(232,197,71,0.3);
+  flex-shrink:0;
 }
 
 .checkin-initial{
-  width:40px;
-  height:40px;
+  width:36px;height:36px;
   border-radius:50%;
   background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05));
   border:1px solid rgba(255,255,255,0.1);
@@ -408,15 +368,13 @@ html,body{
   align-items:center;
   justify-content:center;
   font-weight:600;
-  font-size:0.9rem;
+  font-size:0.8rem;
   color:var(--gold);
+  flex-shrink:0;
 }
 
 /* ── MODALS ── */
-.modal-overlay{
-  background:rgba(0,0,0,0.8);
-  backdrop-filter:blur(10px);
-}
+.modal-overlay{background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);}
 
 .modal-glass{
   background:linear-gradient(145deg,rgba(20,20,30,0.95),rgba(10,10,18,0.98));
@@ -428,33 +386,22 @@ html,body{
 
 /* ── ANIMATIONS ── */
 @keyframes fadeUp{
-  from{opacity:0;transform:translateY(30px);}
+  from{opacity:0;transform:translateY(20px);}
   to{opacity:1;transform:translateY(0);}
 }
 
-.animate-fade-up{
-  animation:fadeUp 0.6s cubic-bezier(0.4,0,0.2,1) forwards;
-}
-
+.animate-fade-up{animation:fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) forwards;}
 .delay-100{animation-delay:0.1s;}
 .delay-200{animation-delay:0.2s;}
 .delay-300{animation-delay:0.3s;}
 
 /* ── LOGO ── */
-.logo-premium{
-  position:relative;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-
 .logo-glow{
   position:absolute;
-  width:200px;
-  height:200px;
+  width:140px;height:140px;
   border-radius:50%;
   background:radial-gradient(circle,rgba(232,197,71,0.3) 0%,transparent 70%);
-  filter:blur(40px);
+  filter:blur(30px);
   animation:glow-pulse 4s ease-in-out infinite;
 }
 
@@ -465,48 +412,68 @@ html,body{
 
 .logo-box{
   position:relative;
-  width:120px;
-  height:120px;
+  width:80px;height:80px;
   background:linear-gradient(145deg,rgba(30,30,40,0.8),rgba(10,10,20,0.9));
   border:2px solid rgba(232,197,71,0.4);
-  border-radius:24px;
+  border-radius:18px;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:
-    0 20px 60px rgba(0,0,0,0.5),
-    0 0 40px rgba(232,197,71,0.2),
-    inset 0 1px 0 rgba(255,255,255,0.1);
+  box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(232,197,71,0.2),inset 0 1px 0 rgba(255,255,255,0.1);
   animation:logo-float 6s ease-in-out infinite;
 }
 
 @keyframes logo-float{
-  0%,100%{transform:translateY(0) rotate(0deg);}
-  50%{transform:translateY(-10px) rotate(2deg);}
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-6px);}
 }
 
 /* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{
-  background:rgba(232,197,71,0.3);
-  border-radius:3px;
-}
+::-webkit-scrollbar-thumb{background:rgba(232,197,71,0.3);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:rgba(232,197,71,0.5);}
 
 /* ── UTILITY ── */
 .gold-text{color:var(--gold);}
-.gold-text-light{color:var(--gold-light);}
 .text-muted{color:rgba(255,255,255,0.5);}
 
-/* ── SECTIONS ── */
-.section-hidden{display:none;}
-.section-active{display:block;animation:fadeUp 0.5s ease-out;}
+/* ── FULL-SCREEN LAYOUT ── */
+#kiosk-layout{
+  position:fixed;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  z-index:1;
+}
+
+#kiosk-main{
+  flex:1;
+  overflow:hidden;
+  padding:70px 20px 16px;
+  display:flex;
+  flex-direction:column;
+}
+
+#home-section{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.section-hidden{display:none!important;}
+.section-active{display:flex;flex-direction:column;animation:fadeUp 0.4s ease-out;}
+
+/* ── MEMBERS SECTION SCROLL ── */
+#members-section{
+  flex:1;
+  overflow-y:auto;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<base target="_blank">
 </head>
-<body class="min-h-screen">
+<body>
 
 <!-- Ambient Background -->
 <div id="ambient-bg">
@@ -518,190 +485,190 @@ html,body{
 <nav class="nav-glass">
   <div class="flex items-center gap-2">
     <button onclick="showSection('home')" id="nav-home" class="nav-btn active">
-      <i class="fas fa-home mr-2"></i>Home
+      <i class="fas fa-home mr-1"></i>Home
     </button>
-    <button onclick="showQRModal()" id="nav-register" class="nav-btn">
-      <i class="fas fa-user-plus mr-2"></i>Register
+    <button onclick="showQRModal()" class="nav-btn">
+      <i class="fas fa-user-plus mr-1"></i>Register
     </button>
-    <a href="admin.html" class="nav-btn">
-      <i class="fas fa-shield-alt mr-2"></i>Admin
-    </a>
   </div>
 </nav>
 
-<!-- Main Content -->
-<main id="kiosk-main" class="pt-32 pb-12 px-6 min-h-screen">
+<!-- Full-screen layout wrapper -->
+<div id="kiosk-layout">
+  <main id="kiosk-main">
 
-  <!-- HOME SECTION -->
-  <section id="home-section" class="section-active max-w-7xl mx-auto">
+    <!-- HOME SECTION -->
+    <section id="home-section" class="section-active max-w-7xl w-full mx-auto">
 
-    <!-- Header Bar -->
-    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-12">
-      <!-- Clock -->
-      <div class="animate-fade-up">
-        <div class="clock-display" id="kiosk-clock-time">00:00</div>
-        <div class="clock-date" id="kiosk-clock-date">Loading...</div>
-      </div>
-
-      <!-- Stats -->
-      <div class="flex gap-4 animate-fade-up delay-100">
-        <div class="stat-card glass">
-          <div class="stat-value text-white" id="quick-total">0</div>
-          <div class="stat-label">Total Members</div>
+      <!-- Top Bar: Clock + Stats -->
+      <div class="flex items-center justify-between gap-4 mb-3 flex-shrink-0">
+        <!-- Clock -->
+        <div class="animate-fade-up">
+          <div class="clock-display" id="kiosk-clock-time">00:00</div>
+          <div class="clock-date" id="kiosk-clock-date">Loading...</div>
         </div>
-        <div class="stat-card glass-gold">
-          <div class="stat-value text-white" id="quick-today">0</div>
-          <div class="stat-label text-yellow-200">Checked In</div>
-        </div>
-        <div class="stat-card glass">
-          <div class="stat-value text-blue-400" id="quick-walkin">0</div>
-          <div class="stat-label">Walk-ins</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Main Grid -->
-    <div class="grid lg:grid-cols-12 gap-8">
-
-      <!-- Left: Check-in & Logo -->
-      <div class="lg:col-span-7 space-y-6">
-
-        <!-- Logo Area -->
-        <div class="text-center mb-8 animate-fade-up delay-200">
-          <div class="logo-premium mx-auto mb-6">
-            <div class="logo-glow"></div>
-            <div class="logo-box">
-              <span class="font-display text-5xl font-bold">
-                <span class="text-white">E</span><span class="gold-text">F</span>
-              </span>
-            </div>
+        <!-- Stats -->
+        <div class="flex gap-3 animate-fade-up delay-100">
+          <div class="stat-card glass">
+            <div class="stat-value text-white" id="quick-total">0</div>
+            <div class="stat-label">Total Members</div>
           </div>
-          <p class="text-xs tracking-[0.4em] text-muted uppercase font-semibold mb-2">Welcome to</p>
-          <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight mb-2">
-            <span class="text-white">Evolve</span> <span class="gold-text">Fitness</span>
-          </h1>
-          <p class="text-sm text-muted">Premium Fitness Experience</p>
+          <div class="stat-card glass-gold">
+            <div class="stat-value text-white" id="quick-today">0</div>
+            <div class="stat-label text-yellow-200">Checked In</div>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-value text-blue-400" id="quick-walkin">0</div>
+            <div class="stat-label">Walk-ins</div>
+          </div>
         </div>
+      </div>
 
-        <!-- RFID Check-in Card -->
-        <div class="rfid-container glass-strong animate-fade-up delay-300" onclick="focusRFID()">
-          <div class="scan-line"></div>
+      <!-- Main Grid — fills remaining height -->
+      <div class="grid lg:grid-cols-12 gap-5 flex-1 min-h-0">
 
-          <div class="rfid-ring">
-            <div class="rfid-ripple"></div>
-            <div class="rfid-ripple"></div>
-            <div class="rfid-ripple"></div>
-            <div class="rfid-core">
-              <i class="fas fa-wifi text-4xl gold-text"></i>
+        <!-- Left: Logo + RFID + Register -->
+        <div class="lg:col-span-7 flex flex-col gap-3 min-h-0">
+
+          <!-- Logo Row -->
+          <div class="flex items-center gap-5 animate-fade-up delay-200 flex-shrink-0">
+            <div class="relative flex-shrink-0">
+              <div class="logo-glow" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+              <div class="logo-box">
+                <span class="font-display text-3xl font-bold">
+                  <span class="text-white">E</span><span class="gold-text">F</span>
+                </span>
+              </div>
+            </div>
+            <div>
+              <p class="text-[10px] tracking-[0.35em] text-muted uppercase font-semibold mb-0.5">Welcome to</p>
+              <h1 class="font-display text-3xl font-bold tracking-tight leading-tight">
+                <span class="text-white">Evolve</span> <span class="gold-text">Fitness</span>
+              </h1>
+              <p class="text-xs text-muted mt-0.5">Premium Fitness Experience</p>
             </div>
           </div>
 
-          <div class="text-center mb-8">
-            <h3 class="font-display text-2xl font-semibold tracking-wide mb-2">Tap Your Tag</h3>
-            <p class="text-sm text-muted">Place RFID tag near the reader</p>
-          </div>
+          <!-- RFID Check-in Card — grows to fill space -->
+          <div class="rfid-container glass-strong animate-fade-up delay-300 flex flex-col justify-center" onclick="focusRFID()">
+            <div class="scan-line"></div>
 
-          <div class="max-w-sm mx-auto space-y-4">
-            <input type="text" id="rfid-input" 
-              class="input-luxury text-center font-mono tracking-widest" 
-              placeholder="Or enter RFID manually..."
-              onkeydown="if(event.key==='Enter')processRFID()">
-            <button onclick="processRFID()" class="btn-primary w-full">
-              <i class="fas fa-sign-in-alt mr-2"></i>Check In
-            </button>
-          </div>
-        </div>
-
-        <!-- Quick Register -->
-        <div class="glass rounded-2xl p-6 flex items-center gap-5 cursor-pointer hover:border-yellow-500/50 transition-all animate-fade-up delay-300" onclick="showQRModal()">
-          <div class="w-14 h-14 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-qrcode text-2xl gold-text"></i>
-          </div>
-          <div class="flex-1">
-            <h4 class="font-display text-lg font-semibold">New Member?</h4>
-            <p class="text-sm text-muted">Scan QR code to register instantly</p>
-          </div>
-          <i class="fas fa-arrow-right gold-text"></i>
-        </div>
-      </div>
-
-      <!-- Right: Recent Check-ins -->
-      <div class="lg:col-span-5">
-        <div class="glass-strong rounded-3xl overflow-hidden h-full max-h-[600px] flex flex-col">
-          <div class="p-6 border-b border-white/10 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-              <h3 class="font-display text-lg font-semibold">Today's Activity</h3>
+            <div class="rfid-ring mx-auto">
+              <div class="rfid-ripple"></div>
+              <div class="rfid-ripple"></div>
+              <div class="rfid-ripple"></div>
+              <div class="rfid-core">
+                <i class="fas fa-wifi text-3xl gold-text"></i>
+              </div>
             </div>
-            <span class="text-xs text-muted bg-white/5 px-3 py-1 rounded-full" id="checkin-list-count">0</span>
-          </div>
 
-          <div id="checkin-list" class="checkin-list flex-1 p-2">
-            <div id="checkin-list-empty" class="flex flex-col items-center justify-center h-64 text-muted">
-              <i class="fas fa-clock text-4xl mb-4 opacity-20"></i>
-              <p class="text-sm">No check-ins yet today</p>
+            <div class="text-center mb-5">
+              <h3 class="font-display text-xl font-semibold tracking-wide mb-1">Tap Your Tag</h3>
+              <p class="text-xs text-muted">Place RFID tag near the reader</p>
+            </div>
+
+            <div class="max-w-xs mx-auto w-full space-y-3">
+              <input type="text" id="rfid-input"
+                class="input-luxury text-center font-mono tracking-widest"
+                placeholder="Or enter RFID manually..."
+                onkeydown="if(event.key==='Enter')processRFID()">
+              <button onclick="processRFID()" class="btn-primary">
+                <i class="fas fa-sign-in-alt mr-2"></i>Check In
+              </button>
             </div>
           </div>
+
+          <!-- Quick Register -->
+          <div class="glass rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:border-yellow-500/50 transition-all animate-fade-up delay-300 flex-shrink-0" onclick="showQRModal()">
+            <div class="w-11 h-11 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-qrcode text-xl gold-text"></i>
+            </div>
+            <div class="flex-1">
+              <h4 class="font-display text-base font-semibold">New Member?</h4>
+              <p class="text-xs text-muted">Scan QR code to register instantly</p>
+            </div>
+            <i class="fas fa-arrow-right gold-text"></i>
+          </div>
+        </div>
+
+        <!-- Right: Recent Check-ins — fills height -->
+        <div class="lg:col-span-5 flex flex-col min-h-0">
+          <div class="glass-strong rounded-3xl overflow-hidden flex flex-col flex-1 min-h-0">
+            <div class="p-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                <h3 class="font-display text-base font-semibold">Today's Activity</h3>
+              </div>
+              <span class="text-xs text-muted bg-white/5 px-3 py-1 rounded-full" id="checkin-list-count">0</span>
+            </div>
+
+            <div id="checkin-list" class="checkin-list p-2">
+              <div id="checkin-list-empty" class="flex flex-col items-center justify-center h-40 text-muted">
+                <i class="fas fa-clock text-3xl mb-3 opacity-20"></i>
+                <p class="text-sm">No check-ins yet today</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- MEMBERS SECTION -->
+    <section id="members-section" class="section-hidden max-w-6xl mx-auto w-full">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="font-display text-3xl font-bold gold-text mb-1">Members</h2>
+          <p class="text-sm text-muted" id="members-count">Loading...</p>
+        </div>
+        <div class="flex gap-3">
+          <div class="relative">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-muted"></i>
+            <input type="text" id="member-search"
+              class="input-luxury pl-11 pr-4 py-3 w-56"
+              placeholder="Search members..."
+              oninput="filterMembers()">
+          </div>
+          <button onclick="showQRModal()" class="btn-primary" style="width:auto;padding:13px 24px">
+            <i class="fas fa-plus mr-2"></i>New
+          </button>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- MEMBERS SECTION -->
-  <section id="members-section" class="section-hidden max-w-6xl mx-auto">
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
-      <div>
-        <h2 class="font-display text-3xl font-bold gold-text mb-1">Members</h2>
-        <p class="text-sm text-muted" id="members-count">Loading...</p>
+      <div class="flex gap-2 mb-5">
+        <button onclick="setMF('all')" id="filter-all" class="tab-btn active">All</button>
+        <button onclick="setMF('monthly')" id="filter-monthly" class="tab-btn">Monthly</button>
+        <button onclick="setMF('entry')" id="filter-entry" class="tab-btn">Walk-in</button>
+        <button onclick="setMF('expired')" id="filter-expired" class="tab-btn">Expired</button>
       </div>
-      <div class="flex gap-3">
-        <div class="relative">
-          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-muted"></i>
-          <input type="text" id="member-search" 
-            class="input-luxury pl-11 pr-4 py-3 w-64" 
-            placeholder="Search members..." 
-            oninput="filterMembers()">
+
+      <div class="glass-strong rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/10 text-xs uppercase tracking-wider text-muted">
+                <th class="text-left py-4 px-6 font-semibold">Member</th>
+                <th class="text-left py-4 px-4 font-semibold hidden sm:table-cell">RFID</th>
+                <th class="text-left py-4 px-4 font-semibold hidden md:table-cell">Contact</th>
+                <th class="text-left py-4 px-4 font-semibold">Plan</th>
+                <th class="text-left py-4 px-4 font-semibold hidden lg:table-cell">Expiry</th>
+                <th class="text-left py-4 px-4 font-semibold">Status</th>
+                <th class="py-4 px-4"></th>
+              </tr>
+            </thead>
+            <tbody id="members-tbody"></tbody>
+          </table>
         </div>
-        <button onclick="showQRModal()" class="btn-primary">
-          <i class="fas fa-plus mr-2"></i>New
-        </button>
+        <div id="members-empty" class="hidden text-center py-16 text-muted">
+          <i class="fas fa-users text-4xl mb-3 opacity-20"></i>
+          <p>No members found</p>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Filter Tabs -->
-    <div class="flex gap-2 mb-6">
-      <button onclick="setMF('all')" id="filter-all" class="tab-btn active">All</button>
-      <button onclick="setMF('monthly')" id="filter-monthly" class="tab-btn">Monthly</button>
-      <button onclick="setMF('entry')" id="filter-entry" class="tab-btn">Walk-in</button>
-      <button onclick="setMF('expired')" id="filter-expired" class="tab-btn">Expired</button>
-    </div>
-
-    <!-- Members Table -->
-    <div class="glass-strong rounded-2xl overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-white/10 text-xs uppercase tracking-wider text-muted">
-              <th class="text-left py-4 px-6 font-semibold">Member</th>
-              <th class="text-left py-4 px-4 font-semibold hidden sm:table-cell">RFID</th>
-              <th class="text-left py-4 px-4 font-semibold hidden md:table-cell">Contact</th>
-              <th class="text-left py-4 px-4 font-semibold">Plan</th>
-              <th class="text-left py-4 px-4 font-semibold hidden lg:table-cell">Expiry</th>
-              <th class="text-left py-4 px-4 font-semibold">Status</th>
-              <th class="py-4 px-4"></th>
-            </tr>
-          </thead>
-          <tbody id="members-tbody"></tbody>
-        </table>
-      </div>
-      <div id="members-empty" class="hidden text-center py-16 text-muted">
-        <i class="fas fa-users text-4xl mb-3 opacity-20"></i>
-        <p>No members found</p>
-      </div>
-    </div>
-  </section>
-
-</main>
+  </main>
+</div>
 
 <!-- QR Modal -->
 <div id="qr-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
@@ -710,12 +677,12 @@ html,body{
       <i class="fas fa-times"></i>
     </button>
 
-    <div class="w-16 h-16 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mx-auto mb-4">
-      <i class="fas fa-qrcode text-2xl gold-text"></i>
+    <div class="w-14 h-14 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-qrcode text-xl gold-text"></i>
     </div>
 
     <h3 class="font-display text-2xl font-bold mb-2">New Member Registration</h3>
-    <p class="text-sm text-muted mb-6">Scan with your phone to register</p>
+    <p class="text-sm text-muted mb-5">Scan with your phone to register</p>
 
     <div class="bg-white rounded-2xl p-4 inline-block mb-4">
       <div id="qr-canvas-wrap"></div>
@@ -735,43 +702,43 @@ html,body{
 <!-- Member Check-in Modal -->
 <div id="member-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
   <div class="modal-glass max-w-md w-full p-8">
-    <div class="text-center mb-6">
+    <div class="text-center mb-5">
       <div id="modal-photo-wrap" class="hidden mb-4">
-        <img id="modal-photo" src="" alt="" class="w-24 h-24 rounded-full object-cover border-3 border-yellow-500 mx-auto shadow-lg shadow-yellow-500/20">
+        <img id="modal-photo" src="" alt="" class="w-20 h-20 rounded-full object-cover border-2 border-yellow-500 mx-auto shadow-lg shadow-yellow-500/20">
       </div>
-      <div id="modal-init-wrap" class="w-24 h-24 rounded-full bg-gradient-to-b from-gray-700 to-gray-900 border-2 border-yellow-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-yellow-500/20">
-        <span class="font-display text-3xl gold-text" id="modal-initial">?</span>
+      <div id="modal-init-wrap" class="w-20 h-20 rounded-full bg-gradient-to-b from-gray-700 to-gray-900 border-2 border-yellow-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-yellow-500/20">
+        <span class="font-display text-2xl gold-text" id="modal-initial">?</span>
       </div>
       <h3 class="font-display text-2xl font-bold mb-1" id="modal-name"></h3>
       <p class="text-xs text-muted font-mono" id="modal-rfid-label"></p>
     </div>
 
-    <div class="space-y-3 mb-6">
-      <div class="flex justify-between py-3 border-b border-white/10">
+    <div class="space-y-2 mb-5">
+      <div class="flex justify-between py-2.5 border-b border-white/10">
         <span class="text-muted text-sm">Plan</span>
-        <span id="modal-plan" class="font-semibold"></span>
+        <span id="modal-plan" class="font-semibold text-sm"></span>
       </div>
-      <div class="flex justify-between py-3 border-b border-white/10">
+      <div class="flex justify-between py-2.5 border-b border-white/10">
         <span class="text-muted text-sm">Status</span>
         <span id="modal-status"></span>
       </div>
-      <div id="modal-expiry-row" class="flex justify-between py-3 border-b border-white/10">
+      <div id="modal-expiry-row" class="flex justify-between py-2.5 border-b border-white/10">
         <span class="text-muted text-sm">Expiry</span>
         <span id="modal-expiry" class="font-mono text-sm"></span>
       </div>
-      <div id="modal-days-row" class="flex justify-between py-3 border-b border-white/10">
+      <div id="modal-days-row" class="flex justify-between py-2.5 border-b border-white/10">
         <span class="text-muted text-sm">Days Left</span>
-        <span id="modal-days" class="font-mono"></span>
+        <span id="modal-days" class="font-mono text-sm"></span>
       </div>
     </div>
 
-    <div id="modal-actions" class="space-y-3"></div>
-    <button onclick="closeModal()" class="btn-secondary w-full mt-4">Close</button>
+    <div id="modal-actions" class="space-y-2"></div>
+    <button onclick="closeModal()" class="btn-secondary mt-3">Close</button>
   </div>
 </div>
 
 <!-- Notifications -->
-<div id="notifications" class="fixed top-24 right-4 z-[60] space-y-2"></div>
+<div id="notifications" class="fixed top-20 right-4 z-[60] space-y-2"></div>
 
 <script>
 // Firebase Config
@@ -786,16 +753,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Database Interface
 const DB = {
   async getMembers(){
     try{
       const snap = await db.collection('members').get();
       return snap.docs.map(d => ({...d.data(), id: d.id}));
-    }catch(e){
-      console.error(e);
-      return [];
-    }
+    }catch(e){ return []; }
   },
   async getMemberByRFID(rfid){
     const snap = await db.collection('members').where('rfid','==',rfid.toUpperCase()).get();
@@ -815,83 +778,68 @@ const DB = {
       const today = new Date().toDateString();
       const snap = await db.collection('attendance').where('memberId','==',memberId).get();
       return snap.docs.some(d => new Date(d.data().time).toDateString() === today);
-    }catch(e){
-      return false;
-    }
+    }catch(e){ return false; }
   }
 };
 
 let currentMember = null, memberFilter = 'all', qrInstance = null;
-const REGISTER_URL = window.location.origin !== 'null' 
+const REGISTER_URL = window.location.origin !== 'null'
   ? window.location.origin + '/register.html'
   : 'https://evovlekiosk.pages.dev/register';
 
-// Navigation
 function showSection(s){
   document.querySelectorAll('#kiosk-main > section').forEach(el => {
     el.classList.remove('section-active');
     el.classList.add('section-hidden');
   });
-  document.getElementById(s + '-section').classList.remove('section-hidden');
-  document.getElementById(s + '-section').classList.add('section-active');
+  const sec = document.getElementById(s + '-section');
+  sec.classList.remove('section-hidden');
+  sec.classList.add('section-active');
 
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const nb = document.getElementById('nav-' + s);
   if(nb) nb.classList.add('active');
 
-  if(s === 'home'){
-    updateStats();
-    renderRecentCheckins();
-  }
+  if(s === 'home'){ updateStats(); renderRecentCheckins(); }
   if(s === 'members') renderMembers();
 }
 
-// Clock
 function startKioskClock(){
   function tick(){
     const now = new Date();
-    const timeEl = document.getElementById('kiosk-clock-time');
-    const dateEl = document.getElementById('kiosk-clock-date');
-    if(timeEl) timeEl.textContent = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
-    if(dateEl) dateEl.textContent = now.toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const t = document.getElementById('kiosk-clock-time');
+    const d = document.getElementById('kiosk-clock-date');
+    if(t) t.textContent = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
+    if(d) d.textContent = now.toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   }
   tick();
   setInterval(tick, 1000);
 }
 
-// Stats
 async function updateStats(){
   const members = await DB.getMembers();
   const records = await DB.getRecentAtt(100);
   const today = new Date().toDateString();
   const todayRecords = records.filter(r => new Date(r.time).toDateString() === today);
 
-  const total = members.filter(m => m.active !== false).length;
-  const todayCount = todayRecords.length;
-  const walkinCount = todayRecords.filter(a => a.memberPlan === 'entry').length;
-
-  animateCounter(document.getElementById('quick-total'), total);
-  animateCounter(document.getElementById('quick-today'), todayCount);
-  animateCounter(document.getElementById('quick-walkin'), walkinCount);
+  animateCounter(document.getElementById('quick-total'), members.filter(m => m.active !== false).length);
+  animateCounter(document.getElementById('quick-today'), todayRecords.length);
+  animateCounter(document.getElementById('quick-walkin'), todayRecords.filter(a => a.memberPlan === 'entry').length);
 }
 
 function animateCounter(el, target){
   if(!el) return;
   const start = parseInt(el.textContent) || 0;
   if(start === target) return;
-  const duration = 800;
-  const startTime = performance.now();
-
+  const duration = 800, startTime = performance.now();
   function step(now){
-    const progress = Math.min((now - startTime) / duration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3);
-    el.textContent = Math.round(start + (target - start) * ease);
-    if(progress < 1) requestAnimationFrame(step);
+    const p = Math.min((now - startTime) / duration, 1);
+    el.textContent = Math.round(start + (target - start) * (1 - Math.pow(1 - p, 3)));
+    if(p < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
 }
 
-// Recent Check-ins
 async function renderRecentCheckins(){
   const records = await DB.getRecentAtt(50);
   const today = new Date().toDateString();
@@ -915,101 +863,60 @@ async function renderRecentCheckins(){
   todayRecords.forEach(a => {
     const time = new Date(a.time).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
     const isPaid = a.memberPlan !== 'entry';
-
     const item = document.createElement('div');
     item.className = 'checkin-item';
-
-    if(a.memberPhoto){
-      item.innerHTML = `
-        <img src="${a.memberPhoto}" class="checkin-avatar" alt="">
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-sm truncate">${a.memberName || 'Guest'}</p>
-          <p class="text-xs text-muted">${time}</p>
-        </div>
-        <span class="text-[10px] font-bold px-2 py-1 rounded-full ${isPaid ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}">
-          ${isPaid ? 'Monthly' : 'Walk-in'}
-        </span>
-      `;
-    } else {
-      item.innerHTML = `
-        <div class="checkin-initial">${(a.memberName || '?').charAt(0).toUpperCase()}</div>
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-sm truncate">${a.memberName || 'Guest'}</p>
-          <p class="text-xs text-muted">${time}</p>
-        </div>
-        <span class="text-[10px] font-bold px-2 py-1 rounded-full ${isPaid ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}">
-          ${isPaid ? 'Monthly' : 'Walk-in'}
-        </span>
-      `;
-    }
+    const avatarHTML = a.memberPhoto
+      ? `<img src="${a.memberPhoto}" class="checkin-avatar" alt="">`
+      : `<div class="checkin-initial">${(a.memberName||'?').charAt(0).toUpperCase()}</div>`;
+    item.innerHTML = `
+      ${avatarHTML}
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-sm truncate">${a.memberName||'Guest'}</p>
+        <p class="text-xs text-muted">${time}</p>
+      </div>
+      <span class="text-[10px] font-bold px-2 py-1 rounded-full ${isPaid?'bg-green-500/20 text-green-400':'bg-blue-500/20 text-blue-400'}">
+        ${isPaid?'Monthly':'Walk-in'}
+      </span>`;
     list.appendChild(item);
   });
 }
 
-// RFID Check-in
-function focusRFID(){
-  document.getElementById('rfid-input').focus();
-}
+function focusRFID(){ document.getElementById('rfid-input').focus(); }
 
 async function processRFID(){
   const input = document.getElementById('rfid-input');
   const tag = input.value.trim().toUpperCase();
-
-  if(!tag){
-    showNotif('Please enter an RFID tag','warning');
-    return;
-  }
-
+  if(!tag){ showNotif('Please enter an RFID tag','warning'); return; }
   input.value = '';
   showNotif('Looking up member...','info');
-
   try{
     const member = await DB.getMemberByRFID(tag);
-    if(!member){
-      showNotif('Tag not registered','error');
-      return;
-    }
-
+    if(!member){ showNotif('Tag not registered','error'); return; }
     const alreadyIn = await DB.hasCheckedInToday(member.id);
-    if(alreadyIn){
-      showAlreadyCheckedIn(member);
-      return;
-    }
-
+    if(alreadyIn){ showAlreadyCheckedIn(member); return; }
     const daysLeft = member.expiry ? Math.ceil((new Date(member.expiry) - new Date()) / 864e5) : null;
     await DB.logAttendance({
-      memberId: member.id,
-      rfid: member.rfid,
-      memberName: member.name,
-      memberPlan: member.plan,
-      memberPhoto: member.photo || null,
-      paid: member.plan !== 'entry'
+      memberId: member.id, rfid: member.rfid,
+      memberName: member.name, memberPlan: member.plan,
+      memberPhoto: member.photo || null, paid: member.plan !== 'entry'
     });
-
     currentMember = member;
     showMemberModal(member, daysLeft);
     updateStats();
     renderRecentCheckins();
-  }catch(err){
-    showNotif('Error: ' + err.message,'error');
-  }
+  }catch(err){ showNotif('Error: ' + err.message,'error'); }
 }
 
-// Modals
 function showMemberModal(member, daysLeft){
   const pw = document.getElementById('modal-photo-wrap');
   const iw = document.getElementById('modal-init-wrap');
-
   if(member.photo){
     document.getElementById('modal-photo').src = member.photo;
-    pw.classList.remove('hidden');
-    iw.style.display = 'none';
+    pw.classList.remove('hidden'); iw.style.display = 'none';
   } else {
-    pw.classList.add('hidden');
-    iw.style.display = 'flex';
+    pw.classList.add('hidden'); iw.style.display = 'flex';
     document.getElementById('modal-initial').textContent = member.name.charAt(0).toUpperCase();
   }
-
   document.getElementById('modal-name').textContent = member.name;
   document.getElementById('modal-rfid-label').textContent = 'RFID: ' + member.rfid;
   document.getElementById('modal-plan').textContent = member.plan === 'entry' ? 'Walk-in' : 'Monthly';
@@ -1020,76 +927,63 @@ function showMemberModal(member, daysLeft){
   const actEl = document.getElementById('modal-actions');
 
   if(member.plan === 'entry'){
-    exR.style.display = 'none';
-    dR.style.display = 'none';
+    exR.style.display = 'none'; dR.style.display = 'none';
     stEl.innerHTML = '<span class="text-blue-400 font-semibold">WALK-IN</span>';
     const price = member.isStudent ? 50 : 70;
     actEl.innerHTML = `
-      <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-center mb-3">
+      <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-center mb-2">
         <p class="text-blue-300 text-sm mb-1">Entry Fee</p>
         <p class="text-3xl font-bold font-display">₱${price}</p>
-        ${member.isStudent ? '<p class="text-xs text-blue-400 mt-1">Student Rate</p>' : ''}
+        ${member.isStudent?'<p class="text-xs text-blue-400 mt-1">Student Rate</p>':''}
       </div>
-      <button onclick="confirmWalkIn()" class="btn-primary w-full">Confirm Payment</button>
-    `;
+      <button onclick="confirmWalkIn()" class="btn-primary">Confirm Payment</button>`;
   } else {
-    exR.style.display = 'flex';
-    dR.style.display = 'flex';
+    exR.style.display = 'flex'; dR.style.display = 'flex';
     document.getElementById('modal-expiry').textContent = new Date(member.expiry).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
     document.getElementById('modal-days').textContent = daysLeft > 0 ? daysLeft + ' days' : 'EXPIRED';
-
     const monthlyPrice = member.isStudent ? 600 : 900;
     const entryPrice = member.isStudent ? 50 : 70;
-
     if(daysLeft <= 0){
       stEl.innerHTML = '<span class="text-red-500 font-semibold">EXPIRED</span>';
       actEl.innerHTML = `
-        <button onclick="payEntry()" class="btn-primary w-full mb-2">Pay Entry (₱${entryPrice})</button>
-        <button onclick="renewMember()" class="btn-secondary w-full">Renew (₱${monthlyPrice})</button>
-      `;
+        <button onclick="payEntry()" class="btn-primary mb-2">Pay Entry (₱${entryPrice})</button>
+        <button onclick="renewMember()" class="btn-secondary">Renew (₱${monthlyPrice})</button>`;
     } else if(daysLeft <= 5){
       stEl.innerHTML = '<span class="text-yellow-500 font-semibold">EXPIRING SOON</span>';
       actEl.innerHTML = `
-        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-3">
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 mb-2">
           <p class="text-yellow-400 text-sm">${daysLeft} days remaining</p>
           <button onclick="renewMember()" class="text-yellow-500 text-sm underline mt-1">Renew Now</button>
         </div>
         <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-3 text-center">
           <i class="fas fa-check-circle text-green-500 mr-2"></i>
           <span class="text-green-400 text-sm font-semibold">Checked In</span>
-        </div>
-      `;
+        </div>`;
       showNotif('Welcome back, ' + member.name + '!','success');
     } else {
       stEl.innerHTML = '<span class="text-green-500 font-semibold">ACTIVE</span>';
       actEl.innerHTML = `
-        <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-5 text-center">
+        <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
           <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
           <p class="text-green-400 font-bold">Check-in Successful!</p>
           <p class="text-muted text-xs mt-1">${daysLeft} days remaining</p>
-        </div>
-      `;
+        </div>`;
       showNotif('Welcome back, ' + member.name + '!','success');
     }
   }
-
   document.getElementById('member-modal').classList.remove('hidden');
 }
 
 function showAlreadyCheckedIn(member){
   const pw = document.getElementById('modal-photo-wrap');
   const iw = document.getElementById('modal-init-wrap');
-
   if(member.photo){
     document.getElementById('modal-photo').src = member.photo;
-    pw.classList.remove('hidden');
-    iw.style.display = 'none';
+    pw.classList.remove('hidden'); iw.style.display = 'none';
   } else {
-    pw.classList.add('hidden');
-    iw.style.display = 'flex';
+    pw.classList.add('hidden'); iw.style.display = 'flex';
     document.getElementById('modal-initial').textContent = member.name.charAt(0).toUpperCase();
   }
-
   document.getElementById('modal-name').textContent = member.name;
   document.getElementById('modal-rfid-label').textContent = 'RFID: ' + member.rfid;
   document.getElementById('modal-plan').textContent = member.plan === 'entry' ? 'Walk-in' : 'Monthly';
@@ -1097,232 +991,124 @@ function showAlreadyCheckedIn(member){
   document.getElementById('modal-days-row').style.display = 'none';
   document.getElementById('modal-status').innerHTML = '<span class="text-yellow-400 font-semibold">ALREADY CHECKED IN</span>';
   document.getElementById('modal-actions').innerHTML = `
-    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-5 text-center">
+    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
       <i class="fas fa-clock-rotate-left text-yellow-500 text-2xl mb-2"></i>
       <p class="text-yellow-400 font-semibold">Already checked in today</p>
       <p class="text-muted text-xs mt-1">One check-in per day allowed</p>
-    </div>
-  `;
+    </div>`;
   document.getElementById('member-modal').classList.remove('hidden');
   showNotif(member.name + ' already checked in today','warning');
 }
 
-function closeModal(){
-  document.getElementById('member-modal').classList.add('hidden');
-  currentMember = null;
-}
-
-function confirmWalkIn(){
-  showNotif('Payment confirmed ✓','success');
-  closeModal();
-}
-
-function payEntry(){
-  showNotif('Entry fee paid ✓','success');
-  closeModal();
-}
+function closeModal(){ document.getElementById('member-modal').classList.add('hidden'); currentMember = null; }
+function confirmWalkIn(){ showNotif('Payment confirmed ✓','success'); closeModal(); }
+function payEntry(){ showNotif('Entry fee paid ✓','success'); closeModal(); }
 
 async function renewMember(){
   if(!currentMember) return;
   const exp = new Date();
   exp.setDate(exp.getDate() + 30);
-  await db.collection('members').doc(currentMember.id).update({
-    plan: 'monthly',
-    expiry: exp.toISOString()
-  });
+  await db.collection('members').doc(currentMember.id).update({ plan:'monthly', expiry: exp.toISOString() });
   showNotif('Membership renewed ✓','success');
-  closeModal();
-  updateStats();
+  closeModal(); updateStats();
 }
 
-// QR Modal
 function showQRModal(){
   document.getElementById('qr-modal').classList.remove('hidden');
   document.getElementById('qr-url-label').textContent = REGISTER_URL;
   const wrap = document.getElementById('qr-canvas-wrap');
   wrap.innerHTML = '';
-  qrInstance = new QRCode(wrap, {
-    text: REGISTER_URL,
-    width: 200,
-    height: 200,
-    colorDark: '#000000',
-    colorLight: '#ffffff',
+  qrInstance = new QRCode(wrap,{
+    text: REGISTER_URL, width:200, height:200,
+    colorDark:'#000000', colorLight:'#ffffff',
     correctLevel: QRCode.CorrectLevel.H
   });
 }
 
-function closeQRModal(){
-  document.getElementById('qr-modal').classList.add('hidden');
-}
+function closeQRModal(){ document.getElementById('qr-modal').classList.add('hidden'); }
 
-// Members List
 function setMF(f){
   memberFilter = f;
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    b.classList.remove('active','bg-yellow-500','text-black');
-    b.classList.add('text-muted');
-  });
-  const activeBtn = document.getElementById('filter-' + f);
-  if(activeBtn){
-    activeBtn.classList.add('active','bg-yellow-500','text-black');
-    activeBtn.classList.remove('text-muted');
-  }
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); });
+  const ab = document.getElementById('filter-' + f);
+  if(ab) ab.classList.add('active');
   renderMembers();
 }
 
-function filterMembers(){
-  renderMembers();
-}
+function filterMembers(){ renderMembers(); }
 
 async function renderMembers(){
-  const search = (document.getElementById('member-search')?.value || '').toLowerCase();
+  const search = (document.getElementById('member-search')?.value||'').toLowerCase();
   let members = await DB.getMembers();
-
   if(memberFilter === 'monthly') members = members.filter(m => m.plan === 'monthly');
   if(memberFilter === 'entry') members = members.filter(m => m.plan === 'entry');
   if(memberFilter === 'expired') members = members.filter(m => m.plan === 'monthly' && m.expiry && new Date(m.expiry) < new Date());
-  if(search) members = members.filter(m => (m.name || '').toLowerCase().includes(search) || (m.rfid || '').toLowerCase().includes(search));
+  if(search) members = members.filter(m => (m.name||'').toLowerCase().includes(search)||(m.rfid||'').toLowerCase().includes(search));
 
-  document.getElementById('members-count').textContent = members.length + ' member' + (members.length !== 1 ? 's' : '');
-
+  document.getElementById('members-count').textContent = members.length + ' member' + (members.length!==1?'s':'');
   const tbody = document.getElementById('members-tbody');
   const empty = document.getElementById('members-empty');
 
-  if(!members.length){
-    tbody.innerHTML = '';
-    empty.classList.remove('hidden');
-    return;
-  }
-
+  if(!members.length){ tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
 
   tbody.innerHTML = members.map(m => {
     const daysLeft = m.expiry ? Math.ceil((new Date(m.expiry) - new Date()) / 864e5) : null;
-    const isExp = m.plan === 'monthly' && daysLeft !== null && daysLeft <= 0;
-    const isSoon = m.plan === 'monthly' && daysLeft !== null && daysLeft > 0 && daysLeft <= 5;
-
-    const status = m.active === false 
+    const isExp = m.plan==='monthly' && daysLeft!==null && daysLeft<=0;
+    const isSoon = m.plan==='monthly' && daysLeft!==null && daysLeft>0 && daysLeft<=5;
+    const status = m.active===false
       ? '<span class="text-xs text-muted bg-white/5 px-2 py-1 rounded-full">Inactive</span>'
-      : isExp 
-        ? '<span class="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded-full">Expired</span>'
-        : isSoon
-          ? '<span class="text-xs text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-full">Expiring</span>'
-          : '<span class="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded-full">Active</span>';
-
-    const plan = m.plan === 'monthly' 
+      : isExp ? '<span class="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded-full">Expired</span>'
+      : isSoon ? '<span class="text-xs text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-full">Expiring</span>'
+      : '<span class="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded-full">Active</span>';
+    const plan = m.plan==='monthly'
       ? '<span class="gold-text text-xs font-semibold">Monthly</span>'
       : '<span class="text-muted text-xs">Walk-in</span>';
-
-    const exp = m.expiry 
-      ? `<span class="${isExp ? 'text-red-400' : isSoon ? 'text-yellow-500' : 'text-muted'}">${new Date(m.expiry).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</span>`
+    const exp = m.expiry
+      ? `<span class="${isExp?'text-red-400':isSoon?'text-yellow-500':'text-muted'}">${new Date(m.expiry).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</span>`
       : '<span class="text-muted">—</span>';
-
-    const avatar = m.photo 
+    const avatar = m.photo
       ? `<img src="${m.photo}" class="w-10 h-10 rounded-full object-cover border border-yellow-500/30" alt="">`
       : `<div class="w-10 h-10 rounded-full bg-gradient-to-b from-gray-700 to-gray-900 border border-white/10 flex items-center justify-center text-sm font-bold gold-text">${m.name.charAt(0).toUpperCase()}</div>`;
-
     return `
       <tr class="hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
-        <td class="py-4 px-6">
-          <div class="flex items-center gap-3">
-            ${avatar}
-            <div class="min-w-0">
-              <p class="font-semibold text-sm truncate">${m.name}</p>
-              <p class="text-xs text-muted truncate">${m.email || ''}</p>
-            </div>
-          </div>
-        </td>
-        <td class="py-4 px-4 hidden sm:table-cell">
-          <span class="font-mono text-xs gold-text">${m.rfid}</span>
-        </td>
-        <td class="py-4 px-4 hidden md:table-cell text-xs text-muted">${m.phone || '—'}</td>
+        <td class="py-4 px-6"><div class="flex items-center gap-3">${avatar}<div class="min-w-0"><p class="font-semibold text-sm truncate">${m.name}</p><p class="text-xs text-muted truncate">${m.email||''}</p></div></div></td>
+        <td class="py-4 px-4 hidden sm:table-cell"><span class="font-mono text-xs gold-text">${m.rfid}</span></td>
+        <td class="py-4 px-4 hidden md:table-cell text-xs text-muted">${m.phone||'—'}</td>
         <td class="py-4 px-4">${plan}</td>
         <td class="py-4 px-4 hidden lg:table-cell text-xs">${exp}</td>
         <td class="py-4 px-4">${status}</td>
-        <td class="py-4 px-4">
-          <div class="flex gap-1">
-            <button class="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-yellow-500 hover:bg-white/5 transition-all">
-              <i class="fas fa-edit text-xs"></i>
-            </button>
-            <button class="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-red-500 hover:bg-white/5 transition-all">
-              <i class="fas fa-trash text-xs"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
+        <td class="py-4 px-4"><div class="flex gap-1">
+          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-yellow-500 hover:bg-white/5 transition-all"><i class="fas fa-edit text-xs"></i></button>
+          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-red-500 hover:bg-white/5 transition-all"><i class="fas fa-trash text-xs"></i></button>
+        </div></td>
+      </tr>`;
   }).join('');
 }
 
-// Notifications
 function showNotif(msg, type='info'){
   const c = document.getElementById('notifications');
   const d = document.createElement('div');
-
-  const colors = {
-    success: 'border-green-500/50 text-green-400 bg-green-500/10',
-    error: 'border-red-500/50 text-red-400 bg-red-500/10',
-    warning: 'border-yellow-500/50 text-yellow-400 bg-yellow-500/10',
-    info: 'border-blue-500/50 text-blue-400 bg-blue-500/10'
-  };
-
-  const icons = {
-    success: 'fa-check-circle',
-    error: 'fa-exclamation-circle',
-    warning: 'fa-exclamation-triangle',
-    info: 'fa-info-circle'
-  };
-
-  d.className = `notif ${colors[type]} border px-4 py-3 rounded-xl backdrop-blur-md flex items-center gap-3 min-w-[280px] max-w-sm text-sm shadow-xl animate-fade-up`;
+  const colors = {success:'border-green-500/50 text-green-400 bg-green-500/10',error:'border-red-500/50 text-red-400 bg-red-500/10',warning:'border-yellow-500/50 text-yellow-400 bg-yellow-500/10',info:'border-blue-500/50 text-blue-400 bg-blue-500/10'};
+  const icons = {success:'fa-check-circle',error:'fa-exclamation-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
+  d.className = `${colors[type]} border px-4 py-3 rounded-xl backdrop-blur-md flex items-center gap-3 min-w-[260px] max-w-sm text-sm shadow-xl animate-fade-up`;
   d.innerHTML = `<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
   c.appendChild(d);
-
-  setTimeout(() => {
-    d.style.transition = 'all 0.3s';
-    d.style.opacity = '0';
-    d.style.transform = 'translateX(100%)';
-    setTimeout(() => d.remove(), 300);
-  }, 3500);
+  setTimeout(() => { d.style.transition='all 0.3s'; d.style.opacity='0'; d.style.transform='translateX(100%)'; setTimeout(()=>d.remove(),300); }, 3500);
 }
 
-// Tab buttons styling helper
+// Tab button styles
 const style = document.createElement('style');
-style.textContent = `
-  .tab-btn {
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.1);
-    transition: all 0.3s;
-    color: rgba(255,255,255,0.5);
-    background: transparent;
-  }
-  .tab-btn:hover {
-    border-color: var(--gold);
-    color: var(--gold);
-  }
-  .tab-btn.active {
-    background: var(--gold);
-    color: #000;
-    border-color: var(--gold);
-  }
-`;
+style.textContent = `.tab-btn{padding:7px 18px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.1);transition:all 0.3s;color:rgba(255,255,255,0.5);background:transparent;}.tab-btn:hover{border-color:var(--gold);color:var(--gold);}.tab-btn.active{background:var(--gold);color:#000;border-color:var(--gold);}`;
 document.head.appendChild(style);
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
   startKioskClock();
   updateStats();
   renderRecentCheckins();
 
-  setTimeout(() => {
-    const inp = document.getElementById('rfid-input');
-    if(inp) inp.focus();
-  }, 500);
+  setTimeout(() => { const inp = document.getElementById('rfid-input'); if(inp) inp.focus(); }, 500);
 
-  // Auto-submit RFID
   const rfidInput = document.getElementById('rfid-input');
   if(rfidInput){
     let rfidTimer = null;
@@ -1330,26 +1116,15 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(rfidTimer);
       const val = rfidInput.value.trim();
       if(!val) return;
-      rfidTimer = setTimeout(() => {
-        if(rfidInput.value.trim()) processRFID();
-      }, 150);
+      rfidTimer = setTimeout(() => { if(rfidInput.value.trim()) processRFID(); }, 150);
     });
   }
 
-  // Close modals on backdrop click
   ['qr-modal','member-modal'].forEach(id => {
     const el = document.getElementById(id);
-    if(el){
-      el.addEventListener('click', function(e){
-        if(e.target === this){
-          if(id === 'qr-modal') closeQRModal();
-          if(id === 'member-modal') closeModal();
-        }
-      });
-    }
+    if(el) el.addEventListener('click', function(e){ if(e.target===this){ id==='qr-modal'?closeQRModal():closeModal(); } });
   });
 });
 </script>
-
 </body>
 </html>
