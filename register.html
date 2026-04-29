@@ -7,6 +7,8 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -412,6 +414,56 @@ select.input-dark{
   opacity:1;
 }
 
+/* Payment method cards */
+.pay-card{
+  background: rgba(18,18,20,0.6);
+  border: 1.5px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+.pay-card:hover{
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.15);
+}
+.pay-card.selected-gcash{
+  border-color: #0078FF;
+  background: rgba(0,120,255,0.08);
+  box-shadow: 0 0 20px rgba(0,120,255,0.2);
+}
+.pay-card.selected-cash{
+  border-color: #22c55e;
+  background: rgba(34,197,94,0.08);
+  box-shadow: 0 0 20px rgba(34,197,94,0.15);
+}
+.pay-icon{
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.pay-card.selected-gcash .pay-icon{ background: rgba(0,120,255,0.2); color:#60a5fa; }
+.pay-card.selected-cash .pay-icon{ background: rgba(34,197,94,0.2); color:#4ade80; }
+.pay-card:not(.selected-gcash):not(.selected-cash) .pay-icon{ background: rgba(255,255,255,0.05); color:rgba(255,255,255,0.4); }
+.pay-dot{
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: all 0.3s;
+  background: rgba(0,0,0,0.3);
+}
+.pay-card.selected-gcash .pay-dot{ background:#0078FF; border-color:#0078FF; box-shadow:0 0 8px rgba(0,120,255,0.5); }
+.pay-card.selected-cash .pay-dot{ background:#22c55e; border-color:#22c55e; box-shadow:0 0 8px rgba(34,197,94,0.4); }
+
 /* Photo capture - Enhanced */
 .photo-ring{
   width:120px;
@@ -646,6 +698,58 @@ select.input-dark{
   .glass-card{margin: 0 -12px; border-radius: 0;}
   .step-line-bg, .step-line-fill{left:30px; right:30px;}
 }
+
+/* Face enrollment thumbnails */
+.enroll-thumb{
+  width:48px;height:48px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.04);
+  border:1.5px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  transition:all 0.3s;
+  flex-shrink:0;
+}
+.enroll-thumb.captured{
+  border-color:rgba(168,85,247,0.5);
+  box-shadow:0 0 12px rgba(168,85,247,0.2);
+}
+.enroll-thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
+
+/* OTP input boxes */
+.otp-box{
+  width:44px;height:54px;
+  background:rgba(10,10,12,0.6);
+  border:1.5px solid rgba(255,255,255,0.1);
+  color:var(--text-primary);
+  border-radius:12px;
+  text-align:center;
+  font-size:22px;
+  font-weight:700;
+  font-family:'Oswald',sans-serif;
+  outline:none;
+  transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.otp-box:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(240,198,116,0.15);
+  background:rgba(10,10,12,0.85);
+}
+.otp-box.filled{
+  border-color:rgba(240,198,116,0.4);
+  background:rgba(240,198,116,0.06);
+}
+.otp-box.error{
+  border-color:rgba(239,68,68,0.6);
+  background:rgba(239,68,68,0.06);
+  animation:shake 0.3s ease;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-4px);}
+  75%{transform:translateX(4px);}
+}
 </style>
 </head>
 <body>
@@ -682,11 +786,11 @@ select.input-dark{
       <div class="space-y-3 text-left mb-8">
         <div class="intro-card flex items-center gap-4">
           <div class="w-10 h-10 rounded-xl bg-yellow-600/10 border border-yellow-600/20 flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-user text-yellow-500 text-sm"></i>
+            <i class="fas fa-face-smile text-yellow-500 text-sm"></i>
           </div>
           <div>
-            <p class="text-sm font-bold text-white">Personal Information</p>
-            <p class="text-xs text-gray-500 mt-0.5">Name, contact details & photo</p>
+            <p class="text-sm font-bold text-white">Face Registration <span class="text-red-400 text-xs ml-1">Required</span></p>
+            <p class="text-xs text-gray-500 mt-0.5">Scan your face for secure check-in</p>
           </div>
           <i class="fas fa-chevron-right text-gray-600 ml-auto text-xs"></i>
         </div>
@@ -712,7 +816,10 @@ select.input-dark{
         </div>
       </div>
       <button onclick="goToStep(1)" class="btn-gold text-base">
-        Get Started <i class="fas fa-arrow-right ml-2"></i>
+        Member Registration <i class="fas fa-arrow-right ml-2"></i>
+      </button>
+      <button onclick="startWalkIn()" class="btn-outline text-base mt-3" style="width:100%;padding:18px 24px;border-radius:16px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">
+        <i class="fas fa-person-walking mr-2"></i> Walk In Registration
       </button>
     </div>
   </div>
@@ -741,16 +848,24 @@ select.input-dark{
     <div id="reg-step-1" class="fade-in">
       <div class="glass-card p-6 space-y-6">
 
-        <!-- Profile Photo -->
+        <!-- Profile Photo — Optional -->
         <div class="flex flex-col items-center gap-4 pb-6 border-b border-white/6">
+          <!-- Badge -->
+          <div class="flex items-center gap-2 w-full justify-center mb-1">
+            <span class="text-xs font-bold uppercase tracking-widest text-yellow-500 border border-yellow-600/40 bg-yellow-600/10 px-3 py-1 rounded-full flex items-center gap-1.5">
+              <i class="fas fa-user-circle text-[10px]"></i> Profile Photo <span class="text-yellow-600/60 font-normal normal-case tracking-normal ml-1">— optional</span>
+            </span>
+          </div>
+          <p class="text-xs text-gray-500 text-center -mt-1">A photo helps staff identify you at the gym.<br>Facial recognition is set up separately by staff.</p>
+
           <div id="photo-placeholder" class="flex flex-col items-center gap-4">
             <div class="photo-ring" onclick="openCamera()">
               <div class="text-center">
-                <i class="fas fa-camera text-yellow-600/60 text-3xl mb-2 block"></i>
-                <p class="text-xs text-gray-500 font-medium">Add Photo</p>
+                <i class="fas fa-user-circle text-yellow-600/60 text-3xl mb-2 block"></i>
+                <p class="text-xs text-gray-500 font-medium">Take Photo</p>
               </div>
             </div>
-            <button onclick="openCamera()" type="button" class="text-xs text-yellow-600 border border-yellow-600/30 px-5 py-2.5 rounded-full hover:bg-yellow-600/10 transition-all font-semibold tracking-wide">
+            <button onclick="openCamera()" type="button" id="btn-open-camera" class="text-xs text-yellow-600 border border-yellow-600/30 px-5 py-2.5 rounded-full hover:bg-yellow-600/10 transition-all font-semibold tracking-wide">
               <i class="fas fa-camera mr-2"></i>Take Profile Photo
             </button>
           </div>
@@ -758,6 +873,9 @@ select.input-dark{
             <div class="photo-preview-wrapper">
               <img id="photo-preview" src="" alt="">
               <div class="photo-remove-btn" onclick="removePhoto()"><i class="fas fa-times"></i></div>
+            </div>
+            <div class="flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 text-xs px-4 py-2 rounded-full font-semibold">
+              <i class="fas fa-check-circle text-[11px]"></i> Photo Saved
             </div>
             <button onclick="openCamera()" type="button" class="text-xs text-yellow-600 border border-yellow-600/30 px-5 py-2.5 rounded-full hover:bg-yellow-600/10 transition-all font-semibold tracking-wide">
               <i class="fas fa-redo mr-2"></i>Retake Photo
@@ -999,6 +1117,52 @@ select.input-dark{
           </div>
           <p class="field-err hidden mt-2" id="rfid-err">At least 4 characters required</p>
         </div>
+
+        <!-- Face Enrollment -->
+        <div class="mt-4 border border-purple-600/20 rounded-2xl p-5 bg-purple-600/5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-face-viewfinder text-purple-400 text-sm"></i>
+              <p class="text-xs font-bold uppercase tracking-wider text-purple-400">Face Recognition</p>
+              <span class="text-[10px] text-red-400/80 font-semibold normal-case tracking-normal">— required</span>
+            </div>
+            <span id="face-enroll-badge" class="hidden text-[10px] bg-green-500/15 border border-green-500/30 text-green-400 px-2 py-1 rounded-full font-semibold flex items-center gap-1">
+              <i class="fas fa-check-circle text-[9px]"></i> Enrolled
+            </span>
+          </div>
+          <p class="text-xs text-gray-400 mb-4 leading-relaxed">Capture <strong class="text-white">5 face samples</strong> to enable face check-in at the kiosk. <strong class="text-red-400">This is required to complete registration.</strong></p>
+
+          <!-- Face enrollment error -->
+          <p class="field-err hidden mb-3" id="face-enroll-err">Face enrollment is required — please capture 5 samples</p>
+
+          <!-- Model loading indicator -->
+          <div id="face-enroll-loading" class="text-xs text-purple-400/60 flex items-center gap-2 mb-3 animate-pulse">
+            <i class="fas fa-circle-notch fa-spin text-[10px]"></i>Loading face detection models…
+          </div>
+
+          <!-- Sample thumbnails -->
+          <div class="flex justify-center gap-2 mb-4" id="enroll-sample-row">
+            <div class="enroll-thumb" id="eth-0"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+            <div class="enroll-thumb" id="eth-1"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+            <div class="enroll-thumb" id="eth-2"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+            <div class="enroll-thumb" id="eth-3"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+            <div class="enroll-thumb" id="eth-4"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+          </div>
+
+          <div class="flex gap-2">
+            <button onclick="openFaceEnroll()" id="btn-open-face-enroll"
+              class="flex-1 text-xs text-purple-400 border border-purple-600/30 px-4 py-2.5 rounded-xl hover:bg-purple-600/10 transition-all font-semibold flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
+              disabled>
+              <i class="fas fa-camera"></i>
+              <span id="btn-enroll-label">Open Face Camera</span>
+            </button>
+            <button onclick="clearFaceEnroll()" id="btn-clear-enroll"
+              class="hidden text-xs text-red-400 border border-red-500/20 px-3 py-2.5 rounded-xl hover:bg-red-500/10 transition-all font-semibold"
+              title="Clear face enrollment">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </div>
       </div>
       
       <div class="flex gap-3 mt-6">
@@ -1051,47 +1215,206 @@ select.input-dark{
     </div>
   </div>
 
+  <!-- ── WALK-IN REGISTRATION ── -->
+  <div id="sec-walkin" class="reg-section fade-in">
+
+    <!-- Walk-In Step 1: Simple Form -->
+    <div id="wi-step-form">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-gray-800 to-black border border-yellow-600/20 flex items-center justify-center shadow-xl">
+          <i class="fas fa-person-walking text-yellow-500 text-2xl"></i>
+        </div>
+        <h2 class="font-oswald text-3xl uppercase tracking-wider text-white font-bold mb-1">Walk-In Registration</h2>
+        <p class="text-gray-400 text-sm">Fill in your details to receive a one-time attendance code</p>
+      </div>
+
+      <div class="glass-card p-6 mb-4">
+        <h3 class="font-oswald text-xl uppercase tracking-wider text-white font-bold mb-4">Your Details</h3>
+        <div class="space-y-4">
+          <div class="input-group">
+            <i class="fas fa-user input-icon"></i>
+            <input type="text" id="wi-name" class="input-dark" placeholder="Full Name"
+              oninput="vf('wi-name','wi-name-err',v=>v.length>=2,'At least 2 characters')">
+            <p class="field-err hidden" id="wi-name-err">At least 2 characters required</p>
+          </div>
+          <div class="input-group">
+            <i class="fas fa-phone input-icon"></i>
+            <input type="tel" id="wi-phone" class="input-dark" placeholder="Phone Number"
+              oninput="vf('wi-phone','wi-phone-err',v=>v.replace(/\D/g,'').length>=10,'At least 10 digits')">
+            <p class="field-err hidden" id="wi-phone-err">At least 10 digits required</p>
+          </div>
+
+          <!-- Payment Method -->
+          <div>
+            <p class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-3">Mode of Payment</p>
+            <div class="flex gap-3">
+              <div onclick="selectWiPayment('gcash')" id="wi-pay-gcash" class="pay-card">
+                <div class="pay-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div>
+                  <p class="text-sm font-bold text-white">GCash</p>
+                  <p class="text-xs text-gray-500">Mobile payment</p>
+                </div>
+                <div class="pay-dot"></div>
+              </div>
+              <div onclick="selectWiPayment('cash')" id="wi-pay-cash" class="pay-card">
+                <div class="pay-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div>
+                  <p class="text-sm font-bold text-white">Cash</p>
+                  <p class="text-xs text-gray-500">Pay at counter</p>
+                </div>
+                <div class="pay-dot"></div>
+              </div>
+            </div>
+            <p class="field-err hidden mt-2" id="wi-pay-err">Please select a payment method</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-yellow-600/8 border border-yellow-600/20 rounded-xl p-4 mb-4 flex items-start gap-3">
+        <i class="fas fa-info-circle text-yellow-600/80 flex-shrink-0 mt-0.5"></i>
+        <p class="text-xs text-gray-400 leading-relaxed">A <strong class="text-white">one-time attendance code</strong> will be generated for you. Enter it at the kiosk to log your visit. The code is valid for <strong class="text-white">24 hours</strong> and can only be used once.</p>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="showSec('sec-intro')" class="btn-outline flex-shrink-0 px-6">
+          <i class="fas fa-arrow-left mr-2"></i>Back
+        </button>
+        <button onclick="wiGenerateAttCode()" id="wi-generate-btn" class="btn-gold flex-1">
+          <i class="fas fa-key mr-2"></i>Generate Attendance Code
+        </button>
+      </div>
+    </div>
+
+    <!-- Walk-In Step 2: Code Display -->
+    <div id="wi-step-code" class="hidden fade-in text-center py-4">
+      <div class="w-24 h-24 rounded-full bg-yellow-500/10 border-2 border-yellow-500 flex items-center justify-center mx-auto mb-6 success-pop shadow-2xl shadow-yellow-500/20">
+        <i class="fas fa-key text-yellow-400 text-4xl"></i>
+      </div>
+      <h2 class="font-oswald text-3xl uppercase tracking-wider text-white mb-2 font-bold">Your Code</h2>
+      <p class="text-gray-400 text-sm mb-6" id="wi-code-name-msg">Enter this code at the kiosk to log attendance</p>
+
+      <div class="glass-card rounded-2xl p-8 mb-6">
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-3 font-bold">One-Time Attendance Code</p>
+        <div class="bg-black/40 border border-yellow-600/30 rounded-xl px-6 py-5 mb-3">
+          <p class="font-oswald text-5xl font-bold tracking-[0.25em]" style="color:var(--gold)" id="wi-code-display">——</p>
+        </div>
+        <p class="text-xs text-gray-500">⚠️ Single use only — expires in 24 hours</p>
+        <!-- Payment method badge -->
+        <div id="wi-pay-badge" class="mt-4 hidden flex items-center justify-center gap-2 py-2 px-4 rounded-xl border text-xs font-bold uppercase tracking-wider"></div>
+      </div>
+
+      <div class="bg-green-500/8 border border-green-500/20 rounded-xl p-4 mb-6 flex items-start gap-3 text-left">
+        <i class="fas fa-check-circle text-green-500/80 flex-shrink-0 mt-0.5 text-lg"></i>
+        <div>
+          <p class="text-sm text-white font-semibold mb-1">How to use</p>
+          <p class="text-xs text-gray-400 leading-relaxed">Go to the <strong class="text-white">gym kiosk</strong>, type this code in the RFID entry field, and press <strong class="text-white">Check In</strong>. The code is single-use and will be invalidated after check-in.</p>
+        </div>
+      </div>
+
+      <button onclick="wiReset()" class="btn-gold">
+        <i class="fas fa-user-plus mr-2"></i>New Walk-In
+      </button>
+      <button onclick="showSec('sec-intro')" class="btn-outline mt-3 w-full">
+        <i class="fas fa-home mr-2"></i>Back to Home
+      </button>
+    </div>
+
+  </div><!-- /sec-walkin -->
+
 </main>
+
+<!-- ── FACE ENROLLMENT MODAL ── -->
+<div id="face-enroll-modal" class="hidden camera-modal-bg fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="glass-card w-full max-w-sm border-purple-600/20" style="background:rgba(10,10,12,0.96);">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-oswald text-xl text-purple-400 uppercase tracking-wider font-bold">Face Enrollment</h3>
+        <p class="text-xs text-gray-500 mt-0.5">Capture 5 samples for best accuracy</p>
+      </div>
+      <button onclick="closeFaceEnroll()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white transition-all">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Status chip -->
+    <div id="fe-status" class="text-xs text-center font-semibold py-1.5 px-4 rounded-xl mb-3 transition-all bg-gray-800/50 text-gray-400">
+      <i class="fas fa-circle-notch fa-spin mr-1"></i> Starting camera…
+    </div>
+
+    <!-- Camera view -->
+    <div class="relative rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl mb-4" style="aspect-ratio:4/3;">
+      <video id="fe-video" autoplay muted playsinline class="w-full h-full object-cover" style="transform:scaleX(-1);display:block;"></video>
+      <canvas id="fe-canvas" class="absolute inset-0 w-full h-full pointer-events-none" style="transform:scaleX(-1);"></canvas>
+      <!-- Face guide oval -->
+      <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+        <div id="fe-oval" class="rounded-full border-2 border-dashed transition-all duration-300"
+             style="width:55%;aspect-ratio:3/4;border-color:rgba(168,85,247,0.5);box-shadow:0 0 20px rgba(168,85,247,0.15);"></div>
+      </div>
+    </div>
+
+    <!-- Sample thumbnails -->
+    <div class="flex justify-center gap-2 mb-4">
+      <div class="enroll-thumb" id="fe-thumb-0"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+      <div class="enroll-thumb" id="fe-thumb-1"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+      <div class="enroll-thumb" id="fe-thumb-2"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+      <div class="enroll-thumb" id="fe-thumb-3"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+      <div class="enroll-thumb" id="fe-thumb-4"><i class="fas fa-user text-gray-600 text-xs"></i></div>
+    </div>
+
+    <!-- Shutter -->
+    <button onclick="feCapture()" id="fe-shutter"
+      class="w-full py-3 rounded-xl font-oswald uppercase tracking-wider text-sm font-bold transition-all border-none cursor-not-allowed"
+      style="background:rgba(168,85,247,0.2);color:rgba(168,85,247,0.4);"
+      disabled>
+      <i class="fas fa-camera mr-2"></i><span id="fe-shutter-label">Position face in frame…</span>
+    </button>
+    <p class="text-center text-xs text-gray-500 mt-2">Shutter unlocks when a face is detected</p>
+  </div>
+</div>
 
 <!-- ── CAMERA MODAL ── -->
 <div id="camera-modal" class="hidden camera-modal-bg fixed inset-0 z-50 flex items-center justify-center p-4">
   <div class="glass-card w-full max-w-sm border-yellow-600/20" style="background:rgba(10,10,12,0.95);">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="font-oswald text-xl text-yellow-500 uppercase tracking-wider font-bold">Profile Photo</h3>
-        <p class="text-xs text-gray-500 mt-0.5">Position your face within the circle</p>
+        <p class="text-xs text-gray-500 mt-0.5">Center your face and take a clear photo</p>
       </div>
       <button onclick="closeCamera()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white transition-all">
         <i class="fas fa-times"></i>
       </button>
     </div>
-    
+
+
     <div id="cam-live-panel">
       <div class="relative rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl" style="aspect-ratio:4/3;">
         <video id="video-feed" autoplay playsinline muted class="w-full h-full object-cover" style="transform:scaleX(-1);"></video>
+        <!-- Face guide overlay -->
         <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-          <div class="w-48 h-48 rounded-full border-2 border-dashed border-yellow-500/40 shadow-[0_0_30px_rgba(240,198,116,0.2)]"></div>
+          <div class="rounded-full border-2 border-dashed transition-all duration-300"
+               style="width:55%;aspect-ratio:3/4;border-color:rgba(240,198,116,0.5);box-shadow:0 0 30px rgba(240,198,116,0.15);"></div>
         </div>
         <div class="absolute bottom-4 left-4 right-4 flex justify-center gap-2">
-          <span class="text-xs text-white/70 bg-black/50 px-3 py-1 rounded-full backdrop-blur">Tap shutter to capture</span>
+          <span class="text-xs text-white/70 bg-black/60 px-3 py-1 rounded-full backdrop-blur">Center your face in the oval</span>
         </div>
       </div>
       <canvas id="capture-canvas" class="hidden"></canvas>
       
-      <div class="flex items-center justify-between mt-6">
+      <div class="flex items-center justify-between mt-5">
         <button onclick="switchCamera()" class="w-12 h-12 rounded-full border border-white/15 flex items-center justify-center text-gray-400 hover:bg-white/5 hover:text-white transition-all">
           <i class="fas fa-sync-alt text-sm"></i>
         </button>
-        <button onclick="capturePhoto()" class="shutter-btn"></button>
+        <button onclick="capturePhoto()" id="cam-shutter" class="shutter-btn"></button>
         <div class="w-12"></div>
       </div>
+      <p class="text-center text-xs text-gray-500 mt-3">Tap the shutter to take your profile photo</p>
     </div>
     
     <div id="cam-preview-panel" class="hidden">
       <div class="relative rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl" style="aspect-ratio:4/3;">
         <img id="cam-preview-img" src="" alt="" class="w-full h-full object-cover rounded-2xl">
         <div class="absolute top-3 left-3 bg-green-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2 font-semibold shadow-lg">
-          <i class="fas fa-check-circle text-[10px]"></i>Captured
+          <i class="fas fa-check-circle text-[10px]"></i>Face Detected & Captured
         </div>
       </div>
       <div class="flex gap-3 mt-6">
@@ -1190,12 +1513,23 @@ const firebaseConfig = {
   appId: "1:771252079470:web:2750c64eedb45eec718f7f"
 };
 
-
 // ── STATE ──
 let selectedPlan=null,capturedPhotoDataURL=null,isStudent=false,schoolIdPhotoDataURL=null;
 let camStream=null,camFacing='user',sidStream=null,sidFacing='environment';
 let currentStep=1;
 let firebaseReady=false;
+
+// ── FACE ENROLLMENT STATE ──
+const FACE_MODELS_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
+const ENROLL_TOTAL = 5;
+let faceModelsLoaded = false;
+let faceModelsLoading = false;
+let feStream = null;
+let feAnimFrame = null;
+let feActive = false;
+let feDetecting = false;
+let feSamples = [];    // Array of Float32Array descriptors
+let feFacePresent = false;
 
 // Safe Firebase init
 try{
@@ -1205,11 +1539,30 @@ try{
   }
 }catch(e){console.warn('Firebase not configured:',e);}
 const db=firebaseReady?firebase.firestore():null;
+const storage=firebaseReady?firebase.storage():null;
 
 const DB={
+  async uploadProfilePhoto(memberId, dataURL){
+    if(!storage) return dataURL; // fallback: keep base64 if no storage
+    try{
+      const blob = await (await fetch(dataURL)).blob();
+      const ref = storage.ref(`member-photos/${memberId}.jpg`);
+      await ref.put(blob, {contentType:'image/jpeg'});
+      return await ref.getDownloadURL();
+    }catch(e){
+      console.warn('Storage upload failed, using base64:', e);
+      return dataURL;
+    }
+  },
   async addMember(m){
     if(!db)throw new Error('Firebase not configured. Fill in your Firebase config in register.html.');
     const id='M'+Date.now()+Math.floor(Math.random()*999);m.id=id;
+    // Upload profile photo to Firebase Storage (separate from face recognition)
+    if(m.photo && m.photo.startsWith('data:')){
+      showNotif('Uploading profile photo…','info');
+      m.photo = await this.uploadProfilePhoto(id, m.photo);
+      m.photoStoragePath = `member-photos/${id}.jpg`;
+    }
     await db.collection('members').doc(id).set(m);return m;
   },
   async logAttendance(e){if(db)await db.collection('attendance').add({...e,time:new Date().toISOString()});}
@@ -1341,12 +1694,21 @@ async function completeRegistration(){
     showNotif('Please enter the RFID tag UID','error');
     return;
   }
+  // Face enrollment is required
+  if(feSamples.length < ENROLL_TOTAL){
+    const faceErr = document.getElementById('face-enroll-err');
+    if(faceErr) faceErr.classList.remove('hidden');
+    const faceBox = document.getElementById('face-enroll-err');
+    if(faceBox) faceBox.scrollIntoView({behavior:'smooth', block:'center'});
+    showNotif(`Face enrollment required — ${feSamples.length}/${ENROLL_TOTAL} samples captured`,'error');
+    return;
+  }
+  document.getElementById('face-enroll-err')?.classList.add('hidden');
   const btn=document.getElementById('btn-complete');
   btn.disabled=true;
   btn.innerHTML='<span class="spinner"></span>Registering...';
   try{
     const name=document.getElementById('reg-name').value.trim();
-    const rfid=document.getElementById('reg-rfid').value.trim().toUpperCase();
     const expiry=selectedPlan==='monthly'?(()=>{const d=new Date();d.setDate(d.getDate()+30);return d.toISOString();})():null;
     const member=await DB.addMember({
       name,
@@ -1363,7 +1725,9 @@ async function completeRegistration(){
       registered:new Date().toISOString(),
       active:true,
       expiry,
-      registeredVia:'qr-self-registration'
+      registeredVia:'qr-self-registration',
+      faceDescriptors: feSamples.length > 0 ? feSamples.map(d => Array.from(d).join(',')) : [],
+      faceEnrolled: feSamples.length >= ENROLL_TOTAL
     });
     document.getElementById('success-name-msg').textContent=name+' is now a member!';
     document.getElementById('suc-rfid').textContent=rfid;
@@ -1373,13 +1737,20 @@ async function completeRegistration(){
     else ser.style.display='none';
     showSec('sec-success');
   }catch(e){
-    showNotif('Registration failed. Check your connection.','error');
+    const msg = e?.message || String(e);
+    const isFirebase = !db;
+    const display = isFirebase
+      ? 'Firebase not configured — check your Firebase config.'
+      : `Registration failed: ${msg}`;
+    showNotif(display,'error');
+    console.error('Registration error:', e);
     btn.disabled=false;
     btn.innerHTML='<i class="fas fa-check mr-2"></i>Complete Registration';
   }
 }
 function resetAll(){
   selectedPlan=null;capturedPhotoDataURL=null;isStudent=false;schoolIdPhotoDataURL=null;
+  feSamples=[];
   ['reg-name','reg-email','reg-phone','reg-address','reg-birthday','reg-emergency','reg-rfid'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('valid','invalid');}});
   ['name-err','email-err','phone-err'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hidden');});
   setStudentStatus(false);
@@ -1392,9 +1763,11 @@ function resetAll(){
   const btn=document.getElementById('btn-complete');
   if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-check mr-2"></i>Complete Registration';}
   resetPhotoCapture();
+  resetEnrollUI();
   setStep(1);
   showSec('sec-form');
 }
+
 
 // ── PROFILE CAMERA ──
 async function openCamera(){
@@ -1409,25 +1782,37 @@ async function startCamera(){
   stopCamera();
   try{
     camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing,width:{ideal:1280},height:{ideal:960}},audio:false});
-    document.getElementById('video-feed').srcObject=camStream;
+    const v=document.getElementById('video-feed');
+    v.srcObject=camStream;
   }catch{
     document.getElementById('cam-live-panel').classList.add('hidden');
     document.getElementById('cam-error-panel').classList.remove('hidden');
   }
 }
-function stopCamera(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}}
+function stopCamera(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+}
 async function switchCamera(){camFacing=camFacing==='user'?'environment':'user';await startCamera();}
+
 function capturePhoto(){
   const v=document.getElementById('video-feed'),c=document.getElementById('capture-canvas');
   c.width=v.videoWidth||1280;c.height=v.videoHeight||960;
-  c.getContext('2d').drawImage(v,0,0);
+  // Un-mirror the capture (video is mirrored via CSS scaleX(-1))
+  const ctx=c.getContext('2d');
+  ctx.translate(c.width,0);ctx.scale(-1,1);
+  ctx.drawImage(v,0,0);
   capturedPhotoDataURL=c.toDataURL('image/jpeg',0.85);
   document.getElementById('cam-preview-img').src=capturedPhotoDataURL;
   document.getElementById('cam-live-panel').classList.add('hidden');
   document.getElementById('cam-preview-panel').classList.remove('hidden');
   stopCamera();
 }
-function retakePhoto(){capturedPhotoDataURL=null;document.getElementById('cam-preview-panel').classList.add('hidden');document.getElementById('cam-live-panel').classList.remove('hidden');startCamera();}
+function retakePhoto(){
+  capturedPhotoDataURL=null;
+  document.getElementById('cam-preview-panel').classList.add('hidden');
+  document.getElementById('cam-live-panel').classList.remove('hidden');
+  startCamera();
+}
 function confirmPhoto(){
   if(!capturedPhotoDataURL)return;
   document.getElementById('photo-preview').src=capturedPhotoDataURL;
@@ -1435,13 +1820,24 @@ function confirmPhoto(){
   document.getElementById('photo-taken').classList.remove('hidden');
   document.getElementById('photo-taken').classList.add('flex');
   closeCamera();
-  showNotif('Photo added successfully!','success');
+  showNotif('Profile photo saved!','success');
 }
 function closeCamera(){stopCamera();document.getElementById('camera-modal').classList.add('hidden');}
-function removePhoto(){capturedPhotoDataURL=null;document.getElementById('photo-preview').src='';document.getElementById('photo-taken').classList.add('hidden');document.getElementById('photo-taken').classList.remove('flex');document.getElementById('photo-placeholder').classList.remove('hidden');}
-function resetPhotoCapture(){capturedPhotoDataURL=null;const p=document.getElementById('photo-preview');if(p)p.src='';document.getElementById('photo-taken')?.classList.add('hidden');document.getElementById('photo-taken')?.classList.remove('flex');document.getElementById('photo-placeholder')?.classList.remove('hidden');}
+function removePhoto(){
+  capturedPhotoDataURL=null;
+  document.getElementById('photo-preview').src='';
+  document.getElementById('photo-taken').classList.add('hidden');
+  document.getElementById('photo-taken').classList.remove('flex');
+  document.getElementById('photo-placeholder').classList.remove('hidden');
+}
 
-// ── SCHOOL ID CAMERA ──
+function resetPhotoCapture(){
+  capturedPhotoDataURL=null;
+  const p=document.getElementById('photo-preview');if(p)p.src='';
+  document.getElementById('photo-taken')?.classList.add('hidden');
+  document.getElementById('photo-taken')?.classList.remove('flex');
+  document.getElementById('photo-placeholder')?.classList.remove('hidden');
+}
 async function openSchoolIdCamera(){
   schoolIdPhotoDataURL=null;
   document.getElementById('school-id-modal').classList.remove('hidden');
@@ -1501,6 +1897,366 @@ function showNotif(msg,type='info'){
   d.innerHTML=`<i class="fas ${icons[type]} flex-shrink-0 text-lg"></i><span class="font-medium">${msg}</span>`;
   c.appendChild(d);
   setTimeout(()=>{d.style.transition='all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';d.style.opacity='0';d.style.transform='translateX(110%)';setTimeout(()=>d.remove(),400);},4000);
+}
+
+// ══════════════════════════════════════════════
+//  FACE ENROLLMENT ENGINE
+// ══════════════════════════════════════════════
+async function loadFaceModels(){
+  if(faceModelsLoaded || faceModelsLoading) return;
+  faceModelsLoading = true;
+  try{
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODELS_URL),
+      faceapi.nets.faceLandmark68TinyNet.loadFromUri(FACE_MODELS_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODELS_URL)
+    ]);
+    faceModelsLoaded = true;
+    const loading = document.getElementById('face-enroll-loading');
+    if(loading) loading.style.display = 'none';
+    const btn = document.getElementById('btn-open-face-enroll');
+    if(btn){ btn.disabled=false; btn.classList.remove('opacity-50','cursor-not-allowed'); }
+    console.log('Face-API models ready');
+  }catch(e){
+    console.warn('Face-API load failed:', e);
+    const loading = document.getElementById('face-enroll-loading');
+    if(loading){ loading.innerHTML='<i class="fas fa-exclamation-triangle mr-1 text-red-400"></i><span class="text-red-400/70">Face models unavailable</span>'; loading.classList.remove('animate-pulse'); }
+  }finally{ faceModelsLoading = false; }
+}
+
+function feSetStatus(text, color='gray'){
+  const el = document.getElementById('fe-status');
+  if(!el) return;
+  const map = {
+    gray:'bg-gray-800/50 text-gray-400',
+    yellow:'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',
+    green:'bg-green-500/10 text-green-400 border border-green-500/30',
+    purple:'bg-purple-600/10 text-purple-300 border border-purple-500/30',
+    red:'bg-red-500/10 text-red-400 border border-red-500/30'
+  };
+  el.className = `text-xs text-center font-semibold py-1.5 px-4 rounded-xl mb-3 transition-all ${map[color]||map.gray}`;
+  el.innerHTML = text;
+}
+
+function feSetOval(detected){
+  const oval = document.getElementById('fe-oval');
+  if(!oval) return;
+  if(detected){
+    oval.style.borderColor='rgba(168,85,247,0.9)';
+    oval.style.borderStyle='solid';
+    oval.style.boxShadow='0 0 20px rgba(168,85,247,0.3)';
+  } else {
+    oval.style.borderColor='rgba(168,85,247,0.4)';
+    oval.style.borderStyle='dashed';
+    oval.style.boxShadow='none';
+  }
+}
+
+function feSetShutter(enabled, label){
+  const btn = document.getElementById('fe-shutter');
+  const lbl = document.getElementById('fe-shutter-label');
+  if(!btn) return;
+  btn.disabled = !enabled;
+  if(enabled){
+    btn.style.background='rgba(168,85,247,0.85)';
+    btn.style.color='#fff';
+    btn.style.cursor='pointer';
+  } else {
+    btn.style.background='rgba(168,85,247,0.2)';
+    btn.style.color='rgba(168,85,247,0.4)';
+    btn.style.cursor='not-allowed';
+  }
+  if(lbl && label) lbl.textContent = label;
+}
+
+async function openFaceEnroll(){
+  if(!faceModelsLoaded){ showNotif('Face models still loading, please wait…','info'); return; }
+  feSamples = [];
+  feFacePresent = false;
+  // Reset modal thumbnails
+  for(let i=0;i<ENROLL_TOTAL;i++){
+    const th=document.getElementById('fe-thumb-'+i);
+    if(th){ th.innerHTML='<i class="fas fa-user text-gray-600 text-xs"></i>'; th.classList.remove('captured'); }
+  }
+  document.getElementById('face-enroll-modal').classList.remove('hidden');
+  feSetStatus('<i class="fas fa-circle-notch fa-spin mr-1"></i> Starting camera…','gray');
+  feSetShutter(false,'Position face in frame…');
+  feSetOval(false);
+  try{
+    feStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'user', width:{ideal:640}, height:{ideal:480} }, audio:false
+    });
+    const vid = document.getElementById('fe-video');
+    vid.srcObject = feStream;
+    await vid.play();
+    feActive = true;
+    feDetectionLoop();
+  }catch(e){
+    feSetStatus('<i class="fas fa-video-slash mr-1"></i> Camera access denied','red');
+  }
+}
+
+async function feDetectionLoop(){
+  if(!feActive) return;
+  const vid = document.getElementById('fe-video');
+  const canvas = document.getElementById('fe-canvas');
+  if(!vid||!canvas){ if(feActive) feAnimFrame=requestAnimationFrame(feDetectionLoop); return; }
+
+  try{
+    const opts = new faceapi.TinyFaceDetectorOptions({scoreThreshold:0.5, inputSize:224});
+    const det = await faceapi.detectSingleFace(vid, opts).withFaceLandmarks(true);
+    const ds = { width: vid.videoWidth||320, height: vid.videoHeight||240 };
+    faceapi.matchDimensions(canvas, ds);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    feFacePresent = !!det;
+    feSetOval(feFacePresent);
+
+    if(det){
+      const resized = faceapi.resizeResults(det, ds);
+      const box = resized.detection.box;
+      ctx.strokeStyle = 'rgba(168,85,247,0.8)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(box.x, box.y, box.width, box.height);
+      const needed = ENROLL_TOTAL - feSamples.length;
+      if(needed > 0){
+        feSetStatus(`<i class="fas fa-check-circle mr-1"></i> Face detected — capture ${needed} more sample${needed!==1?'s':''}`, 'green');
+        feSetShutter(true, `Capture (${feSamples.length}/${ENROLL_TOTAL})`);
+      } else {
+        feSetStatus('<i class="fas fa-check-circle mr-1"></i> All samples collected!','green');
+        feSetShutter(false,'All done — close to save');
+      }
+    } else {
+      feSetStatus('<i class="fas fa-face-meh mr-1"></i> No face detected — look at the camera','yellow');
+      feSetShutter(false,'Position face in frame…');
+    }
+  }catch(e){ /* skip frame */ }
+
+  if(feActive) feAnimFrame = requestAnimationFrame(feDetectionLoop);
+}
+
+async function feCapture(){
+  if(!feActive || feSamples.length >= ENROLL_TOTAL || !feFacePresent) return;
+  const vid = document.getElementById('fe-video');
+  const opts = new faceapi.TinyFaceDetectorOptions({scoreThreshold:0.5, inputSize:224});
+  try{
+    const det = await faceapi.detectSingleFace(vid, opts).withFaceLandmarks(true).withFaceDescriptor();
+    if(!det){ showNotif('No face detected, try again','warning'); return; }
+
+    feSamples.push(det.descriptor); // Float32Array
+    const idx = feSamples.length - 1;
+
+    // Thumbnail: grab face crop from video
+    const th = document.getElementById('fe-thumb-'+idx);
+    if(th){
+      const tc = document.createElement('canvas'); tc.width=48; tc.height=48;
+      const tCtx = tc.getContext('2d');
+      const box = det.detection.box;
+      const sx=Math.max(0,box.x), sy=Math.max(0,box.y);
+      const sw=Math.min(box.width,vid.videoWidth-sx), sh=Math.min(box.height,vid.videoHeight-sy);
+      tCtx.save(); tCtx.scale(-1,1); tCtx.translate(-48,0);
+      tCtx.drawImage(vid, sx, sy, sw, sh, 0, 0, 48, 48);
+      tCtx.restore();
+      th.innerHTML=`<img src="${tc.toDataURL()}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+      th.classList.add('captured');
+      // Also sync inline sample row on step 3
+      const eth = document.getElementById('eth-'+idx);
+      if(eth){ eth.innerHTML=`<img src="${tc.toDataURL()}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`; eth.classList.add('captured'); }
+    }
+
+    showNotif(`Sample ${feSamples.length}/${ENROLL_TOTAL} captured`,'success');
+
+    if(feSamples.length >= ENROLL_TOTAL){
+      feSetStatus('<i class="fas fa-star mr-1"></i> All 5 samples ready — great!','purple');
+      feSetShutter(false,'All done — close to save');
+      showNotif('Face enrollment complete! ✓','success');
+      document.getElementById('face-enroll-err')?.classList.add('hidden');
+      // Auto-close after a moment
+      setTimeout(closeFaceEnroll, 1200);
+    }
+  }catch(e){ showNotif('Capture failed: '+e.message,'error'); }
+}
+
+function closeFaceEnroll(){
+  feActive = false;
+  if(feAnimFrame){ cancelAnimationFrame(feAnimFrame); feAnimFrame=null; }
+  if(feStream){ feStream.getTracks().forEach(t=>t.stop()); feStream=null; }
+  const vid = document.getElementById('fe-video');
+  if(vid) vid.srcObject = null;
+  document.getElementById('face-enroll-modal').classList.add('hidden');
+  // Update inline step-3 UI
+  updateEnrollUI();
+}
+
+function updateEnrollUI(){
+  const done = feSamples.length >= ENROLL_TOTAL;
+  const partial = feSamples.length > 0 && !done;
+  const badge = document.getElementById('face-enroll-badge');
+  const btnLbl = document.getElementById('btn-enroll-label');
+  const clearBtn = document.getElementById('btn-clear-enroll');
+  if(badge){ badge.classList.toggle('hidden', !done); }
+  if(btnLbl) btnLbl.textContent = done ? 'Re-enroll Face' : partial ? `Resume (${feSamples.length}/${ENROLL_TOTAL})` : 'Open Face Camera';
+  if(clearBtn){ clearBtn.classList.toggle('hidden', feSamples.length===0); }
+}
+
+function clearFaceEnroll(){
+  feSamples=[];
+  for(let i=0;i<ENROLL_TOTAL;i++){
+    const eth=document.getElementById('eth-'+i);
+    if(eth){ eth.innerHTML='<i class="fas fa-user text-gray-600 text-xs"></i>'; eth.classList.remove('captured'); }
+  }
+  updateEnrollUI();
+  showNotif('Face enrollment cleared','info');
+}
+
+function resetEnrollUI(){
+  feSamples=[];
+  for(let i=0;i<ENROLL_TOTAL;i++){
+    const eth=document.getElementById('eth-'+i);
+    if(eth){ eth.innerHTML='<i class="fas fa-user text-gray-600 text-xs"></i>'; eth.classList.remove('captured'); }
+  }
+  const badge=document.getElementById('face-enroll-badge'); if(badge) badge.classList.add('hidden');
+  const btnLbl=document.getElementById('btn-enroll-label'); if(btnLbl) btnLbl.textContent='Open Face Camera';
+  const clearBtn=document.getElementById('btn-clear-enroll'); if(clearBtn) clearBtn.classList.add('hidden');
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', ()=>{
+  setStudentStatus(false);
+  // Load face-api models in the background so they're ready by Step 3
+  loadFaceModels();
+});
+
+// ══════════════════════════════════════════════
+//  WALK-IN REGISTRATION FLOW
+// ══════════════════════════════════════════════
+let wiAttCode = '', wiPaymentMethod = '';
+
+function startWalkIn(){
+  wiAttCode = '';
+  wiPaymentMethod = '';
+  ['wi-name','wi-phone'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.value='';el.classList.remove('valid','invalid');}
+  });
+  ['wi-name-err','wi-phone-err','wi-pay-err'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.classList.add('hidden');
+  });
+  const gcash=document.getElementById('wi-pay-gcash');
+  const cash=document.getElementById('wi-pay-cash');
+  if(gcash) gcash.className='pay-card';
+  if(cash)  cash.className='pay-card';
+  document.getElementById('wi-step-form').classList.remove('hidden');
+  document.getElementById('wi-step-code').classList.add('hidden');
+  document.getElementById('wi-code-display').textContent='——';
+  showSec('sec-walkin');
+}
+
+function _makeAttCode(){
+  // Unambiguous chars: no 0/O, 1/I/L
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='EF-';
+  for(let i=0;i<6;i++) code+=chars.charAt(Math.floor(Math.random()*chars.length));
+  return code;
+}
+
+function selectWiPayment(method) {
+  wiPaymentMethod = method;
+  const gcash = document.getElementById('wi-pay-gcash');
+  const cash  = document.getElementById('wi-pay-cash');
+  gcash.className = 'pay-card' + (method === 'gcash' ? ' selected-gcash' : '');
+  cash.className  = 'pay-card' + (method === 'cash'  ? ' selected-cash'  : '');
+  const err = document.getElementById('wi-pay-err');
+  if (err) err.classList.add('hidden');
+}
+
+async function wiGenerateAttCode(){
+  const name=document.getElementById('wi-name').value.trim();
+  const phone=document.getElementById('wi-phone').value.trim();
+  let ok=true;
+  if(name.length<2){markInv('wi-name','wi-name-err','At least 2 characters');ok=false;}
+  if(phone.replace(/\D/g,'').length<10){markInv('wi-phone','wi-phone-err','At least 10 digits');ok=false;}
+  if(!wiPaymentMethod){
+    const err=document.getElementById('wi-pay-err');
+    if(err)err.classList.remove('hidden');
+    ok=false;
+  }
+  if(!ok){showNotif('Please fill in all required fields','error');return;}
+
+  const btn=document.getElementById('wi-generate-btn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>Generating Code…';
+
+  try{
+    if(!db)throw new Error('Firebase not configured. Fill in your Firebase config.');
+
+    // Generate a unique code (retry on collision)
+    let code=_makeAttCode(), attempts=0;
+    while(attempts<5){
+      const existing=await db.collection('attendance_codes').where('code','==',code).get();
+      if(existing.empty)break;
+      code=_makeAttCode();attempts++;
+    }
+
+    const expiresAt=new Date(Date.now()+24*60*60*1000).toISOString();
+    await db.collection('attendance_codes').add({
+      code, name, phone,
+      paymentMethod: wiPaymentMethod,
+      used: false,
+      createdAt: new Date().toISOString(),
+      expiresAt
+    });
+
+    wiAttCode=code;
+    document.getElementById('wi-code-display').textContent=code;
+    document.getElementById('wi-code-name-msg').textContent=`Ready for ${name}! Enter this code at the kiosk.`;
+
+    // Show payment badge
+    const badge = document.getElementById('wi-pay-badge');
+    if(badge){
+      badge.classList.remove('hidden');
+      if(wiPaymentMethod === 'gcash'){
+        badge.style.cssText = 'background:rgba(0,120,255,0.1);border-color:rgba(0,120,255,0.3);color:#60a5fa;display:flex;';
+        badge.innerHTML = '<i class="fas fa-mobile-alt mr-2"></i> Payment via GCash';
+      } else {
+        badge.style.cssText = 'background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:#4ade80;display:flex;';
+        badge.innerHTML = '<i class="fas fa-money-bill-wave mr-2"></i> Payment via Cash';
+      }
+    }
+
+    document.getElementById('wi-step-form').classList.add('hidden');
+    document.getElementById('wi-step-code').classList.remove('hidden');
+    window.scrollTo({top:0,behavior:'smooth'});
+    showNotif('Attendance code generated! ✓','success');
+  }catch(e){
+    const msg=!db?'Firebase not configured — check your Firebase config.':`Failed to generate code: ${e?.message||e}`;
+    showNotif(msg,'error');
+    console.error('Walk-in error:',e);
+  }
+
+  btn.disabled=false;
+  btn.innerHTML='<i class="fas fa-key mr-2"></i>Generate Attendance Code';
+}
+
+function wiReset(){
+  wiAttCode='';
+  wiPaymentMethod='';
+  ['wi-name','wi-phone'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.value='';el.classList.remove('valid','invalid');}
+  });
+  // Reset payment cards
+  const gcash=document.getElementById('wi-pay-gcash');
+  const cash=document.getElementById('wi-pay-cash');
+  if(gcash) gcash.className='pay-card';
+  if(cash)  cash.className='pay-card';
+  const badge=document.getElementById('wi-pay-badge');
+  if(badge){ badge.classList.add('hidden'); badge.innerHTML=''; }
+  document.getElementById('wi-step-form').classList.remove('hidden');
+  document.getElementById('wi-step-code').classList.add('hidden');
+  document.getElementById('wi-code-display').textContent='——';
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 </script>
 </body>
