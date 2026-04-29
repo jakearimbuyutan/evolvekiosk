@@ -8,207 +8,494 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <style>
-*{font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+
+*{font-family:'Barlow',sans-serif;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
 .font-oswald{font-family:'Oswald',sans-serif;}
 .font-mono{font-family:'DM Mono',monospace;}
 body{background:#080808;color:#fff;overflow-x:hidden;}
 
-/* Color tokens */
+/* ── GRID BG ── */
+#ambient-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+#ambient-bg::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(197,241,0,0.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(197,241,0,0.028) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+#ambient-bg::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 5% 100%,rgba(197,241,0,0.1) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 40% at 95% 5%,rgba(197,241,0,0.07) 0%,transparent 50%);
+}
+.orb{position:absolute;border-radius:50%;filter:blur(120px);animation:float 24s ease-in-out infinite;}
+.orb-1{width:700px;height:700px;background:radial-gradient(circle,rgba(197,241,0,0.18) 0%,transparent 70%);top:-250px;left:-150px;opacity:0.3;animation-delay:0s;}
+.orb-2{width:450px;height:450px;background:radial-gradient(circle,rgba(197,241,0,0.12) 0%,transparent 70%);bottom:-120px;right:-100px;opacity:0.22;animation-delay:-12s;}
+.orb-3{width:280px;height:280px;background:radial-gradient(circle,rgba(80,200,255,0.07) 0%,transparent 70%);top:40%;right:20%;opacity:0.15;animation-delay:-6s;}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-28px) scale(1.09);}66%{transform:translate(-20px,20px) scale(0.92);}}
+
+/* ── COLOR TOKENS ── */
 :root{
-  --gold:#d4a853;
-  --gold-dim:rgba(212,168,83,0.15);
-  --gold-border:rgba(212,168,83,0.22);
-  --surface:#111111;
-  --surface2:#1a1a1a;
-  --surface3:#222222;
-  --border:rgba(255,255,255,0.07);
-  --text-muted:rgba(255,255,255,0.35);
-  --text-dim:rgba(255,255,255,0.18);
+  --accent:#c5f100;
+  --accent-bright:#d4ff40;
+  --accent-dark:#9cbd00;
+  --accent-dim:rgba(197,241,0,0.10);
+  --accent-border:rgba(197,241,0,0.22);
+  --accent-glow:rgba(197,241,0,0.18);
+  --gold:#c5f100;                    /* alias for legacy refs */
+  --gold-border:rgba(197,241,0,0.22);
+  --surface:rgba(255,255,255,0.034);
+  --surface2:rgba(255,255,255,0.058);
+  --surface3:rgba(255,255,255,0.088);
+  --border:rgba(255,255,255,0.075);
+  --border2:rgba(255,255,255,0.14);
+  --text-muted:rgba(255,255,255,0.42);
+  --text-dim:rgba(255,255,255,0.2);
+  --nav-h:68px;
+  --topbar-h:62px;
 }
 
-/* Cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;}
-.card-gold{background:var(--surface);border:1px solid var(--gold-border);border-radius:16px;}
-.glass{background:rgba(17,17,17,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+/* ── CARDS ── */
+.card{
+  background:rgba(255,255,255,0.036);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.card-gold{
+  background:linear-gradient(140deg,rgba(197,241,0,0.065) 0%,rgba(197,241,0,0.015) 100%);
+  border:1px solid var(--accent-border);
+  border-radius:14px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.glass{background:rgba(8,8,8,0.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);}
 
-/* Inputs */
+/* ── INPUTS ── */
 .input-dark{
-  background:var(--surface2);
-  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.09);
   color:#fff;
-  transition:all 0.2s;
-  font-family:'DM Sans',sans-serif;
+  transition:all 0.22s;
+  font-family:'Barlow',sans-serif;
 }
-.input-dark:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,83,0.1);}
+.input-dark:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(197,241,0,0.1),inset 0 1px 0 rgba(197,241,0,0.06);
+  background:rgba(255,255,255,0.07);
+}
 .input-dark::placeholder{color:var(--text-dim);}
+select.input-dark option{background:#111;color:#fff;}
 
-/* Buttons */
-.btn-gold{background:var(--gold);color:#000;font-weight:700;transition:all 0.15s;letter-spacing:0.04em;}
-.btn-gold:hover{background:#e0b86a;transform:translateY(-1px);}
-.btn-gold:active{background:#c49743;transform:scale(0.98) translateY(0);}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);transition:all 0.15s;}
-.btn-ghost:hover{border-color:rgba(255,255,255,0.2);color:#fff;}
-.btn-danger{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;transition:all 0.15s;}
-.btn-danger:hover{background:rgba(239,68,68,0.25);}
+/* ── BUTTONS ── */
+.btn-gold{
+  background:var(--accent);
+  color:#080808;
+  font-weight:800;
+  transition:all 0.18s;
+  letter-spacing:0.06em;
+  box-shadow:0 2px 18px rgba(197,241,0,0.25),inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.btn-gold:hover{
+  background:var(--accent-bright);
+  transform:translateY(-1px);
+  box-shadow:0 6px 28px rgba(197,241,0,0.38),inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.btn-gold:active{transform:scale(0.98) translateY(0);box-shadow:0 1px 8px rgba(197,241,0,0.22);}
 
-/* Badges */
-.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:0.03em;}
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--text-muted);
+  transition:all 0.16s;
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.24);color:#fff;background:rgba(255,255,255,0.06);}
 
-/* Stat cards */
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s;}
-.stat-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.12);}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent,var(--gold)),transparent);opacity:0.6;}
-.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,rgba(255,255,255,0.025),transparent);pointer-events:none;}
-.stat-card.accent-green::before{--accent:#4ade80;}
-.stat-card.accent-blue::before{--accent:#60a5fa;}
-.stat-card.accent-red::before{--accent:#f87171;}
+.btn-danger{
+  background:rgba(239,68,68,0.1);
+  border:1px solid rgba(239,68,68,0.25);
+  color:#f87171;
+  transition:all 0.16s;
+}
+.btn-danger:hover{background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.42);}
 
-/* Member cards */
-.member-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:8px;transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s;}
-.member-card:hover{border-color:rgba(255,255,255,0.14);box-shadow:0 4px 20px rgba(0,0,0,0.3);transform:translateY(-1px);}
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.04em;}
 
-/* Attendance rows */
-.att-row{border-bottom:1px solid var(--border);padding:11px 0;}
+/* ── STAT CARDS ── */
+.stat-card{
+  background:rgba(255,255,255,0.036);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;
+  padding:18px 16px 15px;
+  position:relative;overflow:hidden;
+  transition:border-color 0.25s,transform 0.25s,box-shadow 0.25s;
+}
+.stat-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(197,241,0,0.26);
+  box-shadow:0 14px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(197,241,0,0.08);
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent 0%,var(--line-accent,var(--accent)) 35%,var(--line-accent,var(--accent)) 65%,transparent 100%);
+  opacity:0.9;
+}
+.stat-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(160deg,rgba(255,255,255,0.03) 0%,transparent 55%);
+  pointer-events:none;
+  border-radius:inherit;
+}
+.stat-card.accent-green{--line-accent:#4ade80;}
+.stat-card.accent-blue{--line-accent:#60a5fa;}
+.stat-card.accent-red{--line-accent:#f87171;}
+
+/* ── MEMBER CARDS ── */
+.member-card{
+  background:rgba(255,255,255,0.036);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:8px;
+  transition:border-color 0.22s,box-shadow 0.22s,transform 0.22s;
+}
+.member-card:hover{
+  border-color:rgba(197,241,0,0.22);
+  box-shadow:0 6px 28px rgba(0,0,0,0.5),0 0 0 1px rgba(197,241,0,0.07);
+  transform:translateY(-1px);
+}
+
+/* ── ATTENDANCE ROWS ── */
+.att-row{border-bottom:1px solid var(--border);padding:12px 0;}
 .att-row:last-child{border-bottom:none;}
 
-/* Bottom nav */
+/* ── BOTTOM NAV ── */
 #bottom-nav{
   position:fixed;bottom:0;left:0;right:0;
-  background:rgba(6,6,6,0.98);
-  border-top:1px solid rgba(255,255,255,0.06);
+  background:rgba(8,8,8,0.97);
+  border-top:1px solid rgba(255,255,255,0.07);
   display:flex;z-index:50;
   padding-bottom:env(safe-area-inset-bottom);
-  backdrop-filter:blur(24px);
-  box-shadow:0 -4px 30px rgba(0,0,0,0.6);
+  backdrop-filter:blur(40px);
+  -webkit-backdrop-filter:blur(40px);
+  box-shadow:0 -1px 0 rgba(255,255,255,0.03),0 -12px 48px rgba(0,0,0,0.8);
 }
 .bnav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;padding:10px 4px 8px;
-  color:var(--text-muted);font-size:9px;letter-spacing:0.06em;
-  text-transform:uppercase;font-weight:600;cursor:pointer;
+  gap:3px;padding:10px 2px 9px;
+  color:rgba(255,255,255,0.3);font-size:7.5px;letter-spacing:0.08em;
+  text-transform:uppercase;font-weight:700;cursor:pointer;
   transition:color 0.2s;border:none;background:none;
-  position:relative;
+  position:relative;overflow:hidden;
 }
-.bnav-btn i{font-size:17px;transition:transform 0.2s,color 0.2s;}
-.bnav-btn.active{color:var(--gold);}
-.bnav-btn.active i{transform:translateY(-2px);filter:drop-shadow(0 0 6px rgba(212,168,83,0.6));}
-.bnav-btn.active::after{
+.bnav-btn i{
+  font-size:15px;
+  transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),filter 0.2s;
+  margin-bottom:1px;
+}
+.bnav-btn.active{color:var(--accent);}
+.bnav-btn.active i{
+  transform:translateY(-2px);
+  filter:drop-shadow(0 0 8px rgba(197,241,0,0.9));
+}
+.bnav-btn::before{
   content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:32px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:0 0 4px 4px;
+  width:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  border-radius:0 0 6px 6px;
+  box-shadow:0 0 14px rgba(197,241,0,0.7);
+  transition:width 0.28s cubic-bezier(0.34,1.56,0.64,1);
 }
+.bnav-btn.active::before{width:36px;}
+.bnav-btn::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 90% at 50% 110%,rgba(197,241,0,0.07),transparent);
+  opacity:0;transition:opacity 0.22s;pointer-events:none;
+}
+.bnav-btn.active::after{opacity:1;}
 
-/* Top bar */
+/* ── TOP BAR ── */
 #top-bar{
-  position:fixed;top:0;left:0;right:0;height:58px;
-  background:rgba(8,8,8,0.98);
-  border-bottom:1px solid var(--border);
+  position:fixed;top:0;left:0;right:0;height:var(--topbar-h,62px);
+  background:rgba(8,8,8,0.95);
+  border-bottom:1px solid rgba(255,255,255,0.065);
   display:flex;align-items:center;justify-content:space-between;
   padding:0 16px;z-index:40;
-  backdrop-filter:blur(20px);
+  backdrop-filter:blur(32px);
+  -webkit-backdrop-filter:blur(32px);
+  box-shadow:0 1px 0 rgba(255,255,255,0.025),0 4px 30px rgba(0,0,0,0.5);
 }
+.topbar-icon-btn{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.08);
+  color:var(--text-muted);transition:all 0.18s;cursor:pointer;
+}
+.topbar-icon-btn:hover{background:rgba(197,241,0,0.12);border-color:rgba(197,241,0,0.3);color:var(--accent);}
 
-/* Main content */
-#main-content{padding-top:58px;padding-bottom:calc(70px + env(safe-area-inset-bottom));min-height:100vh;}
+/* ── MAIN CONTENT ── */
+#main-content{padding-top:62px;padding-bottom:calc(var(--nav-h,68px) + env(safe-area-inset-bottom));min-height:100vh;}
 .tab-section{padding:14px;}
 
-/* Animations */
-.fade-in{animation:fadeIn 0.28s ease-out;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.modal-enter{animation:modalPop 0.22s cubic-bezier(0.34,1.56,0.64,1);}
-@keyframes modalPop{from{opacity:0;transform:scale(0.93) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+/* ── ANIMATIONS ── */
+.fade-in{animation:fadeIn 0.32s ease-out;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal-enter{animation:modalPop 0.26s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes modalPop{from{opacity:0;transform:scale(0.92) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .notif-enter{animation:slideR 0.28s cubic-bezier(0.34,1.56,0.64,1);}
 @keyframes slideR{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(212,168,83,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;}
+.spinner{
+  display:inline-block;width:22px;height:22px;
+  border:2px solid rgba(197,241,0,0.15);
+  border-top-color:var(--accent);
+  border-radius:50%;animation:spin 0.75s linear infinite;
+}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 
-/* Progress bars */
+/* ── PROGRESS BARS ── */
 .progress-bar{height:5px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;}
-.progress-fill{height:100%;border-radius:10px;transition:width 0.6s ease;}
+.progress-fill{height:100%;border-radius:10px;transition:width 0.7s cubic-bezier(0.16,1,0.3,1);}
 
-/* Bar chart */
-.bar-wrap{background:rgba(212,168,83,0.07);border-radius:4px;position:relative;}
-.bar-fill{background:linear-gradient(to top,var(--gold),rgba(212,168,83,0.7));border-radius:4px;position:absolute;bottom:0;left:0;right:0;transition:height 0.5s ease;}
+/* ── BAR CHART ── */
+.bar-wrap{background:rgba(197,241,0,0.06);border-radius:5px;position:relative;overflow:hidden;}
+.bar-fill{background:linear-gradient(to top,var(--accent),rgba(197,241,0,0.55));border-radius:5px;position:absolute;bottom:0;left:0;right:0;transition:height 0.6s cubic-bezier(0.16,1,0.3,1);}
 
-/* Scrollbar */
-::-webkit-scrollbar{width:3px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(212,168,83,0.3);border-radius:4px;}
+/* ── REVENUE: PERIOD TABS ── */
+.period-tab{
+  flex:1;padding:9px 4px;border-radius:9px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--text-muted);cursor:pointer;transition:all 0.18s;
+  border:none;background:transparent;
+}
+.period-tab.active{
+  background:var(--accent);color:#080808;
+  box-shadow:0 2px 12px rgba(197,241,0,0.3);
+}
+.period-tab:not(.active):hover{color:#fff;background:rgba(255,255,255,0.05);}
 
-/* Print */
-@media print{#notifications,.no-print{display:none!important}body{background:white;color:black}}
-
-/* Section headers */
-.section-header{font-family:'Oswald',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;}
-
-/* Renewal success pulse */
-@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(212,168,83,0.4)}50%{box-shadow:0 0 0 8px rgba(212,168,83,0)}}
-.pulse-gold{animation:pulse-gold 1.5s ease-in-out;}
-
-/* Login screen */
-.login-bg{
-  background:radial-gradient(ellipse at 20% 80%, rgba(212,168,83,0.08) 0%, transparent 60%),
-            radial-gradient(ellipse at 80% 20%, rgba(212,168,83,0.05) 0%, transparent 50%),
-            #080808;
-  min-height:100vh;
+/* ── REVENUE: BIG STAT ── */
+.rev-hero{
+  position:relative;overflow:hidden;
+  background:linear-gradient(140deg,rgba(197,241,0,0.10) 0%,rgba(197,241,0,0.02) 60%);
+  border:1px solid var(--accent-border);
+  border-radius:18px;
+  padding:22px 20px;
+}
+.rev-hero::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent 0%,var(--accent) 50%,transparent 100%);
 }
 
-/* Sort button */
-.sort-btn{padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;transition:all 0.15s;border:1px solid var(--border);background:transparent;color:var(--text-muted);}
-.sort-btn.active{background:rgba(212,168,83,0.12);border-color:var(--gold-border);color:var(--gold);}
+/* ── REVENUE: CHART BARS (interactive) ── */
+.rchart-bar{
+  flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+  cursor:pointer;position:relative;min-width:0;
+  padding:0 1px;
+}
+.rchart-stack{
+  width:100%;border-radius:3px 3px 0 0;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  transition:filter 0.18s,transform 0.18s;
+  position:relative;
+}
+.rchart-bar:hover .rchart-stack,
+.rchart-bar.selected .rchart-stack{
+  filter:brightness(1.25);
+  transform:scaleY(1.02);
+  transform-origin:bottom;
+}
+.rchart-bar.selected .rchart-stack::after{
+  content:'';position:absolute;inset:0;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,0.6);
+  border-radius:3px 3px 0 0;
+  pointer-events:none;
+}
+.rchart-seg-monthly{background:var(--accent);}
+.rchart-seg-entry{background:#3b82f6;}
 
-/* Quick stats row */
-.quick-stat{text-align:center;padding:10px 8px;}
-.quick-stat-num{font-family:'Oswald',sans-serif;font-size:22px;font-weight:600;line-height:1;}
-.quick-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-top:3px;}
+.rchart-tooltip{
+  position:absolute;
+  background:rgba(8,8,8,0.96);
+  border:1px solid var(--accent-border);
+  border-radius:8px;
+  padding:8px 10px;
+  font-size:11px;
+  white-space:nowrap;
+  pointer-events:none;
+  z-index:10;
+  box-shadow:0 8px 24px rgba(0,0,0,0.6);
+  backdrop-filter:blur(8px);
+}
 
-/* Timeline dot */
+/* ── TOP SPENDER ROW ── */
+.spender-row{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 0;border-bottom:1px solid var(--border);
+}
+.spender-row:last-child{border-bottom:none;}
+.spender-rank{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;font-family:'Oswald',sans-serif;
+  flex-shrink:0;
+}
+.spender-rank.r1{background:linear-gradient(135deg,#ffd700,#b8860b);color:#1a1a00;}
+.spender-rank.r2{background:linear-gradient(135deg,#c0c0c0,#7a7a7a);color:#1a1a1a;}
+.spender-rank.r3{background:linear-gradient(135deg,#cd7f32,#7a4a1f);color:#1a0e00;}
+.spender-rank.r-other{background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid var(--border);}
+
+/* ── TREND PILL ── */
+.trend-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:20px;
+  font-size:10px;font-weight:700;letter-spacing:0.03em;
+}
+.trend-up{background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);}
+.trend-down{background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2);}
+.trend-flat{background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border);}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(197,241,0,0.25);border-radius:4px;}
+
+/* ── PRINT ── */
+@media print{#notifications,.no-print{display:none!important}body{background:white;color:black}}
+
+/* ── SECTION HEADERS ── */
+.section-header{font-family:'Oswald',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.36);margin-bottom:12px;}
+
+/* ── PULSES ── */
+@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(197,241,0,0.4)}50%{box-shadow:0 0 0 8px rgba(197,241,0,0)}}
+.pulse-gold{animation:pulse-gold 1.5s ease-in-out;}
+
+/* ── SORT BUTTONS ── */
+.sort-btn{padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer;transition:all 0.15s;border:1px solid var(--border);background:transparent;color:var(--text-muted);}
+.sort-btn.active{background:rgba(197,241,0,0.1);border-color:var(--accent-border);color:var(--accent);}
+
+/* ── QUICK STATS ── */
+.quick-stat{text-align:center;padding:13px 8px;}
+.quick-stat-num{font-family:'Oswald',sans-serif;font-size:23px;font-weight:600;line-height:1;}
+.quick-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--text-muted);margin-top:4px;}
+
+/* ── BIRTHDAY / TIMELINE ── */
 .timeline-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
-
-/* Birthday card */
 .bday-card{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
 .bday-card:last-child{border-bottom:none;}
+
+/* ── DIVIDERS ── */
+.divide-x>*+*{border-left:1px solid var(--border);}
+.divide-y>*+*{border-top:1px solid var(--border);}
+
+/* ── LOGIN SCREEN ── */
+#login-screen .login-logo-ring{
+  position:absolute;inset:-3px;border-radius:calc(24px + 3px);
+  background:conic-gradient(from 0deg,transparent 60%,rgba(197,241,0,0.5) 80%,rgba(197,241,0,0.9) 90%,rgba(197,241,0,0.5) 100%,transparent);
+  animation:spin 4s linear infinite;
+}
+.login-card-glow{
+  box-shadow:0 0 0 1px rgba(197,241,0,0.14),0 30px 90px rgba(0,0,0,0.65),0 0 70px rgba(197,241,0,0.05);
+}
+
+/* ── ACCENT UTILITY ── */
+.text-accent{color:var(--accent);}
+.bg-accent{background:var(--accent);}
+.border-accent{border-color:var(--accent-border);}
+
+/* ── FACE ENROLLMENT ── */
+#enroll-video-wrap{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;width:100%;}
+#enroll-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
+#enroll-canvas-admin{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);}
+.enroll-scan-bar{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:escan 2s ease-in-out infinite;opacity:0.8;}
+@keyframes escan{0%{top:0%;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:100%;opacity:0;}}
+.e-corner{position:absolute;width:20px;height:20px;border-color:var(--accent);border-style:solid;opacity:0.7;}
+.e-corner-tl{top:10px;left:10px;border-width:2px 0 0 2px;}
+.e-corner-tr{top:10px;right:10px;border-width:2px 2px 0 0;}
+.e-corner-bl{bottom:10px;left:10px;border-width:0 0 2px 2px;}
+.e-corner-br{bottom:10px;right:10px;border-width:0 2px 2px 0;}
+.e-status{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:600;white-space:nowrap;color:#fff;}
+.esample{width:48px;height:48px;border-radius:10px;background:var(--surface);border:2px dashed rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.3s;overflow:hidden;}
+.esample.captured{border-color:var(--accent);background:rgba(197,241,0,0.08);}
+.face-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:0.04em;}
+.face-enrolled{background:rgba(197,241,0,0.12);color:var(--accent);border:1px solid var(--accent-border);}
+.face-not-enrolled{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.1);}
 </style>
 </head>
 <body>
 
+<!-- AMBIENT BACKGROUND -->
+<div id="ambient-bg">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
 <!-- LOGIN SCREEN -->
-<div id="login-screen" class="login-bg flex items-center justify-center p-5">
-  <div class="card-gold rounded-2xl p-8 w-full max-w-sm modal-enter text-center" style="border-color:rgba(212,168,83,0.25);">
-    <div class="w-20 h-20 mx-auto mb-5 rounded-2xl flex items-center justify-center overflow-hidden" style="background:rgba(212,168,83,0.1);border:1px solid rgba(212,168,83,0.2);">
-      <img id="login-logo" src="" class="w-16 h-16 object-contain" alt="Evolve Fitness">
+<div id="login-screen" class="relative z-10 flex flex-col items-center justify-center p-5 min-h-screen">
+  <div class="w-full max-w-[340px] modal-enter">
+
+    <!-- Logo -->
+    <div class="flex flex-col items-center mb-8">
+      <div class="relative mb-5">
+        <div class="absolute inset-0 rounded-3xl" style="background:radial-gradient(circle,rgba(197,241,0,0.2),transparent 70%);filter:blur(20px);transform:scale(1.4);"></div>
+        <div class="relative w-24 h-24 rounded-3xl flex items-center justify-center overflow-hidden" style="background:linear-gradient(145deg,rgba(197,241,0,0.12),rgba(197,241,0,0.04));border:1px solid rgba(197,241,0,0.22);box-shadow:inset 0 1px 0 rgba(255,255,255,0.1);">
+          <img id="login-logo" src="" class="w-16 h-16 object-contain" alt="Evolve Fitness">
+        </div>
+      </div>
+      <h1 class="font-oswald text-3xl uppercase tracking-[0.2em] text-white mb-1">Admin Panel</h1>
+      <p class="text-xs tracking-widest uppercase" style="color:var(--text-muted);letter-spacing:0.18em;">Evolve Fitness Management</p>
     </div>
-    <h3 class="font-oswald text-2xl uppercase tracking-widest mb-1 text-white">Admin Panel</h3>
-    <p class="text-xs mb-7" style="color:var(--text-muted);">Evolve Fitness Management</p>
-    <div class="relative mb-3">
-      <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-xs" style="color:var(--text-muted);"></i>
-      <input type="password" id="admin-pass-input" class="input-dark w-full rounded-xl pl-10 pr-4 py-3.5 text-center tracking-widest text-base" placeholder="Enter password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+
+    <!-- Card -->
+    <div class="login-card-glow rounded-2xl overflow-hidden" style="background:linear-gradient(145deg,rgba(197,241,0,0.08),rgba(212,168,83,0.02));border:1px solid rgba(197,241,0,0.18);">
+      <!-- Card inner highlight -->
+      <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(197,241,0,0.4),transparent);"></div>
+      <div class="p-6">
+        <div class="relative mb-3">
+          <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-xs" style="color:var(--text-dim);"></i>
+          <input type="password" id="admin-pass-input" class="input-dark w-full rounded-xl pl-10 pr-4 py-3.5 text-center tracking-[0.22em] text-sm" placeholder="Enter password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+        </div>
+        <p class="text-red-400 text-xs hidden mb-3 flex items-center gap-1.5" id="admin-pass-err">
+          <i class="fas fa-exclamation-circle flex-shrink-0"></i><span>Incorrect password. Try again.</span>
+        </p>
+        <button onclick="doAdminLogin()" class="w-full btn-gold py-3.5 rounded-xl font-oswald uppercase tracking-widest text-sm">
+          <i class="fas fa-sign-in-alt mr-2"></i>Enter Admin Panel
+        </button>
+      </div>
     </div>
-    <p class="text-red-400 text-xs hidden mb-3" id="admin-pass-err"><i class="fas fa-exclamation-circle mr-1"></i>Incorrect password. Try again.</p>
-    <button onclick="doAdminLogin()" class="w-full btn-gold py-3.5 rounded-xl font-oswald uppercase tracking-widest text-sm">
-      <i class="fas fa-sign-in-alt mr-2"></i>Enter Admin Panel
-    </button>
+
+    <p class="text-center mt-5 text-[10px] tracking-widest uppercase" style="color:var(--text-dim);">Authorized access only</p>
   </div>
 </div>
 
 <!-- ADMIN APP -->
-<div id="admin-app" class="hidden">
+<div id="admin-app" class="hidden relative z-10">
 
   <!-- Top bar -->
   <div id="top-bar">
     <div class="flex items-center gap-3">
-      <img id="topbar-logo" src="" class="w-8 h-8 object-contain rounded-lg flex-shrink-0" alt="EF">
+      <div class="relative flex-shrink-0">
+        <div class="absolute inset-0 rounded-xl" style="background:radial-gradient(circle,rgba(212,168,83,0.25),transparent 70%);filter:blur(8px);"></div>
+        <img id="topbar-logo" src="" class="relative w-9 h-9 object-contain rounded-xl" alt="EF" style="border:1px solid rgba(197,241,0,0.2);">
+      </div>
       <div>
-        <p class="font-oswald text-sm text-white tracking-wider leading-none" id="top-bar-title">Dashboard</p>
+        <p class="font-oswald text-sm text-white tracking-wider leading-none uppercase" id="top-bar-title">Dashboard</p>
         <p class="text-[10px] mt-0.5 font-mono" id="admin-clock" style="color:var(--text-muted);"></p>
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <button onclick="refreshCurrentTab()" class="w-8 h-8 rounded-full flex items-center justify-center btn-ghost" title="Refresh">
+      <button onclick="refreshCurrentTab()" class="topbar-icon-btn" title="Refresh">
         <i class="fas fa-rotate-right text-xs"></i>
       </button>
-      <button onclick="logout()" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-ghost">
+      <button onclick="logout()" class="topbar-icon-btn" title="Logout">
         <i class="fas fa-right-from-bracket text-xs"></i>
       </button>
     </div>
@@ -226,35 +513,35 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
         <!-- Stat cards 2x2 -->
         <div class="grid grid-cols-2 gap-2.5 mb-3">
           <div class="stat-card">
-            <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Total Members</p>
-            <p class="font-oswald text-3xl font-bold text-white" id="adm-total">0</p>
-            <p class="text-[10px] mt-1" id="adm-total-sub" style="color:var(--text-dim);">All registered</p>
+            <p class="text-[10px] uppercase tracking-wider mb-2.5" style="color:var(--text-muted);">Total Members</p>
+            <p class="font-oswald text-4xl font-bold text-white leading-none" id="adm-total">0</p>
+            <p class="text-[10px] mt-2" id="adm-total-sub" style="color:var(--text-dim);">All registered</p>
           </div>
-          <div class="stat-card" style="--accent:#d4a853;">
-            <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Active Monthly</p>
-            <p class="font-oswald text-3xl font-bold text-yellow-500" id="adm-monthly">0</p>
-            <p class="text-[10px] mt-1" id="adm-monthly-sub" style="color:var(--text-dim);">Valid subscription</p>
+          <div class="stat-card" style="--accent:#c5f100;">
+            <p class="text-[10px] uppercase tracking-wider mb-2.5" style="color:var(--text-muted);">Active Monthly</p>
+            <p class="font-oswald text-4xl font-bold leading-none" style="color:var(--accent);" id="adm-monthly">0</p>
+            <p class="text-[10px] mt-2" id="adm-monthly-sub" style="color:var(--text-dim);">Valid subscription</p>
           </div>
           <div class="stat-card accent-green">
-            <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Today's Check-ins</p>
-            <p class="font-oswald text-3xl font-bold text-green-400" id="adm-today">0</p>
-            <p class="text-[10px] mt-1" id="adm-today-date" style="color:var(--text-dim);"></p>
+            <p class="text-[10px] uppercase tracking-wider mb-2.5" style="color:var(--text-muted);">Today's Check-ins</p>
+            <p class="font-oswald text-4xl font-bold text-green-400 leading-none" id="adm-today">0</p>
+            <p class="text-[10px] mt-2" id="adm-today-date" style="color:var(--text-dim);"></p>
           </div>
           <div class="stat-card accent-red">
-            <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Expiring Soon</p>
-            <p class="font-oswald text-3xl font-bold text-red-400" id="adm-expiring">0</p>
-            <p class="text-[10px] mt-1" style="color:var(--text-dim);">Within 7 days</p>
+            <p class="text-[10px] uppercase tracking-wider mb-2.5" style="color:var(--text-muted);">Expiring Soon</p>
+            <p class="font-oswald text-4xl font-bold text-red-400 leading-none" id="adm-expiring">0</p>
+            <p class="text-[10px] mt-2" style="color:var(--text-dim);">Within 7 days</p>
           </div>
         </div>
 
         <!-- Revenue quick stats -->
-        <div class="card mb-3" style="padding:0;overflow:hidden;">
-          <div class="grid grid-cols-3 divide-x" style="border-color:var(--border);">
-            <div class="quick-stat">
-              <div class="quick-stat-num" style="color:var(--gold);" id="dash-rev-today">₱0</div>
+        <div class="card mb-3" style="padding:0;overflow:hidden;border-color:var(--border);">
+          <div class="grid grid-cols-3">
+            <div class="quick-stat" style="border-right:1px solid var(--border);">
+              <div class="quick-stat-num" style="color:var(--accent);" id="dash-rev-today">₱0</div>
               <div class="quick-stat-label">Today</div>
             </div>
-            <div class="quick-stat">
+            <div class="quick-stat" style="border-right:1px solid var(--border);">
               <div class="quick-stat-num text-blue-400" id="dash-rev-month">₱0</div>
               <div class="quick-stat-label">This Month</div>
             </div>
@@ -269,7 +556,7 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
         <div class="card-gold mb-3 p-4">
           <div class="flex items-center justify-between mb-4">
             <p class="section-header m-0">Check-ins — Last 7 Days</p>
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold" id="dash-peak-label" style="background:rgba(212,168,83,0.12);color:var(--gold);"></span>
+            <span class="text-[10px] px-2.5 py-1 rounded-full font-semibold" id="dash-peak-label" style="background:rgba(197,241,0,0.1);color:var(--accent);border:1px solid var(--accent-border);"></span>
           </div>
           <div class="flex items-end gap-2 h-24" id="bar-chart"></div>
         </div>
@@ -292,7 +579,7 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
         <div class="card p-4">
           <div class="flex items-center justify-between mb-3">
             <p class="section-header m-0">Recent Activity</p>
-            <button onclick="adminTab('logins')" class="text-xs font-semibold" style="color:var(--gold);">View all →</button>
+            <button onclick="adminTab('logins')" class="text-xs font-semibold" style="color:var(--accent);">View all →</button>
           </div>
           <div id="dash-recent"></div>
         </div>
@@ -306,7 +593,7 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
           <h3 class="font-oswald text-xl uppercase text-white tracking-wider">Attendance</h3>
           <p class="text-xs mt-0.5" id="att-count-label" style="color:var(--text-muted);">All check-ins</p>
         </div>
-        <button onclick="exportAttCSV()" class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold" style="color:var(--gold);border:1px solid var(--gold-border);">
+        <button onclick="exportAttCSV()" class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold" style="color:var(--accent);border:1px solid var(--accent-border);">
           <i class="fas fa-download"></i> CSV
         </button>
       </div>
@@ -347,7 +634,7 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
           <h3 class="font-oswald text-xl uppercase text-white tracking-wider">Members</h3>
           <p class="text-xs mt-0.5" id="adm-mem-count" style="color:var(--text-muted);"></p>
         </div>
-        <button onclick="exportMembersCSV()" class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold" style="color:var(--gold);border:1px solid var(--gold-border);">
+        <button onclick="exportMembersCSV()" class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold" style="color:var(--accent);border:1px solid var(--accent-border);">
           <i class="fas fa-download"></i> CSV
         </button>
       </div>
@@ -387,53 +674,122 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
       </div>
     </div>
 
-    <!-- ═══ REVENUE ═══ -->
+    <!-- ═══ REVENUE (REBUILT) ═══ -->
     <div id="tab-revenue" class="tab-section hidden fade-in">
-      <h3 class="font-oswald text-xl uppercase text-white tracking-wider mb-4">Revenue</h3>
-
-      <div class="stat-card mb-3 flex items-center justify-between" style="--accent:#d4a853;">
+      <div class="flex items-center justify-between mb-4">
         <div>
-          <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Total Revenue (All Time)</p>
-          <p class="font-oswald text-4xl font-bold" style="color:var(--gold);" id="rev-total">₱0</p>
+          <h3 class="font-oswald text-xl uppercase text-white tracking-wider">Revenue</h3>
+          <p class="text-xs mt-0.5" style="color:var(--text-muted);">Earnings overview & insights</p>
         </div>
-        <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(212,168,83,0.08);border:1px solid var(--gold-border);">
-          <i class="fas fa-peso-sign text-2xl" style="color:rgba(212,168,83,0.4);"></i>
+        <button onclick="exportRevenueCSV()" class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold" style="color:var(--accent);border:1px solid var(--accent-border);">
+          <i class="fas fa-download"></i> CSV
+        </button>
+      </div>
+
+      <!-- Period selector -->
+      <div class="card p-1.5 mb-3 flex gap-1">
+        <button class="period-tab active" data-period="today" onclick="setRevPeriod('today')">Today</button>
+        <button class="period-tab" data-period="week" onclick="setRevPeriod('week')">Week</button>
+        <button class="period-tab" data-period="month" onclick="setRevPeriod('month')">Month</button>
+        <button class="period-tab" data-period="year" onclick="setRevPeriod('year')">Year</button>
+        <button class="period-tab" data-period="all" onclick="setRevPeriod('all')">All</button>
+      </div>
+
+      <!-- Hero stat for selected period -->
+      <div class="rev-hero mb-3">
+        <div class="flex items-start justify-between mb-1">
+          <p class="text-[10px] uppercase tracking-wider font-semibold" style="color:var(--text-muted);" id="rev-hero-label">Today's Revenue</p>
+          <span id="rev-hero-trend" class="trend-pill trend-flat">—</span>
+        </div>
+        <p class="font-oswald text-5xl font-bold leading-none" style="color:var(--accent);" id="rev-hero-amount">₱0</p>
+        <div class="flex items-center justify-between mt-3 pt-3 border-t" style="border-color:rgba(255,255,255,0.06);">
+          <div>
+            <p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Transactions</p>
+            <p class="text-sm font-semibold text-white mt-0.5" id="rev-hero-count">0</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">Avg / Transaction</p>
+            <p class="text-sm font-semibold text-white mt-0.5" id="rev-hero-avg">₱0</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">vs Previous</p>
+            <p class="text-sm font-semibold mt-0.5" id="rev-hero-delta">—</p>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-2.5 mb-3">
-        <div class="stat-card accent-green">
-          <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">This Month</p>
-          <p class="font-oswald text-xl font-bold text-green-400" id="rev-month">₱0</p>
-        </div>
-        <div class="stat-card accent-blue">
-          <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">This Week</p>
-          <p class="font-oswald text-xl font-bold text-blue-400" id="rev-week">₱0</p>
-        </div>
-        <div class="stat-card">
-          <p class="text-[10px] uppercase tracking-wider mb-1.5" style="color:var(--text-muted);">Today</p>
-          <p class="font-oswald text-xl font-bold text-white" id="rev-today">₱0</p>
+      <!-- Revenue split: Monthly vs Walk-in -->
+      <div class="card mb-3 p-4">
+        <p class="section-header">Revenue Split</p>
+        <div class="space-y-3.5">
+          <div>
+            <div class="flex justify-between items-center text-xs mb-2">
+              <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:var(--accent);"></span><span style="color:var(--text-muted);">Monthly Members</span></span>
+              <span class="font-bold" style="color:var(--accent);" id="split-monthly-amt">₱0</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="split-monthly-bar" style="width:0%;background:var(--accent);"></div></div>
+            <p class="text-[10px] mt-1" style="color:var(--text-dim);" id="split-monthly-detail">0 transactions · 0%</p>
+          </div>
+          <div>
+            <div class="flex justify-between items-center text-xs mb-2">
+              <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-sm inline-block bg-blue-500"></span><span style="color:var(--text-muted);">Walk-in / Daily</span></span>
+              <span class="font-bold text-blue-400" id="split-entry-amt">₱0</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill bg-blue-500" id="split-entry-bar" style="width:0%;"></div></div>
+            <p class="text-[10px] mt-1" style="color:var(--text-dim);" id="split-entry-detail">0 transactions · 0%</p>
+          </div>
         </div>
       </div>
 
-      <div class="card-gold mb-3 p-4">
-        <div class="flex items-center justify-between mb-4">
-          <p class="section-header m-0">Revenue — Last 30 Days</p>
+      <!-- Interactive chart -->
+      <div class="card-gold mb-3 p-4 relative">
+        <div class="flex items-center justify-between mb-1">
+          <p class="section-header m-0" id="rev-chart-title">Daily Revenue</p>
           <div class="flex gap-3 text-[10px]" style="color:var(--text-muted);">
-            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:var(--gold);"></span>Monthly</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:var(--accent);"></span>Monthly</span>
             <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block"></span>Walk-in</span>
           </div>
         </div>
-        <div class="flex items-end gap-0.5 h-28 mb-1" id="rev-chart"></div>
-        <div id="rev-chart-labels" class="flex justify-between mt-1"></div>
+        <p class="text-[10px] mb-3" style="color:var(--text-dim);">Tap a bar to see that day's transactions</p>
+
+        <!-- Y-axis max label -->
+        <div class="flex items-start gap-2">
+          <div class="flex flex-col justify-between items-end pt-1 pb-5" style="height:140px;width:auto;flex-shrink:0;">
+            <span class="text-[9px] font-mono" id="rev-chart-ymax" style="color:var(--text-dim);">₱0</span>
+            <span class="text-[9px] font-mono" style="color:var(--text-dim);">₱0</span>
+          </div>
+          <div class="flex-1 relative">
+            <div class="flex items-end gap-0.5" style="height:140px;" id="rev-chart"></div>
+            <div id="rev-chart-labels" class="flex justify-between mt-1.5 text-[9px]" style="color:var(--text-dim);"></div>
+          </div>
+        </div>
       </div>
 
+      <!-- Top spenders -->
+      <div class="card mb-3 p-4">
+        <div class="flex items-center justify-between mb-3">
+          <p class="section-header m-0">🏆 Top Spenders</p>
+          <span class="text-[10px]" id="top-spender-period" style="color:var(--text-dim);">This month</span>
+        </div>
+        <div id="top-spenders"></div>
+        <div id="top-spenders-empty" class="hidden text-xs text-center py-4" style="color:var(--text-muted);">No revenue in this period</div>
+      </div>
+
+      <!-- Transactions list -->
       <div class="card overflow-hidden">
-        <div class="px-4 py-3 border-b" style="border-color:var(--border);">
-          <p class="section-header m-0">Recent Transactions</p>
+        <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color:var(--border);">
+          <p class="section-header m-0">Transactions</p>
+          <span class="text-[10px]" id="rev-tx-count" style="color:var(--text-dim);">—</span>
+        </div>
+        <div class="px-3 py-2.5 border-b" style="border-color:var(--border);">
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[10px]" style="color:var(--text-muted);"></i>
+            <input type="text" id="rev-tx-search" class="input-dark w-full rounded-lg pl-8 pr-3 py-2 text-xs" placeholder="Search by member name..." oninput="renderRevenueTransactions()">
+          </div>
         </div>
         <div id="rev-list" class="divide-y" style="border-color:var(--border);"></div>
-        <div id="rev-empty" class="hidden text-center py-10 text-sm" style="color:var(--text-muted);">No transactions yet</div>
+        <div id="rev-empty" class="hidden text-center py-10 text-sm" style="color:var(--text-muted);">No transactions in this period</div>
+        <div id="rev-tx-pagination" class="px-4 py-3 border-t flex items-center justify-between text-xs" style="border-color:var(--border);color:var(--text-muted);display:none;"></div>
       </div>
     </div>
 
@@ -451,6 +807,88 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
       </div>
     </div>
 
+    <!-- ═══ SETTINGS ═══ -->
+    <div id="tab-settings" class="tab-section hidden fade-in">
+      <div class="mb-5">
+        <h3 class="font-oswald text-2xl uppercase text-white tracking-wider">Settings</h3>
+        <p class="text-xs mt-1" style="color:var(--text-muted);">Manage admin account & security</p>
+      </div>
+
+      <!-- Change Password Card -->
+      <div class="card-gold p-5 mb-4" style="box-shadow:0 8px 40px rgba(0,0,0,0.4);">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(197,241,0,0.1);border:1px solid var(--accent-border);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);">
+            <i class="fas fa-lock text-sm" style="color:var(--accent);"></i>
+          </div>
+          <div>
+            <p class="font-oswald text-base uppercase tracking-wider text-white">Change Password</p>
+            <p class="text-xs mt-0.5" style="color:var(--text-muted);">Update your admin login password</p>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Current Password</label>
+            <div class="relative">
+              <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-xs" style="color:var(--text-dim);"></i>
+              <input type="password" id="pw-current" class="input-dark w-full rounded-xl pl-10 pr-11 py-3 text-sm" placeholder="Enter current password">
+              <button type="button" onclick="togglePwVis('pw-current','eye-current')" class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg" style="color:var(--text-dim);">
+                <i id="eye-current" class="fas fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">New Password</label>
+            <div class="relative">
+              <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-xs" style="color:var(--text-dim);"></i>
+              <input type="password" id="pw-new" class="input-dark w-full rounded-xl pl-10 pr-11 py-3 text-sm" placeholder="At least 4 characters" oninput="checkPwStrength(this.value)">
+              <button type="button" onclick="togglePwVis('pw-new','eye-new')" class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg" style="color:var(--text-dim);">
+                <i id="eye-new" class="fas fa-eye text-xs"></i>
+              </button>
+            </div>
+            <!-- Strength bar -->
+            <div class="mt-2 flex items-center gap-2">
+              <div class="flex gap-1 flex-1">
+                <div id="str-1" class="h-1 flex-1 rounded-full transition-all duration-300" style="background:var(--border);"></div>
+                <div id="str-2" class="h-1 flex-1 rounded-full transition-all duration-300" style="background:var(--border);"></div>
+                <div id="str-3" class="h-1 flex-1 rounded-full transition-all duration-300" style="background:var(--border);"></div>
+                <div id="str-4" class="h-1 flex-1 rounded-full transition-all duration-300" style="background:var(--border);"></div>
+              </div>
+              <span id="str-label" class="text-[10px] font-semibold w-12 text-right" style="color:var(--text-dim);"></span>
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Confirm New Password</label>
+            <div class="relative">
+              <i class="fas fa-check-circle absolute left-4 top-1/2 -translate-y-1/2 text-xs" style="color:var(--text-dim);"></i>
+              <input type="password" id="pw-confirm" class="input-dark w-full rounded-xl pl-10 pr-11 py-3 text-sm" placeholder="Re-enter new password">
+              <button type="button" onclick="togglePwVis('pw-confirm','eye-confirm')" class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg" style="color:var(--text-dim);">
+                <i id="eye-confirm" class="fas fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+          <p id="pw-error" class="text-xs text-red-400 hidden"><i class="fas fa-exclamation-circle mr-1"></i><span id="pw-error-msg"></span></p>
+        </div>
+
+        <button onclick="changeAdminPassword()" id="btn-change-pw" class="w-full btn-gold py-3.5 rounded-xl font-oswald uppercase tracking-widest text-sm mt-5">
+          <i class="fas fa-shield-halved mr-2"></i>Update Password
+        </button>
+      </div>
+
+      <!-- Info card -->
+      <div class="card p-4" style="border-color:rgba(96,165,250,0.15);background:rgba(96,165,250,0.04);">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);">
+            <i class="fas fa-cloud text-blue-400 text-xs"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-white mb-1">Synced across all devices</p>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">Your password is stored in Firestore and applies everywhere. Anyone logging in — on any device or browser — will need the updated password. Default is <span class="font-mono" style="color:rgba(255,255,255,0.55);">admin123</span> until changed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /main-content -->
 
   <!-- Bottom Navigation -->
@@ -460,20 +898,58 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
     <button class="bnav-btn" id="bnav-allmembers" onclick="adminTab('allmembers')"><i class="fas fa-id-card"></i>Members</button>
     <button class="bnav-btn" id="bnav-revenue" onclick="adminTab('revenue')"><i class="fas fa-peso-sign"></i>Revenue</button>
     <button class="bnav-btn" id="bnav-expiring" onclick="adminTab('expiring')"><i class="fas fa-clock"></i>Expiring</button>
+    <button class="bnav-btn" id="bnav-settings" onclick="adminTab('settings')"><i class="fas fa-gear"></i>Settings</button>
   </nav>
 </div><!-- /admin-app -->
 
+<!-- ══ DAY DETAIL MODAL (NEW for revenue chart) ══ -->
+<div id="day-detail-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);">
+  <div class="card-gold w-full sm:max-w-md modal-enter max-h-[88vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl" style="border-color:rgba(197,241,0,0.22);">
+    <div class="sticky top-0 glass border-b flex items-center justify-between px-5 py-4 rounded-t-2xl z-10" style="border-color:var(--border);">
+      <div>
+        <h3 class="font-oswald text-base uppercase tracking-wider" style="color:var(--accent);" id="day-detail-title">Day Detail</h3>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted);" id="day-detail-sub">—</p>
+      </div>
+      <button onclick="closeDayDetail()" class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center"><i class="fas fa-times text-sm"></i></button>
+    </div>
+    <div class="p-5">
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <div class="card p-3 text-center">
+          <p class="text-[9px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Total</p>
+          <p class="font-oswald text-lg font-bold" style="color:var(--accent);" id="day-detail-total">₱0</p>
+        </div>
+        <div class="card p-3 text-center">
+          <p class="text-[9px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Monthly</p>
+          <p class="font-oswald text-lg font-bold text-white" id="day-detail-monthly">₱0</p>
+        </div>
+        <div class="card p-3 text-center">
+          <p class="text-[9px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Walk-in</p>
+          <p class="font-oswald text-lg font-bold text-blue-400" id="day-detail-entry">₱0</p>
+        </div>
+      </div>
+      <p class="section-header">Transactions</p>
+      <div id="day-detail-list" class="space-y-2"></div>
+      <div id="day-detail-empty" class="hidden text-xs text-center py-6" style="color:var(--text-muted);">No transactions on this day</div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ EDIT MODAL ══ -->
-<div id="edit-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);">
-  <div class="card-gold w-full sm:max-w-md modal-enter max-h-[94vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6" style="border-color:rgba(212,168,83,0.25);">
+<div id="edit-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);">
+  <div class="card-gold w-full sm:max-w-md modal-enter max-h-[94vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6" style="border-color:rgba(197,241,0,0.22);box-shadow:0 30px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(197,241,0,0.08);">
     <div class="flex items-center justify-between mb-5">
-      <h3 class="font-oswald text-xl uppercase tracking-wider" style="color:var(--gold);">Edit Member</h3>
+      <h3 class="font-oswald text-xl uppercase tracking-wider" style="color:var(--accent);">Edit Member</h3>
       <button onclick="closeEditModal()" class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center"><i class="fas fa-times text-sm"></i></button>
     </div>
     <div class="space-y-4">
       <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Full Name</label><input type="text" id="edit-name" class="input-dark w-full rounded-xl px-4 py-3"></div>
       <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Email</label><input type="email" id="edit-email" class="input-dark w-full rounded-xl px-4 py-3"></div>
       <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Phone</label><input type="tel" id="edit-phone" class="input-dark w-full rounded-xl px-4 py-3"></div>
+      <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Address</label><input type="text" id="edit-address" class="input-dark w-full rounded-xl px-4 py-3" placeholder="Optional"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Birthday</label><input type="date" id="edit-birthday" class="input-dark w-full rounded-xl px-4 py-3"></div>
+        <div><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Emergency Contact</label><input type="tel" id="edit-emergency" class="input-dark w-full rounded-xl px-4 py-3" placeholder="Optional"></div>
+      </div>
       <div>
         <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Plan</label>
         <select id="edit-plan" class="input-dark w-full rounded-xl px-4 py-3" onchange="toggleEditExpiry(this.value)">
@@ -502,8 +978,8 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
 </div>
 
 <!-- ══ DELETE MODAL ══ -->
-<div id="delete-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);">
-  <div class="card w-full sm:max-w-sm modal-enter text-center rounded-t-2xl sm:rounded-2xl p-8" style="border-color:rgba(239,68,68,0.25);">
+<div id="delete-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);">
+  <div class="card w-full sm:max-w-sm modal-enter text-center rounded-t-2xl sm:rounded-2xl p-8" style="border-color:rgba(239,68,68,0.22);box-shadow:0 30px 100px rgba(0,0,0,0.7);">
     <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);">
       <i class="fas fa-trash-alt text-red-500 text-xl"></i>
     </div>
@@ -535,10 +1011,10 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
 </div>
 
 <!-- ══ RENEWAL MODAL ══ -->
-<div id="renew-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);">
-  <div class="card-gold w-full sm:max-w-sm modal-enter rounded-t-2xl sm:rounded-2xl p-7" style="border-color:rgba(212,168,83,0.3);">
+<div id="renew-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);">
+  <div class="card-gold w-full sm:max-w-sm modal-enter rounded-t-2xl sm:rounded-2xl p-7" style="border-color:rgba(212,168,83,0.26);box-shadow:0 30px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(197,241,0,0.08);">
     <div class="flex items-center justify-between mb-5">
-      <h3 class="font-oswald text-xl uppercase tracking-wider" style="color:var(--gold);">Renew Membership</h3>
+      <h3 class="font-oswald text-xl uppercase tracking-wider" style="color:var(--accent);">Renew Membership</h3>
       <button onclick="closeRenewModal()" class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center"><i class="fas fa-times text-sm"></i></button>
     </div>
     <div class="card p-4 mb-4 flex items-center gap-3">
@@ -551,7 +1027,7 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
     <div class="mb-4">
       <label class="text-[10px] uppercase tracking-wider mb-2 block" style="color:var(--text-muted);">Renewal Duration</label>
       <div class="grid grid-cols-3 gap-2">
-        <button onclick="setRenewDuration(30)" id="renew-30" class="py-3 rounded-xl text-sm font-semibold border transition-all renew-dur active-renew" style="border-color:var(--gold-border);background:rgba(212,168,83,0.12);color:var(--gold);">30 days</button>
+        <button onclick="setRenewDuration(30)" id="renew-30" class="py-3 rounded-xl text-sm font-semibold border transition-all renew-dur active-renew" style="border-color:var(--accent-border);background:rgba(197,241,0,0.12);color:var(--accent);">30 days</button>
         <button onclick="setRenewDuration(60)" id="renew-60" class="py-3 rounded-xl text-sm font-semibold btn-ghost renew-dur">60 days</button>
         <button onclick="setRenewDuration(90)" id="renew-90" class="py-3 rounded-xl text-sm font-semibold btn-ghost renew-dur">90 days</button>
       </div>
@@ -571,10 +1047,10 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
 
 <!-- ══ MEMBER PROFILE MODAL ══ -->
 <div id="profile-modal" class="hidden fixed inset-0 z-[65] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);">
-  <div class="card-gold w-full sm:max-w-lg modal-enter rounded-t-2xl sm:rounded-2xl max-h-[96vh] overflow-y-auto" style="border-color:rgba(212,168,83,0.2);">
+  <div class="card-gold w-full sm:max-w-lg modal-enter rounded-t-2xl sm:rounded-2xl max-h-[96vh] overflow-y-auto" style="border-color:rgba(197,241,0,0.2);">
     <!-- Header -->
     <div class="sticky top-0 glass border-b flex items-center justify-between px-5 py-4 rounded-t-2xl z-10" style="border-color:var(--border);">
-      <h3 class="font-oswald text-lg uppercase tracking-wider" style="color:var(--gold);">Member Profile</h3>
+      <h3 class="font-oswald text-lg uppercase tracking-wider" style="color:var(--accent);">Member Profile</h3>
       <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center"><i class="fas fa-times text-sm"></i></button>
     </div>
 
@@ -704,6 +1180,58 @@ body{background:#080808;color:#fff;overflow-x:hidden;}
 <!-- Notifications -->
 <div id="notifications" class="fixed top-16 right-3 z-[70] space-y-2 max-w-[88vw]"></div>
 
+
+<!-- ── FACE ENROLLMENT MODAL ── -->
+<div id="admin-enroll-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);">
+  <div class="card w-full max-w-sm p-6 relative" style="background:rgba(12,12,12,0.97);border-color:var(--accent-border);">
+    <button onclick="adminStopEnrollment()" class="absolute top-4 right-4 w-9 h-9 rounded-full btn-ghost flex items-center justify-center">
+      <i class="fas fa-times text-sm"></i>
+    </button>
+    <div class="text-center mb-5">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style="background:rgba(197,241,0,0.1);border:1px solid var(--accent-border);">
+        <i class="fas fa-camera-retro" style="color:var(--accent);font-size:1.2rem;"></i>
+      </div>
+      <h3 class="font-oswald text-xl font-semibold tracking-wide">Enroll Face</h3>
+      <p class="text-sm mt-1" style="color:var(--text-muted);" id="admin-enroll-name">Member Name</p>
+    </div>
+
+    <div id="enroll-video-wrap">
+      <video id="enroll-video" autoplay muted playsinline></video>
+      <canvas id="enroll-canvas-admin"></canvas>
+      <div class="enroll-scan-bar"></div>
+      <div class="e-corner e-corner-tl"></div>
+      <div class="e-corner e-corner-tr"></div>
+      <div class="e-corner e-corner-bl"></div>
+      <div class="e-corner e-corner-br"></div>
+      <div class="e-status"><span id="admin-enroll-status">Position face in frame…</span></div>
+    </div>
+
+    <!-- Sample thumbnails -->
+    <div class="flex justify-center gap-2 my-4" id="admin-esample-row">
+      <div class="esample" id="aes-0"><i class="fas fa-user" style="color:var(--text-dim);font-size:14px;"></i></div>
+      <div class="esample" id="aes-1"><i class="fas fa-user" style="color:var(--text-dim);font-size:14px;"></i></div>
+      <div class="esample" id="aes-2"><i class="fas fa-user" style="color:var(--text-dim);font-size:14px;"></i></div>
+      <div class="esample" id="aes-3"><i class="fas fa-user" style="color:var(--text-dim);font-size:14px;"></i></div>
+      <div class="esample" id="aes-4"><i class="fas fa-user" style="color:var(--text-dim);font-size:14px;"></i></div>
+    </div>
+
+    <div class="space-y-2">
+      <button id="admin-capture-btn" onclick="adminCaptureSample()" class="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all" style="background:rgba(197,241,0,0.1);border:1px solid var(--accent-border);color:var(--accent);opacity:0.45;" disabled>
+        <i class="fas fa-camera"></i> Capture Sample (<span id="admin-capture-count">0</span>/5)
+      </button>
+      <button id="admin-save-btn" onclick="adminSaveEnrollment()" class="w-full py-3 rounded-xl font-bold text-sm hidden" style="background:var(--accent);color:#000;">
+        <i class="fas fa-floppy-disk mr-2"></i>Save Face Profile
+      </button>
+      <button onclick="adminClearFace()" id="admin-clear-btn" class="w-full py-2 btn-ghost rounded-xl text-xs hidden" style="color:rgba(255,100,100,0.7);">
+        <i class="fas fa-trash-can mr-1"></i>Remove existing face data
+      </button>
+    </div>
+    <p class="text-center text-xs mt-3" style="color:var(--text-dim);">
+      <i class="fas fa-info-circle mr-1"></i>Vary angle slightly between captures for best accuracy
+    </p>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 //  🔥 FIREBASE CONFIG
@@ -719,13 +1247,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Logo (base64 inlined for offline use)
-const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAACtCAYAAADbJBHlAABaV0lEqUhEUgAAANwAAACtCAYAAADbJBHlAAA="; // placeholder - set on load
-document.addEventListener('DOMContentLoaded', () => {
-  // Set logo from original file — we embed it inline below
-  const realLogo = `data:image/png;base64,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`;
-  document.querySelectorAll('#login-logo,#topbar-logo').forEach(el => el.src = realLogo);
-});
+// ──────────────────────────────────────────────
+// LOGO — embedded as base64
+  const LOGO_SRC = 'data:image/png;base64,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';
+  document.querySelectorAll('#login-logo,#topbar-logo').forEach(el => {
+    el.src = LOGO_SRC;
+  });
 
 // ══════════════════════════════════════════════
 //  DATABASE LAYER
@@ -742,25 +1269,45 @@ const DB = {
     catch(e){return[];}
   },
   async getTodayAtt(){const t=new Date().toDateString();const all=await this.getAttendance();return all.filter(a=>new Date(a.time).toDateString()===t);},
-  async getRecentAtt(n=10){const snap=await db.collection('attendance').orderBy('time','desc').limit(n).get();return snap.docs.map(d=>({...d.data(),id:d.id}));}
+  async getRecentAtt(n=10){const snap=await db.collection('attendance').orderBy('time','desc').limit(n).get();return snap.docs.map(d=>({...d.data(),id:d.id}));},
+  async getAdminPass(){
+    try{
+      const doc=await db.collection('settings').doc('admin').get();
+      if(doc.exists && doc.data().password) return doc.data().password;
+    }catch(e){console.error(e);}
+    return 'admin123';
+  },
+  async setAdminPass(newPass){
+    await db.collection('settings').doc('admin').set({password:newPass},{merge:true});
+  }
 };
 
 // ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
-const ADMIN_PASS = 'admin123';
 let deleteTargetId=null, editTargetId=null, attPage=0, clockTimer=null, currentProfileId=null;
 let renewTargetId=null, renewDuration=30;
 let memberSort='name';
 let currentTab='dashboard';
 const ATT_PAGE_SIZE = 20;
 
+// Revenue state
+let revPeriod = 'today';
+let revTxPage = 0;
+const REV_TX_PAGE_SIZE = 15;
+let _revCache = { att: null, members: null, fetchedAt: 0 };
+
 // ══════════════════════════════════════════════
 //  LOGIN / LOGOUT
 // ══════════════════════════════════════════════
-function doAdminLogin(){
+async function doAdminLogin(){
+  const btn=document.querySelector('#login-screen button[onclick="doAdminLogin()"]');
   const pass = document.getElementById('admin-pass-input').value;
-  if(pass === ADMIN_PASS){
+  if(!pass){document.getElementById('admin-pass-input').focus();return;}
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';}
+  const correctPass = await DB.getAdminPass();
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt mr-2"></i>Enter Admin Panel';}
+  if(pass === correctPass){
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('admin-app').classList.remove('hidden');
     adminTab('dashboard');
@@ -796,11 +1343,11 @@ function startAdminClock(){
 // ══════════════════════════════════════════════
 //  TABS
 // ══════════════════════════════════════════════
-const TAB_TITLES = {dashboard:'Dashboard',logins:'Attendance Log',allmembers:'All Members',revenue:'Revenue',expiring:'Expiring Soon'};
+const TAB_TITLES = {dashboard:'Dashboard',logins:'Attendance Log',allmembers:'All Members',revenue:'Revenue',expiring:'Expiring Soon',settings:'Settings'};
 
 function adminTab(tab){
   currentTab = tab;
-  ['dashboard','logins','allmembers','revenue','expiring'].forEach(t=>{
+  ['dashboard','logins','allmembers','revenue','expiring','settings'].forEach(t=>{
     document.getElementById('tab-'+t).classList.add('hidden');
     document.getElementById('bnav-'+t).classList.remove('active');
   });
@@ -811,11 +1358,15 @@ function adminTab(tab){
   if(tab==='dashboard') renderDashboard();
   if(tab==='logins'){attPage=0; renderAttLog();}
   if(tab==='allmembers') renderAdmMembers();
-  if(tab==='revenue') renderRevenue();
+  if(tab==='revenue'){ _revCache.fetchedAt=0; renderRevenue(); }
   if(tab==='expiring') renderExpiring();
+  if(tab==='settings') resetPwForm();
 }
 
-function refreshCurrentTab(){ adminTab(currentTab); }
+function refreshCurrentTab(){
+  if(currentTab==='revenue') _revCache.fetchedAt=0;
+  adminTab(currentTab);
+}
 
 // ══════════════════════════════════════════════
 //  HELPERS
@@ -830,7 +1381,13 @@ function memberPrice(att, membersMap){
   return (m&&m.isStudent)?50:70;
 }
 function calcRev(arr, membersMap=null){ return arr.reduce((s,a)=>s+(a.amount||memberPrice(a,membersMap)),0); }
-function formatPeso(n){ return '₱'+n.toLocaleString(); }
+function formatPeso(n){ return '₱'+Math.round(n).toLocaleString(); }
+function formatPesoShort(n){
+  if(n>=1000000) return '₱'+(n/1000000).toFixed(1)+'M';
+  if(n>=10000) return '₱'+(n/1000).toFixed(0)+'k';
+  if(n>=1000) return '₱'+(n/1000).toFixed(1)+'k';
+  return '₱'+Math.round(n);
+}
 function daysUntil(expStr){ return Math.ceil((new Date(expStr)-new Date())/864e5); }
 
 // ══════════════════════════════════════════════
@@ -847,20 +1404,17 @@ async function renderDashboard(){
   const active = members.filter(m=>m.active!==false&&m.plan==='monthly'&&m.expiry&&new Date(m.expiry)>new Date());
   const expiring7 = members.filter(m=>{if(m.plan!=='monthly'||!m.expiry)return false;const d=daysUntil(m.expiry);return d>=0&&d<=7;});
 
-  // Stats
   document.getElementById('adm-total').textContent = members.length;
   document.getElementById('adm-monthly').textContent = active.length;
   document.getElementById('adm-today').textContent = todayAtt.length;
   document.getElementById('adm-today-date').textContent = new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric'});
   document.getElementById('adm-expiring').textContent = expiring7.length;
 
-  // Revenue quick
   const now=new Date(), monthStart=new Date(now.getFullYear(),now.getMonth(),1);
   document.getElementById('dash-rev-today').textContent = formatPeso(calcRev(att.filter(a=>new Date(a.time).toDateString()===today),membersMap));
   document.getElementById('dash-rev-month').textContent = formatPeso(calcRev(att.filter(a=>new Date(a.time)>=monthStart),membersMap));
   document.getElementById('dash-rev-total').textContent = formatPeso(calcRev(att,membersMap));
 
-  // Bar chart - last 7 days
   const bars=[];
   for(let i=6;i>=0;i--){
     const d=new Date();d.setDate(d.getDate()-i);
@@ -872,25 +1426,23 @@ async function renderDashboard(){
   document.getElementById('dash-peak-label').textContent=peakDay.count>0?`Peak: ${peakDay.label} (${peakDay.count})`:'';
   document.getElementById('bar-chart').innerHTML=bars.map(b=>`
     <div class="flex-1 flex flex-col items-center gap-1">
-      <span class="text-[10px]" style="color:${b.count?'var(--gold)':'transparent'};">${b.count||''}</span>
+      <span class="text-[10px]" style="color:${b.count?'var(--accent)':'transparent'};">${b.count||''}</span>
       <div class="bar-wrap w-full" style="height:78px;position:relative;">
         <div class="bar-fill" style="height:${b.count?Math.max(Math.round((b.count/maxB)*74)+4,6):4}px;${b.isToday?'opacity:1;':'opacity:0.65;'}"></div>
       </div>
-      <span class="text-[9px] font-semibold" style="color:${b.isToday?'var(--gold)':'var(--text-muted)'};">${b.label}</span>
+      <span class="text-[9px] font-semibold" style="color:${b.isToday?'var(--accent)':'var(--text-muted)'};">${b.label}</span>
     </div>`).join('');
 
-  // Member breakdown
   const monthly=members.filter(m=>m.plan==='monthly').length;
   const entry=members.filter(m=>m.plan==='entry').length;
   const expired=members.filter(m=>m.plan==='monthly'&&m.expiry&&new Date(m.expiry)<new Date()).length;
   const total=members.length||1;
   document.getElementById('plan-breakdown').innerHTML=`
-    <div><div class="flex justify-between text-xs mb-2"><span style="color:var(--text-muted);">Monthly Members</span><span class="text-yellow-500 font-bold">${monthly}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${(monthly/total*100).toFixed(1)}%;background:var(--gold);"></div></div></div>
+    <div><div class="flex justify-between text-xs mb-2"><span style="color:var(--text-muted);">Monthly Members</span><span class="font-bold" style="color:var(--accent);">${monthly}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${(monthly/total*100).toFixed(1)}%;background:var(--accent);"></div></div></div>
     <div><div class="flex justify-between text-xs mb-2"><span style="color:var(--text-muted);">Walk-in / Entry</span><span class="text-blue-400 font-bold">${entry}</span></div><div class="progress-bar"><div class="progress-fill bg-blue-500" style="width:${(entry/total*100).toFixed(1)}%;"></div></div></div>
     <div><div class="flex justify-between text-xs mb-2"><span style="color:var(--text-muted);">Expired Monthly</span><span class="text-red-400 font-bold">${expired}</span></div><div class="progress-bar"><div class="progress-fill bg-red-500" style="width:${(expired/total*100).toFixed(1)}%;"></div></div></div>
     <div class="pt-3 border-t flex justify-between text-xs" style="border-color:var(--border);color:var(--text-muted);"><span>Total registered</span><span class="text-white font-bold">${members.length}</span></div>`;
 
-  // Upcoming birthdays (next 14 days)
   const today2=new Date(); today2.setHours(0,0,0,0);
   const bdayMembers=members.filter(m=>{
     if(!m.birthday)return false;
@@ -918,7 +1470,6 @@ async function renderDashboard(){
       </div>`).join('');
   }
 
-  // Recent activity
   const recent=await DB.getRecentAtt(10);
   document.getElementById('dash-recent').innerHTML=recent.length
     ? recent.map(a=>{
@@ -959,7 +1510,7 @@ async function renderAttLog(){
       const time=dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
       const planBadge=a.memberPlan==='entry'
         ?'<span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);">Walk-in</span>'
-        :'<span class="badge" style="background:rgba(212,168,83,0.1);color:var(--gold);border:1px solid var(--gold-border);">Monthly</span>';
+        :'<span class="badge" style="background:rgba(197,241,0,0.1);color:var(--accent);border:1px solid var(--accent-border);">Monthly</span>';
       const paidBadge=a.paid
         ?'<span class="text-green-400 text-xs"><i class="fas fa-check-circle mr-1"></i>Paid</span>'
         :'<span class="text-xs" style="color:var(--text-dim);">—</span>';
@@ -1027,7 +1578,6 @@ async function renderAdmMembers(){
   if(statusF==='inactive') members=members.filter(m=>m.active===false);
   if(searchF) members=members.filter(m=>(m.name||'').toLowerCase().includes(searchF)||(m.rfid||'').toLowerCase().includes(searchF)||(m.email||'').toLowerCase().includes(searchF)||(m.phone||'').includes(searchF));
 
-  // Sort
   members.sort((a,b)=>{
     if(memberSort==='name') return (a.name||'').localeCompare(b.name||'');
     if(memberSort==='registered') return new Date(b.registered||0)-new Date(a.registered||0);
@@ -1058,7 +1608,7 @@ async function renderAdmMembers(){
       :isExp?'<span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2);">Expired</span>'
       :isSoon?'<span class="badge" style="background:rgba(250,204,21,0.1);color:#facc15;border:1px solid rgba(250,204,21,0.2);">Expiring</span>'
       :'<span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);">Active</span>';
-    const planBadge=m.plan==='monthly'?'<span class="text-yellow-500 text-xs font-semibold">Monthly</span>':'<span class="text-xs" style="color:var(--text-muted);">Walk-in</span>';
+    const planBadge=m.plan==='monthly'?'<span class="text-xs font-semibold" style="color:var(--accent);">Monthly</span>':'<span class="text-xs" style="color:var(--text-muted);">Walk-in</span>';
     const expiryText=m.expiry?`<span class="text-xs ${isExp?'text-red-400':isSoon?'text-yellow-500':'text-gray-500'}">${isExp?'Expired ':'Exp: '}${new Date(m.expiry).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</span>`:'';
     const checkins=allAtt.filter(a=>a.memberId===m.id).length;
     const studentBadge=m.isStudent?(m.studentVerified?'<span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);font-size:9px;"><i class="fas fa-graduation-cap mr-0.5"></i>Verified</span>':'<span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);font-size:9px;"><i class="fas fa-graduation-cap mr-0.5"></i>Student</span>'):' ';
@@ -1081,7 +1631,8 @@ async function renderAdmMembers(){
       <div class="flex gap-2 mt-3 pt-3 border-t" style="border-color:var(--border);">
         <p class="text-xs flex-1 truncate" style="color:var(--text-muted);">${m.phone||m.email||''}</p>
         <button onclick="openMemberProfile('${m.id}')" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-ghost"><i class="fas fa-eye text-[10px]"></i> View</button>
-        <button onclick="openEditModal('${m.id}')" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold" style="color:var(--gold);border:1px solid var(--gold-border);background:rgba(212,168,83,0.06);"><i class="fas fa-edit text-[10px]"></i> Edit</button>
+        <button onclick="adminOpenEnrollment('${m.id}','${m.name.replace(/'/g,"\\'")}',${!!(m.faceDescriptors&&m.faceDescriptors.length)})" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-all" style="${m.faceDescriptors&&m.faceDescriptors.length?'color:var(--accent);border:1px solid var(--accent-border);background:rgba(197,241,0,0.06);':'color:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.1);background:transparent;'}" title="${m.faceDescriptors&&m.faceDescriptors.length?'Update face profile':'Enroll face'}"><i class="fas fa-camera text-[10px]"></i> ${m.faceDescriptors&&m.faceDescriptors.length?'Face ✓':'Face'}</button>
+        <button onclick="openEditModal('${m.id}')" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold" style="color:var(--accent);border:1px solid var(--accent-border);background:rgba(197,241,0,0.06);"><i class="fas fa-edit text-[10px]"></i> Edit</button>
         <button onclick="openDeleteModal('${m.id}','${m.name.replace(/'/g,"\\'")}') " class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-danger"><i class="fas fa-trash text-[10px]"></i></button>
       </div>
     </div>`;
@@ -1089,51 +1640,412 @@ async function renderAdmMembers(){
 }
 
 // ══════════════════════════════════════════════
-//  REVENUE
+//  REVENUE — REBUILT
 // ══════════════════════════════════════════════
+
+// Returns [start, end, prevStart, prevEnd, label, chartGranularity, chartBuckets]
+function getPeriodRange(period){
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let start, end=new Date(now.getTime()+1), prevStart, prevEnd, label, granularity, buckets;
+
+  if(period==='today'){
+    start = new Date(todayStart);
+    prevEnd = new Date(todayStart);
+    prevStart = new Date(prevEnd); prevStart.setDate(prevStart.getDate()-1);
+    label = "Today's Revenue";
+    granularity = 'hour'; buckets = 24;
+  } else if(period==='week'){
+    // last 7 days including today
+    start = new Date(todayStart); start.setDate(start.getDate()-6);
+    prevEnd = new Date(start);
+    prevStart = new Date(prevEnd); prevStart.setDate(prevStart.getDate()-7);
+    label = "This Week (7 days)";
+    granularity = 'day'; buckets = 7;
+  } else if(period==='month'){
+    // last 30 days including today
+    start = new Date(todayStart); start.setDate(start.getDate()-29);
+    prevEnd = new Date(start);
+    prevStart = new Date(prevEnd); prevStart.setDate(prevStart.getDate()-30);
+    label = "This Month (30 days)";
+    granularity = 'day'; buckets = 30;
+  } else if(period==='year'){
+    // last 12 months including current
+    start = new Date(now.getFullYear(),now.getMonth()-11,1);
+    prevEnd = new Date(start);
+    prevStart = new Date(prevEnd); prevStart.setFullYear(prevStart.getFullYear()-1);
+    label = "This Year (12 months)";
+    granularity = 'month'; buckets = 12;
+  } else { // all
+    start = new Date(0);
+    prevStart = new Date(0); prevEnd = new Date(0);
+    label = "All-Time Revenue";
+    granularity = 'month'; buckets = 0; // dynamic
+  }
+  return {start,end,prevStart,prevEnd,label,granularity,buckets};
+}
+
+function setRevPeriod(p){
+  revPeriod = p;
+  revTxPage = 0;
+  document.querySelectorAll('.period-tab').forEach(t=>t.classList.toggle('active', t.dataset.period===p));
+  renderRevenue();
+}
+
 async function renderRevenue(){
-  const att=await DB.getAttendance();
-  const members=await DB.getMembers();
-  const membersMap=Object.fromEntries(members.map(m=>[m.id,m]));
-  const now=new Date();
-  const todayStr=now.toDateString();
-  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
-  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());weekStart.setHours(0,0,0,0);
+  // Cache for the session — re-fetch only if explicitly invalidated
+  if(!_revCache.fetchedAt || Date.now()-_revCache.fetchedAt > 60000){
+    const [att, members] = await Promise.all([DB.getAttendance(), DB.getMembers()]);
+    _revCache = { att, members, fetchedAt: Date.now() };
+  }
+  const att = _revCache.att;
+  const members = _revCache.members;
+  const membersMap = Object.fromEntries(members.map(m=>[m.id,m]));
 
-  document.getElementById('rev-total').textContent=formatPeso(calcRev(att,membersMap));
-  document.getElementById('rev-month').textContent=formatPeso(calcRev(att.filter(a=>new Date(a.time)>=monthStart),membersMap));
-  document.getElementById('rev-week').textContent=formatPeso(calcRev(att.filter(a=>new Date(a.time)>=weekStart),membersMap));
-  document.getElementById('rev-today').textContent=formatPeso(calcRev(att.filter(a=>new Date(a.time).toDateString()===todayStr),membersMap));
+  const range = getPeriodRange(revPeriod);
+  const inRange = att.filter(a=>{
+    const t = new Date(a.time);
+    return t>=range.start && t<range.end;
+  });
+  const inPrev = att.filter(a=>{
+    const t = new Date(a.time);
+    return t>=range.prevStart && t<range.prevEnd;
+  });
 
-  // 30-day chart
-  const days30=[];
-  for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days30.push(d);}
-  const maxRev=Math.max(...days30.map(d=>{const ds=d.toDateString();return calcRev(att.filter(a=>new Date(a.time).toDateString()===ds),membersMap);}),1);
-  document.getElementById('rev-chart').innerHTML=days30.map(d=>{
-    const ds=d.toDateString(),dayAtt=att.filter(a=>new Date(a.time).toDateString()===ds);
-    const rev=calcRev(dayAtt,membersMap),mRev=dayAtt.filter(a=>a.memberPlan==='monthly').reduce((s,a)=>s+memberPrice(a,membersMap),0);
-    const h=Math.round((rev/maxRev)*106)+2,mH=rev>0?Math.round((mRev/rev)*h):0;
-    return `<div class="flex-1 flex flex-col items-center" title="${d.toLocaleDateString('en-PH',{month:'short',day:'numeric'})}: ${formatPeso(rev)}"><div style="height:110px;width:100%;display:flex;align-items:flex-end;gap:1px;"><div style="flex:1;height:${mH}px;background:var(--gold);border-radius:2px 2px 0 0;min-height:${mRev>0?2:0}px;opacity:0.85;"></div><div style="flex:1;height:${h-mH}px;background:#3b82f6;border-radius:2px 2px 0 0;min-height:${rev-mRev>0?2:0}px;opacity:0.85;"></div></div></div>`;
+  // Hero stats
+  const total = calcRev(inRange, membersMap);
+  const prevTotal = calcRev(inPrev, membersMap);
+  const count = inRange.length;
+  const avg = count ? total/count : 0;
+
+  document.getElementById('rev-hero-label').textContent = range.label;
+  document.getElementById('rev-hero-amount').textContent = formatPeso(total);
+  document.getElementById('rev-hero-count').textContent = count + ' tx';
+  document.getElementById('rev-hero-avg').textContent = formatPeso(avg);
+
+  // Trend / delta
+  const trendEl = document.getElementById('rev-hero-trend');
+  const deltaEl = document.getElementById('rev-hero-delta');
+  if(revPeriod==='all'){
+    trendEl.className='trend-pill trend-flat'; trendEl.textContent='—';
+    deltaEl.textContent='—'; deltaEl.style.color='var(--text-muted)';
+  } else if(prevTotal===0 && total===0){
+    trendEl.className='trend-pill trend-flat'; trendEl.textContent='No data';
+    deltaEl.textContent='—'; deltaEl.style.color='var(--text-muted)';
+  } else if(prevTotal===0){
+    trendEl.className='trend-pill trend-up'; trendEl.innerHTML='<i class="fas fa-arrow-up text-[8px]"></i> NEW';
+    deltaEl.textContent = '+'+formatPeso(total); deltaEl.style.color='#4ade80';
+  } else {
+    const pct = ((total-prevTotal)/prevTotal)*100;
+    if(Math.abs(pct)<1){
+      trendEl.className='trend-pill trend-flat'; trendEl.textContent='Flat';
+    } else if(pct>0){
+      trendEl.className='trend-pill trend-up'; trendEl.innerHTML=`<i class="fas fa-arrow-up text-[8px]"></i> ${pct.toFixed(0)}%`;
+    } else {
+      trendEl.className='trend-pill trend-down'; trendEl.innerHTML=`<i class="fas fa-arrow-down text-[8px]"></i> ${Math.abs(pct).toFixed(0)}%`;
+    }
+    const diff = total - prevTotal;
+    deltaEl.textContent = (diff>=0?'+':'') + formatPeso(diff);
+    deltaEl.style.color = diff>=0 ? '#4ade80' : '#f87171';
+  }
+
+  // Revenue split (Monthly vs Walk-in)
+  const monthlyTx = inRange.filter(a=>a.memberPlan==='monthly');
+  const entryTx = inRange.filter(a=>a.memberPlan!=='monthly');
+  const monthlyAmt = calcRev(monthlyTx, membersMap);
+  const entryAmt = calcRev(entryTx, membersMap);
+  const splitTotal = monthlyAmt + entryAmt || 1;
+  document.getElementById('split-monthly-amt').textContent = formatPeso(monthlyAmt);
+  document.getElementById('split-entry-amt').textContent = formatPeso(entryAmt);
+  document.getElementById('split-monthly-bar').style.width = ((monthlyAmt/splitTotal)*100)+'%';
+  document.getElementById('split-entry-bar').style.width = ((entryAmt/splitTotal)*100)+'%';
+  document.getElementById('split-monthly-detail').textContent = `${monthlyTx.length} transactions · ${((monthlyAmt/splitTotal)*100).toFixed(0)}%`;
+  document.getElementById('split-entry-detail').textContent = `${entryTx.length} transactions · ${((entryAmt/splitTotal)*100).toFixed(0)}%`;
+
+  // Build chart buckets
+  renderRevenueChart(inRange, membersMap, range);
+
+  // Top spenders
+  renderTopSpenders(inRange, membersMap);
+  document.getElementById('top-spender-period').textContent = ({today:'Today',week:'Last 7 days',month:'Last 30 days',year:'Last 12 months',all:'All-time'})[revPeriod];
+
+  // Transactions
+  renderRevenueTransactions();
+}
+
+function renderRevenueChart(inRange, membersMap, range){
+  const chartEl = document.getElementById('rev-chart');
+  const labelsEl = document.getElementById('rev-chart-labels');
+  const titleEl = document.getElementById('rev-chart-title');
+
+  // Build buckets
+  const now = new Date();
+  let bucketDefs = []; // [{start,end,label,key}]
+
+  if(range.granularity==='hour'){
+    titleEl.textContent='Hourly Revenue · Today';
+    for(let h=0;h<24;h++){
+      const s=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h);
+      const e=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h+1);
+      bucketDefs.push({start:s,end:e,label:h%6===0?(h===0?'12a':h===12?'12p':(h%12)+(h<12?'a':'p')):'',full:h+':00'});
+    }
+  } else if(range.granularity==='day'){
+    const days = range.buckets;
+    titleEl.textContent = days===7 ? 'Daily Revenue · 7 days' : 'Daily Revenue · 30 days';
+    const start = new Date(range.start);
+    for(let i=0;i<days;i++){
+      const s=new Date(start); s.setDate(start.getDate()+i);
+      const e=new Date(s); e.setDate(s.getDate()+1);
+      let lbl = '';
+      if(days===7){
+        lbl = s.toLocaleDateString('en-US',{weekday:'short'});
+      } else {
+        // Show every 5th day for 30-day view
+        if(i===0 || i===days-1 || i%5===0) lbl = s.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      }
+      bucketDefs.push({start:s,end:e,label:lbl,full:s.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})});
+    }
+  } else if(range.granularity==='month'){
+    titleEl.textContent='Monthly Revenue · 12 months';
+    if(revPeriod==='all'){
+      // Build months from earliest tx to now
+      if(inRange.length===0){
+        for(let i=11;i>=0;i--){
+          const s=new Date(now.getFullYear(),now.getMonth()-i,1);
+          const e=new Date(now.getFullYear(),now.getMonth()-i+1,1);
+          bucketDefs.push({start:s,end:e,label:i%2===0?s.toLocaleDateString('en-US',{month:'short'}):'',full:s.toLocaleDateString('en-PH',{month:'long',year:'numeric'})});
+        }
+        titleEl.textContent='Monthly Revenue';
+      } else {
+        const earliest = new Date(Math.min(...inRange.map(a=>new Date(a.time).getTime())));
+        const startMonth = new Date(earliest.getFullYear(),earliest.getMonth(),1);
+        const months = (now.getFullYear()-startMonth.getFullYear())*12 + (now.getMonth()-startMonth.getMonth()) + 1;
+        const cap = Math.min(months,24); // cap at 24 months for chart sanity
+        const chartStart = new Date(now.getFullYear(),now.getMonth()-cap+1,1);
+        for(let i=0;i<cap;i++){
+          const s=new Date(chartStart.getFullYear(),chartStart.getMonth()+i,1);
+          const e=new Date(chartStart.getFullYear(),chartStart.getMonth()+i+1,1);
+          let lbl='';
+          if(i===0||i===cap-1||i%Math.max(1,Math.floor(cap/6))===0) lbl=s.toLocaleDateString('en-US',{month:'short'});
+          bucketDefs.push({start:s,end:e,label:lbl,full:s.toLocaleDateString('en-PH',{month:'long',year:'numeric'})});
+        }
+        titleEl.textContent=`Monthly Revenue · ${cap} months`;
+      }
+    } else {
+      // Year: 12 months
+      for(let i=11;i>=0;i--){
+        const s=new Date(now.getFullYear(),now.getMonth()-i,1);
+        const e=new Date(now.getFullYear(),now.getMonth()-i+1,1);
+        const lbl = (i%2===0||i===0) ? s.toLocaleDateString('en-US',{month:'short'}) : '';
+        bucketDefs.push({start:s,end:e,label:lbl,full:s.toLocaleDateString('en-PH',{month:'long',year:'numeric'})});
+      }
+    }
+  }
+
+  // Compute revenue per bucket
+  const buckets = bucketDefs.map(b=>{
+    const txs = inRange.filter(a=>{const t=new Date(a.time);return t>=b.start&&t<b.end;});
+    const monthly = txs.filter(a=>a.memberPlan==='monthly');
+    const entry = txs.filter(a=>a.memberPlan!=='monthly');
+    return {
+      ...b,
+      total: calcRev(txs, _revCache.members ? Object.fromEntries(_revCache.members.map(m=>[m.id,m])):{}),
+      monthly: calcRev(monthly, Object.fromEntries(_revCache.members.map(m=>[m.id,m]))),
+      entry: calcRev(entry, Object.fromEntries(_revCache.members.map(m=>[m.id,m]))),
+      txs
+    };
+  });
+
+  const maxRev = Math.max(...buckets.map(b=>b.total), 1);
+  document.getElementById('rev-chart-ymax').textContent = formatPesoShort(maxRev);
+
+  chartEl.innerHTML = buckets.map((b,i)=>{
+    const totalH = b.total>0 ? Math.max(Math.round((b.total/maxRev)*135), 3) : 1;
+    const monthlyH = b.total>0 ? Math.round((b.monthly/b.total)*totalH) : 0;
+    const entryH = totalH - monthlyH;
+    const isEmpty = b.total===0;
+    return `<div class="rchart-bar" data-bucket="${i}" onclick="showDayDetail(${i})">
+      <div class="rchart-stack" style="height:${totalH}px;${isEmpty?'background:rgba(255,255,255,0.05);':''}">
+        ${!isEmpty?`<div class="rchart-seg-entry" style="height:${entryH}px;"></div><div class="rchart-seg-monthly" style="height:${monthlyH}px;"></div>`:''}
+      </div>
+    </div>`;
   }).join('');
 
-  // Week labels below chart
-  const labelDays=[0,7,14,21,29];
-  document.getElementById('rev-chart-labels').innerHTML=days30.map((d,i)=>
-    labelDays.includes(i)?`<span class="text-[9px]" style="color:var(--text-dim);">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:'<span></span>'
-  ).join('');
+  // Store buckets for click handler
+  window._chartBuckets = buckets;
 
-  const recent=att.slice(-60).reverse();
-  const revList=document.getElementById('rev-list'),empty=document.getElementById('rev-empty');
-  if(!recent.length){revList.innerHTML='';empty.classList.remove('hidden');return;}
+  // Labels
+  labelsEl.innerHTML = buckets.map(b=>`<span style="flex:1;text-align:center;overflow:hidden;white-space:nowrap;">${b.label||''}</span>`).join('');
+}
+
+function showDayDetail(idx){
+  const buckets = window._chartBuckets || [];
+  const b = buckets[idx];
+  if(!b) return;
+  // Highlight selected bar
+  document.querySelectorAll('.rchart-bar').forEach((el,i)=>el.classList.toggle('selected', i===idx));
+
+  const membersMap = Object.fromEntries(_revCache.members.map(m=>[m.id,m]));
+  document.getElementById('day-detail-title').textContent = b.full;
+  document.getElementById('day-detail-sub').textContent = `${b.txs.length} transaction${b.txs.length!==1?'s':''}`;
+  document.getElementById('day-detail-total').textContent = formatPeso(b.total);
+  document.getElementById('day-detail-monthly').textContent = formatPeso(b.monthly);
+  document.getElementById('day-detail-entry').textContent = formatPeso(b.entry);
+
+  const list = document.getElementById('day-detail-list');
+  const empty = document.getElementById('day-detail-empty');
+  if(b.txs.length===0){
+    list.innerHTML=''; empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    const sorted = [...b.txs].sort((x,y)=>new Date(y.time)-new Date(x.time));
+    list.innerHTML = sorted.map(a=>{
+      const m=membersMap[a.memberId];
+      const isStudent=m&&m.isStudent;
+      const amt = a.amount || memberPrice(a, membersMap);
+      const planLabel = a.memberPlan==='monthly'?'<span style="color:var(--accent);">Monthly</span>':'<span class="text-blue-400">Walk-in</span>';
+      const tm = new Date(a.time).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="flex items-center gap-3 py-2 border-b last:border-0" style="border-color:var(--border);">
+        ${avatar(a.memberPhoto,a.memberName,'w-8 h-8','text-xs')}
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">${a.memberName||'Unknown'}</p>
+          <p class="text-[10px]" style="color:var(--text-muted);">${tm} · ${planLabel}${isStudent?' · <span style=\"color:#60a5fa\">Student</span>':''}</p>
+        </div>
+        <span class="font-bold text-green-400 text-sm">${formatPeso(amt)}</span>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('day-detail-modal').classList.remove('hidden');
+}
+
+function closeDayDetail(){
+  document.getElementById('day-detail-modal').classList.add('hidden');
+  document.querySelectorAll('.rchart-bar').forEach(el=>el.classList.remove('selected'));
+}
+
+function renderTopSpenders(inRange, membersMap){
+  // Aggregate by memberId
+  const totals = {};
+  inRange.forEach(a=>{
+    if(!a.memberId) return;
+    const amt = a.amount || memberPrice(a, membersMap);
+    if(!totals[a.memberId]) totals[a.memberId]={amt:0,count:0,name:a.memberName,photo:a.memberPhoto};
+    totals[a.memberId].amt += amt;
+    totals[a.memberId].count++;
+  });
+  const sorted = Object.entries(totals).map(([id,d])=>({id,...d})).sort((a,b)=>b.amt-a.amt).slice(0,5);
+  const wrap = document.getElementById('top-spenders');
+  const empty = document.getElementById('top-spenders-empty');
+  if(sorted.length===0){
+    wrap.innerHTML=''; empty.classList.remove('hidden'); return;
+  }
   empty.classList.add('hidden');
-  revList.innerHTML=recent.map(a=>{
-    const m=membersMap[a.memberId];
-    const isStudent=m&&m.isStudent;
-    const planLabel=a.memberPlan==='monthly'?'<span class="text-yellow-500 text-xs">Monthly</span>':'<span class="text-blue-400 text-xs">Walk-in</span>';
-    const amt=a.memberPlan==='monthly'?(isStudent?'₱600':'₱900'):(isStudent?'₱50':'₱70');
-    const dt=new Date(a.time).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
-    return `<div class="flex items-center gap-3 px-4 py-3">${avatar(a.memberPhoto,a.memberName,'w-9 h-9','text-sm')}<div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">${a.memberName||'Unknown'}</p><p class="text-xs" style="color:var(--text-muted);">${dt} · ${planLabel}${isStudent?' · <span style=\"color:#60a5fa\">Student</span>':''}</p></div><span class="font-bold text-green-400 text-sm flex-shrink-0">${amt}</span></div>`;
+  wrap.innerHTML = sorted.map((s,i)=>{
+    const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'r-other';
+    return `<div class="spender-row" onclick="openMemberProfile('${s.id}')" style="cursor:pointer;">
+      <div class="spender-rank ${rankCls}">${i+1}</div>
+      ${avatar(s.photo,s.name,'w-9 h-9','text-xs')}
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium truncate">${s.name||'Unknown'}</p>
+        <p class="text-[10px]" style="color:var(--text-muted);">${s.count} transaction${s.count!==1?'s':''}</p>
+      </div>
+      <span class="font-bold text-sm" style="color:var(--accent);">${formatPeso(s.amt)}</span>
+    </div>`;
   }).join('');
+}
+
+function renderRevenueTransactions(){
+  const range = getPeriodRange(revPeriod);
+  const att = _revCache.att || [];
+  const membersMap = Object.fromEntries((_revCache.members||[]).map(m=>[m.id,m]));
+  let inRange = att.filter(a=>{
+    const t = new Date(a.time);
+    return t>=range.start && t<range.end;
+  });
+  // Search filter
+  const q = (document.getElementById('rev-tx-search').value||'').toLowerCase().trim();
+  if(q) inRange = inRange.filter(a=>(a.memberName||'').toLowerCase().includes(q));
+
+  // Most recent first
+  inRange.sort((a,b)=>new Date(b.time)-new Date(a.time));
+
+  const total = inRange.length;
+  document.getElementById('rev-tx-count').textContent = total + ' transaction' + (total!==1?'s':'');
+
+  const list = document.getElementById('rev-list');
+  const empty = document.getElementById('rev-empty');
+  const pagWrap = document.getElementById('rev-tx-pagination');
+
+  if(total===0){
+    list.innerHTML=''; empty.classList.remove('hidden'); pagWrap.style.display='none'; return;
+  }
+  empty.classList.add('hidden');
+
+  // Pagination
+  const totalPages = Math.ceil(total/REV_TX_PAGE_SIZE);
+  if(revTxPage>=totalPages) revTxPage = totalPages-1;
+  const start = revTxPage*REV_TX_PAGE_SIZE;
+  const end = start+REV_TX_PAGE_SIZE;
+  const page = inRange.slice(start,end);
+
+  list.innerHTML = page.map(a=>{
+    const m = membersMap[a.memberId];
+    const isStudent = m && m.isStudent;
+    const amt = a.amount || memberPrice(a, membersMap);
+    const planLabel = a.memberPlan==='monthly'
+      ? '<span class="text-xs font-semibold" style="color:var(--accent);">Monthly</span>'
+      : '<span class="text-blue-400 text-xs">Walk-in</span>';
+    const dt = new Date(a.time);
+    const dateStr = dt.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+    const timeStr = dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="flex items-center gap-3 px-4 py-3">
+      ${avatar(a.memberPhoto,a.memberName,'w-9 h-9','text-sm')}
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium truncate">${a.memberName||'Unknown'}</p>
+        <p class="text-xs" style="color:var(--text-muted);">${dateStr} · ${timeStr} · ${planLabel}${isStudent?' · <span style=\"color:#60a5fa\">Student</span>':''}</p>
+      </div>
+      <span class="font-bold text-green-400 text-sm flex-shrink-0">${formatPeso(amt)}</span>
+    </div>`;
+  }).join('');
+
+  if(total>REV_TX_PAGE_SIZE){
+    pagWrap.style.display='flex';
+    pagWrap.innerHTML = `<span>${start+1}–${Math.min(end,total)} of ${total}</span>
+      <div class="flex items-center gap-3">
+        <button onclick="revTxPage=Math.max(0,revTxPage-1);renderRevenueTransactions()" ${revTxPage===0?'disabled':''} class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center disabled:opacity-30"><i class="fas fa-chevron-left text-xs"></i></button>
+        <span>${revTxPage+1}/${totalPages}</span>
+        <button onclick="revTxPage=Math.min(${totalPages-1},revTxPage+1);renderRevenueTransactions()" ${revTxPage>=totalPages-1?'disabled':''} class="w-8 h-8 rounded-full btn-ghost flex items-center justify-center disabled:opacity-30"><i class="fas fa-chevron-right text-xs"></i></button>
+      </div>`;
+  } else {
+    pagWrap.style.display='none';
+  }
+}
+
+async function exportRevenueCSV(){
+  const att = _revCache.att || await DB.getAttendance();
+  const members = _revCache.members || await DB.getMembers();
+  const membersMap = Object.fromEntries(members.map(m=>[m.id,m]));
+  const range = getPeriodRange(revPeriod);
+  const inRange = att.filter(a=>{
+    const t = new Date(a.time);
+    return t>=range.start && t<range.end;
+  }).sort((a,b)=>new Date(b.time)-new Date(a.time));
+
+  const rows = [['Date','Time','Member','RFID','Plan','Student','Amount']];
+  inRange.forEach(a=>{
+    const m=membersMap[a.memberId];
+    const dt=new Date(a.time);
+    rows.push([
+      dt.toLocaleDateString(),
+      dt.toLocaleTimeString(),
+      a.memberName||'',
+      a.rfid||'',
+      a.memberPlan==='monthly'?'Monthly':'Walk-in',
+      (m&&m.isStudent)?'Yes':'No',
+      a.amount||memberPrice(a,membersMap)
+    ]);
+  });
+  dlCSV(rows, `revenue_${revPeriod}_${new Date().toISOString().slice(0,10)}.csv`);
 }
 
 // ══════════════════════════════════════════════
@@ -1190,7 +2102,7 @@ async function openRenewModal(id){
   updateRenewDate();
   document.querySelectorAll('.renew-dur').forEach(b=>{ b.style.cssText=''; b.classList.add('btn-ghost'); b.classList.remove('active-renew'); });
   const a=document.getElementById('renew-30');
-  a.style.cssText='border-color:var(--gold-border);background:rgba(212,168,83,0.12);color:var(--gold);';
+  a.style.cssText='border-color:var(--accent-border);background:rgba(197,241,0,0.12);color:var(--accent);';
   document.getElementById('renew-modal').classList.remove('hidden');
 }
 
@@ -1198,7 +2110,7 @@ function setRenewDuration(d){
   renewDuration=d;
   document.querySelectorAll('.renew-dur').forEach(b=>{ b.style.cssText=''; b.classList.add('btn-ghost'); });
   const t=document.getElementById('renew-'+d);
-  t.style.cssText='border-color:var(--gold-border);background:rgba(212,168,83,0.12);color:var(--gold);';
+  t.style.cssText='border-color:var(--accent-border);background:rgba(197,241,0,0.12);color:var(--accent);';
   t.classList.remove('btn-ghost');
   updateRenewDate();
 }
@@ -1246,6 +2158,9 @@ async function openEditModal(id){
   document.getElementById('edit-name').value=m.name||'';
   document.getElementById('edit-email').value=m.email||'';
   document.getElementById('edit-phone').value=m.phone||'';
+  document.getElementById('edit-address').value=m.address||'';
+  document.getElementById('edit-birthday').value=m.birthday||'';
+  document.getElementById('edit-emergency').value=m.emergency||'';
   document.getElementById('edit-plan').value=m.plan||'entry';
   document.getElementById('edit-active').value=String(m.active!==false);
   document.getElementById('edit-notes').value=m.notes||'';
@@ -1262,10 +2177,16 @@ async function saveEdit(){
   const plan=document.getElementById('edit-plan').value;
   const expiry=plan==='monthly'?new Date(document.getElementById('edit-expiry').value).toISOString():null;
   const notes=document.getElementById('edit-notes').value.trim();
+  const address=document.getElementById('edit-address').value.trim();
+  const birthday=document.getElementById('edit-birthday').value||null;
+  const emergency=document.getElementById('edit-emergency').value.trim();
   await DB.updateMember(editTargetId,{
     name:document.getElementById('edit-name').value.trim(),
     email:document.getElementById('edit-email').value.trim(),
     phone:document.getElementById('edit-phone').value.trim(),
+    address:address||null,
+    birthday:birthday||null,
+    emergency:emergency||null,
     plan,expiry,
     active:document.getElementById('edit-active').value==='true',
     notes:notes||null
@@ -1306,15 +2227,14 @@ async function openMemberProfile(id){
 
   document.getElementById('prof-avatar-wrap').innerHTML=m.photo
     ?`<img src="${m.photo}" class="w-20 h-20 rounded-2xl object-cover" style="border:2px solid rgba(212,168,83,0.4);" alt="">`
-    :`<div class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold font-oswald" style="background:linear-gradient(135deg,#333,#111);border:2px solid rgba(212,168,83,0.25);color:var(--gold);">${m.name.charAt(0).toUpperCase()}</div>`;
+    :`<div class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold font-oswald" style="background:linear-gradient(135deg,#333,#111);border:2px solid rgba(197,241,0,0.25);color:var(--accent);">${m.name.charAt(0).toUpperCase()}</div>`;
 
   document.getElementById('prof-name').textContent=m.name||'—';
   document.getElementById('prof-rfid').textContent='RFID: '+(m.rfid||'—');
 
-  // Badges
   let badges='';
   badges+=m.plan==='monthly'
-    ?'<span class="badge" style="background:rgba(212,168,83,0.12);color:var(--gold);border:1px solid var(--gold-border);">Monthly</span>'
+    ?'<span class="badge" style="background:rgba(197,241,0,0.12);color:var(--accent);border:1px solid var(--accent-border);">Monthly</span>'
     :'<span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);">Walk-in</span>';
   if(m.active===false) badges+='<span class="badge" style="background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid var(--border);">Inactive</span>';
   else if(isExp) badges+='<span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2);">Expired</span>';
@@ -1340,24 +2260,21 @@ async function openMemberProfile(id){
   document.getElementById('prof-emergency').textContent=m.emergency||'—';
   document.getElementById('prof-registered').textContent=m.registered?new Date(m.registered).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'—';
 
-  // Notes
   const notesRow=document.getElementById('prof-notes-row');
   if(m.notes){ notesRow.classList.remove('hidden'); document.getElementById('prof-notes').textContent=m.notes; }
   else notesRow.classList.add('hidden');
 
-  // Recent visits
   const memberVisits=allAtt.filter(a=>a.memberId===m.id).sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,5);
   const rvWrap=document.getElementById('prof-recent-visits-wrap');
   if(memberVisits.length){
     rvWrap.style.display='block';
     document.getElementById('prof-recent-visits').innerHTML=memberVisits.map(v=>`
       <div class="flex items-center gap-2 py-1.5">
-        <div class="timeline-dot" style="background:var(--gold);opacity:0.5;"></div>
+        <div class="timeline-dot" style="background:var(--accent);opacity:0.5;"></div>
         <span class="text-xs" style="color:var(--text-muted);">${new Date(v.time).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})} · ${new Date(v.time).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
       </div>`).join('');
   } else rvWrap.style.display='none';
 
-  // Student section
   document.getElementById('prof-student-section').classList.remove('hidden');
   if(!m.isStudent){
     document.getElementById('prof-not-student').classList.remove('hidden');
@@ -1395,14 +2312,14 @@ function closeProfileModal(){document.getElementById('profile-modal').classList.
 
 async function verifyStudent(){
   if(!currentProfileId)return;
-  await DB.updateMember(currentProfileId,{studentVerified:true,studentRejected:false,verifiedAt:new Date().toISOString()});
-  showNotif('Student status verified ✓','success');
+  await DB.updateMember(currentProfileId,{studentVerified:true,studentRejected:false,verifiedAt:new Date().toISOString(),isStudent:false});
+  showNotif('ID verified — member switched to Regular ✓','success');
   await openMemberProfile(currentProfileId);renderAdmMembers();
 }
 async function rejectStudent(){
   if(!currentProfileId)return;
-  await DB.updateMember(currentProfileId,{studentVerified:false,studentRejected:true,rejectedAt:new Date().toISOString()});
-  showNotif('Student verification rejected','warning');
+  await DB.updateMember(currentProfileId,{studentVerified:false,studentRejected:true,rejectedAt:new Date().toISOString(),isStudent:false});
+  showNotif('ID rejected — member switched to Regular','warning');
   await openMemberProfile(currentProfileId);renderAdmMembers();
 }
 
@@ -1446,10 +2363,286 @@ function showNotif(msg,type='info'){
 //  MODAL CLOSE ON BACKDROP
 // ══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
-  [['edit-modal',closeEditModal],['delete-modal',closeDeleteModal],['clear-today-modal',closeClearTodayModal],['profile-modal',closeProfileModal],['renew-modal',closeRenewModal]].forEach(([id,fn])=>{
+  [['edit-modal',closeEditModal],['delete-modal',closeDeleteModal],['clear-today-modal',closeClearTodayModal],['profile-modal',closeProfileModal],['renew-modal',closeRenewModal],['day-detail-modal',closeDayDetail]].forEach(([id,fn])=>{
     document.getElementById(id).addEventListener('click',function(e){if(e.target===this)fn();});
   });
 });
+
+// ══════════════════════════════════════════════
+//  SETTINGS — CHANGE PASSWORD
+// ══════════════════════════════════════════════
+function resetPwForm(){
+  ['pw-current','pw-new','pw-confirm'].forEach(id=>{
+    document.getElementById(id).value='';
+    document.getElementById(id).type='password';
+  });
+  ['eye-current','eye-new','eye-confirm'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.remove('fa-eye-slash');el.classList.add('fa-eye');
+  });
+  document.getElementById('pw-error').classList.add('hidden');
+  checkPwStrength('');
+}
+
+function togglePwVis(inputId, eyeId){
+  const inp=document.getElementById(inputId);
+  const eye=document.getElementById(eyeId);
+  if(inp.type==='password'){
+    inp.type='text';
+    eye.classList.replace('fa-eye','fa-eye-slash');
+  } else {
+    inp.type='password';
+    eye.classList.replace('fa-eye-slash','fa-eye');
+  }
+}
+
+function checkPwStrength(val){
+  const bars=[document.getElementById('str-1'),document.getElementById('str-2'),document.getElementById('str-3'),document.getElementById('str-4')];
+  const label=document.getElementById('str-label');
+  if(!val){ bars.forEach(b=>b.style.background='');label.textContent='';return; }
+  let score=0;
+  if(val.length>=4) score++;
+  if(val.length>=8) score++;
+  if(/[A-Z]/.test(val)||/[0-9]/.test(val)) score++;
+  if(/[^A-Za-z0-9]/.test(val)||val.length>=12) score++;
+  const colors=['#f87171','#fb923c','#facc15','#4ade80'];
+  const labels=['Weak','Fair','Good','Strong'];
+  bars.forEach((b,i)=>{ b.style.background=i<score?colors[score-1]:'rgba(255,255,255,0.08)'; });
+  label.style.color=score>0?colors[score-1]:'';
+  label.textContent=score>0?labels[score-1]:'';
+}
+
+function showPwError(msg){ document.getElementById('pw-error-msg').textContent=msg;document.getElementById('pw-error').classList.remove('hidden'); }
+function hidePwError(){ document.getElementById('pw-error').classList.add('hidden'); }
+
+async function changeAdminPassword(){
+  hidePwError();
+  const current=document.getElementById('pw-current').value;
+  const newPw=document.getElementById('pw-new').value;
+  const confirm=document.getElementById('pw-confirm').value;
+
+  if(!current){ showPwError('Please enter your current password.'); return; }
+  if(newPw.length<4){ showPwError('New password must be at least 4 characters.'); return; }
+  if(newPw !== confirm){ showPwError('New passwords do not match.'); document.getElementById('pw-confirm').value=''; document.getElementById('pw-confirm').focus(); return; }
+
+  const btn=document.getElementById('btn-change-pw');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';
+
+  const correctPass = await DB.getAdminPass();
+  if(current !== correctPass){
+    btn.disabled=false;btn.innerHTML='<i class="fas fa-shield-halved mr-2"></i>Update Password';
+    showPwError('Current password is incorrect.');
+    document.getElementById('pw-current').value='';
+    document.getElementById('pw-current').focus();
+    return;
+  }
+  if(newPw === correctPass){
+    btn.disabled=false;btn.innerHTML='<i class="fas fa-shield-halved mr-2"></i>Update Password';
+    showPwError('New password must be different from the current one.');
+    return;
+  }
+
+  btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+  try{
+    await DB.setAdminPass(newPw);
+    btn.disabled=false;btn.innerHTML='<i class="fas fa-shield-halved mr-2"></i>Update Password';
+    showNotif('Password updated — all devices now use the new password ✓','success');
+    resetPwForm();
+  }catch(e){
+    btn.disabled=false;btn.innerHTML='<i class="fas fa-shield-halved mr-2"></i>Update Password';
+    showPwError('Failed to save. Check your connection and try again.');
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   FACE ENROLLMENT — ADMIN
+   ══════════════════════════════════════════════════ */
+const FACE_MODELS_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
+let adminFaceApiLoaded = false;
+let adminEnrollMemberId = null;
+let adminEnrollHasExisting = false;
+let adminEnrollStream = null;
+let adminEnrollFrame = null;
+let adminEnrollActive = false;
+let adminEnrollSamples = [];
+const ADMIN_ENROLL_MAX = 5;
+
+async function adminInitFaceAPI() {
+  if (adminFaceApiLoaded) return true;
+  try {
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODELS_URL),
+      faceapi.nets.faceLandmark68TinyNet.loadFromUri(FACE_MODELS_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODELS_URL)
+    ]);
+    adminFaceApiLoaded = true;
+    return true;
+  } catch(e) {
+    showNotif('Face API failed to load: ' + e.message, 'error');
+    return false;
+  }
+}
+
+async function adminOpenEnrollment(memberId, memberName, hasExisting) {
+  adminEnrollMemberId = memberId;
+  adminEnrollHasExisting = hasExisting;
+  adminEnrollSamples = [];
+
+  // Reset UI
+  document.getElementById('admin-enroll-name').textContent = memberName;
+  document.getElementById('admin-capture-count').textContent = '0';
+  for (let i = 0; i < ADMIN_ENROLL_MAX; i++) {
+    const s = document.getElementById('aes-' + i);
+    if (s) { s.className = 'esample'; s.innerHTML = '<i class="fas fa-user" style="color:var(--text-dim);font-size:14px;"></i>'; }
+  }
+  const captBtn = document.getElementById('admin-capture-btn');
+  const saveBtn = document.getElementById('admin-save-btn');
+  const clearBtn = document.getElementById('admin-clear-btn');
+  captBtn.disabled = true; captBtn.style.opacity = '0.45';
+  saveBtn.classList.add('hidden');
+  clearBtn.classList[hasExisting ? 'remove' : 'add']('hidden');
+  document.getElementById('admin-enroll-status').textContent = 'Loading models…';
+  document.getElementById('admin-enroll-modal').classList.remove('hidden');
+
+  const ok = await adminInitFaceAPI();
+  if (!ok) { adminStopEnrollment(); return; }
+
+  document.getElementById('admin-enroll-status').textContent = 'Starting camera…';
+  try {
+    adminEnrollStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+    });
+    const video = document.getElementById('enroll-video');
+    video.srcObject = adminEnrollStream;
+    await video.play();
+    adminEnrollActive = true;
+    adminEnrollLoop();
+  } catch(e) {
+    document.getElementById('admin-enroll-status').textContent = 'Camera error: ' + (e.message || e);
+  }
+}
+
+async function adminEnrollLoop() {
+  if (!adminEnrollActive) return;
+  const video = document.getElementById('enroll-video');
+  const canvas = document.getElementById('enroll-canvas-admin');
+  if (!video || !canvas) return;
+
+  const opts = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5, inputSize: 320 });
+  try {
+    const det = await faceapi.detectSingleFace(video, opts).withFaceLandmarks(true);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const captBtn = document.getElementById('admin-capture-btn');
+
+    if (det) {
+      const ds = { width: video.videoWidth || 320, height: video.videoHeight || 240 };
+      faceapi.matchDimensions(canvas, ds);
+      const r = faceapi.resizeResults(det, ds);
+      const box = r.detection.box;
+      ctx.strokeStyle = 'rgba(197,241,0,0.9)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+      const needed = ADMIN_ENROLL_MAX - adminEnrollSamples.length;
+      if (needed > 0) {
+        document.getElementById('admin-enroll-status').textContent =
+          `Face detected — ${needed} sample${needed !== 1 ? 's' : ''} needed`;
+        captBtn.disabled = false; captBtn.style.opacity = '1';
+      } else {
+        document.getElementById('admin-enroll-status').textContent = 'All samples captured!';
+        captBtn.disabled = true; captBtn.style.opacity = '0.45';
+      }
+    } else {
+      document.getElementById('admin-enroll-status').textContent = 'No face detected — look at the camera';
+      captBtn.disabled = true; captBtn.style.opacity = '0.45';
+    }
+  } catch(e) { /* skip frame */ }
+
+  if (adminEnrollActive) adminEnrollFrame = requestAnimationFrame(adminEnrollLoop);
+}
+
+async function adminCaptureSample() {
+  if (!adminEnrollActive || adminEnrollSamples.length >= ADMIN_ENROLL_MAX) return;
+  const video = document.getElementById('enroll-video');
+  const opts = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5, inputSize: 320 });
+  try {
+    const det = await faceapi.detectSingleFace(video, opts).withFaceLandmarks(true).withFaceDescriptors();
+    if (!det) { showNotif('No face detected — try again', 'warning'); return; }
+
+    adminEnrollSamples.push(Array.from(det.descriptor).join(","));
+    const idx = adminEnrollSamples.length - 1;
+    document.getElementById('admin-capture-count').textContent = adminEnrollSamples.length;
+
+    // Thumbnail
+    const s = document.getElementById('aes-' + idx);
+    if (s) {
+      const tc = document.createElement('canvas');
+      tc.width = 48; tc.height = 48;
+      const tCtx = tc.getContext('2d');
+      const box = det.detection.box;
+      const sx = Math.max(0, box.x), sy = Math.max(0, box.y);
+      const sw = Math.min(box.width, video.videoWidth - sx);
+      const sh = Math.min(box.height, video.videoHeight - sy);
+      tCtx.save(); tCtx.scale(-1, 1); tCtx.translate(-48, 0);
+      tCtx.drawImage(video, sx, sy, sw, sh, 0, 0, 48, 48);
+      tCtx.restore();
+      s.innerHTML = `<img src="${tc.toDataURL()}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+      s.classList.add('captured');
+    }
+
+    if (adminEnrollSamples.length >= ADMIN_ENROLL_MAX) {
+      document.getElementById('admin-capture-btn').disabled = true;
+      document.getElementById('admin-capture-btn').style.opacity = '0.45';
+      document.getElementById('admin-save-btn').classList.remove('hidden');
+      document.getElementById('admin-enroll-status').textContent = 'All samples ready — click Save';
+      showNotif('5 samples captured!', 'success');
+    } else {
+      showNotif(`Sample ${adminEnrollSamples.length}/${ADMIN_ENROLL_MAX} captured`, 'success');
+    }
+  } catch(e) { showNotif('Capture failed: ' + e.message, 'error'); }
+}
+
+async function adminSaveEnrollment() {
+  if (!adminEnrollMemberId || adminEnrollSamples.length === 0) return;
+  const btn = document.getElementById('admin-save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving…';
+  try {
+    await db.collection('members').doc(adminEnrollMemberId).update({
+      faceDescriptors: adminEnrollSamples
+    });
+    showNotif('Face profile saved successfully!', 'success');
+    adminStopEnrollment();
+    renderMembers(); // refresh list to update Face badge
+  } catch(e) {
+    showNotif('Save failed: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-floppy-disk mr-2"></i>Save Face Profile';
+  }
+}
+
+async function adminClearFace() {
+  if (!adminEnrollMemberId) return;
+  if (!confirm('Remove the face profile for this member?')) return;
+  try {
+    await db.collection('members').doc(adminEnrollMemberId).update({ faceDescriptors: [] });
+    showNotif('Face profile removed', 'success');
+    adminStopEnrollment();
+    renderMembers();
+  } catch(e) { showNotif('Error: ' + e.message, 'error'); }
+}
+
+function adminStopEnrollment() {
+  adminEnrollActive = false;
+  if (adminEnrollFrame) { cancelAnimationFrame(adminEnrollFrame); adminEnrollFrame = null; }
+  if (adminEnrollStream) { adminEnrollStream.getTracks().forEach(t => t.stop()); adminEnrollStream = null; }
+  const video = document.getElementById('enroll-video');
+  if (video) video.srcObject = null;
+  document.getElementById('admin-enroll-modal').classList.add('hidden');
+  adminEnrollMemberId = null;
+  adminEnrollSamples = [];
+}
 </script>
 </body>
 </html>
