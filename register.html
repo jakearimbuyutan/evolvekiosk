@@ -750,6 +750,137 @@ select.input-dark{
   25%{transform:translateX(-4px);}
   75%{transform:translateX(4px);}
 }
+
+/* ── FACE RECOGNITION — APPLE FACEID STYLE ── */
+.face-oval-container-reg {
+  position: relative;
+  width: 200px;
+  height: 250px;
+  margin: 0 auto 16px;
+}
+.face-oval-video-clip-reg {
+  position: relative;
+  width: 200px;
+  height: 250px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #000;
+}
+.face-oval-video-clip-reg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.face-oval-video-clip-reg canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+}
+.face-oval-ring-reg {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.face-oval-ring-reg svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.face-ring-track-reg {
+  fill: none;
+  stroke: rgba(255,255,255,0.15);
+  stroke-width: 4;
+}
+.face-ring-progress-reg {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease, stroke 0.4s ease;
+  filter: drop-shadow(0 0 6px rgba(240,198,116,0.8));
+}
+.face-direction-overlay-reg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
+.face-arrow-reg {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(240,198,116,0.9));
+  animation: arrowPulseReg 0.7s ease-in-out infinite alternate;
+  display: none;
+  color: var(--gold);
+  position: absolute;
+}
+.face-arrow-reg.arrow-left  { left: -40px; }
+.face-arrow-reg.arrow-right { right: -40px; }
+@keyframes arrowPulseReg {
+  from { opacity: 0.5; transform: scale(0.9); }
+  to   { opacity: 1;   transform: scale(1.1); }
+}
+.liveness-steps-reg {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.liveness-dot-reg {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.3);
+  transition: all 0.4s ease;
+}
+.liveness-dot-reg.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(240,198,116,0.7);
+  transform: scale(1.3);
+}
+.liveness-dot-reg.done {
+  background: #4ade80;
+  border-color: #4ade80;
+  box-shadow: 0 0 8px rgba(74,222,128,0.6);
+}
+.face-status-chip-reg {
+  position: absolute;
+  bottom: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 5px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  color: #fff;
+  min-width: 160px;
+  text-align: center;
+}
+@keyframes verifiedFlashReg {
+  0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+  50%  { box-shadow: 0 0 40px 20px rgba(74,222,128,0.4); }
+  100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+}
+.face-oval-video-clip-reg.verified {
+  animation: verifiedFlashReg 0.6s ease-out;
+  border: 2px solid #4ade80;
+}
 </style>
 </head>
 <body>
@@ -1162,6 +1293,13 @@ select.input-dark{
               <i class="fas fa-trash-alt"></i>
             </button>
           </div>
+
+          <!-- Verify face button — shown after enrollment is complete -->
+          <button onclick="startFaceVerification()" id="btn-verify-face"
+            class="hidden mt-2 w-full text-xs text-yellow-500 border border-yellow-600/30 px-4 py-2.5 rounded-xl hover:bg-yellow-600/10 transition-all font-semibold flex items-center justify-center gap-2">
+            <i class="fas fa-face-viewfinder"></i>
+            Test Face Recognition
+          </button>
         </div>
       </div>
       
@@ -1322,6 +1460,64 @@ select.input-dark{
   </div><!-- /sec-walkin -->
 
 </main>
+
+<!-- ── FACE RECOGNITION MODAL — APPLE FACEID STYLE ── -->
+<div id="face-recog-modal" class="hidden camera-modal-bg fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <div class="glass-card w-full max-w-xs border-yellow-600/20 p-6 relative" style="background:rgba(10,10,12,0.97);">
+    <button onclick="stopFaceRecognitionReg()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white transition-all">
+      <i class="fas fa-times text-sm"></i>
+    </button>
+
+    <!-- Title -->
+    <div class="text-center mb-5">
+      <h3 class="font-oswald text-xl text-yellow-500 uppercase tracking-wider font-bold">Face Verification</h3>
+      <p class="text-xs text-gray-500 mt-1" id="reg-face-liveness-label">Initializing…</p>
+    </div>
+
+    <!-- Liveness step dots -->
+    <div class="liveness-steps-reg">
+      <div class="liveness-dot-reg" id="reg-ldot-0"></div>
+      <div class="liveness-dot-reg" id="reg-ldot-1"></div>
+      <div class="liveness-dot-reg" id="reg-ldot-2"></div>
+    </div>
+
+    <!-- Oval + ring + arrows -->
+    <div class="face-oval-container-reg" style="margin-bottom:52px;">
+      <!-- Direction arrows -->
+      <div class="face-direction-overlay-reg">
+        <i class="fas fa-arrow-left face-arrow-reg arrow-left" id="reg-face-arrow-left"></i>
+        <i class="fas fa-arrow-right face-arrow-reg arrow-right" id="reg-face-arrow-right"></i>
+      </div>
+
+      <!-- Animated ring SVG — circumference for rx=100,ry=125 ellipse ≈ 2π*avg ≈ 707, use 723 -->
+      <div class="face-oval-ring-reg" id="reg-face-oval-ring">
+        <svg viewBox="0 0 208 258" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="104" cy="129" rx="100" ry="125" class="face-ring-track-reg"/>
+          <ellipse cx="104" cy="129" rx="100" ry="125" class="face-ring-progress-reg" id="reg-face-ring-progress"
+            stroke-dasharray="723"
+            stroke-dashoffset="723"/>
+        </svg>
+      </div>
+
+      <!-- Video clip (oval) -->
+      <div class="face-oval-video-clip-reg" id="reg-face-oval-clip">
+        <video id="reg-face-video" autoplay muted playsinline></video>
+        <canvas id="reg-face-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      </div>
+
+      <!-- Status chip below oval -->
+      <div class="face-status-chip-reg">
+        <i class="fas fa-circle-notch fa-spin mr-1" id="reg-face-status-icon"></i>
+        <span id="reg-face-status-text">Starting…</span>
+      </div>
+    </div>
+
+    <p class="text-center text-xs text-gray-600 mt-1">
+      <i class="fas fa-shield-alt mr-1" style="color:var(--gold);opacity:0.7;"></i>
+      Verifying enrolled face samples
+    </p>
+  </div>
+</div>
 
 <!-- ── FACE ENROLLMENT MODAL ── -->
 <div id="face-enroll-modal" class="hidden camera-modal-bg fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -2095,9 +2291,11 @@ function updateEnrollUI(){
   const badge = document.getElementById('face-enroll-badge');
   const btnLbl = document.getElementById('btn-enroll-label');
   const clearBtn = document.getElementById('btn-clear-enroll');
+  const verifyBtn = document.getElementById('btn-verify-face');
   if(badge){ badge.classList.toggle('hidden', !done); }
   if(btnLbl) btnLbl.textContent = done ? 'Re-enroll Face' : partial ? `Resume (${feSamples.length}/${ENROLL_TOTAL})` : 'Open Face Camera';
   if(clearBtn){ clearBtn.classList.toggle('hidden', feSamples.length===0); }
+  if(verifyBtn){ verifyBtn.classList.toggle('hidden', !done); }
 }
 
 function clearFaceEnroll(){
@@ -2119,6 +2317,7 @@ function resetEnrollUI(){
   const badge=document.getElementById('face-enroll-badge'); if(badge) badge.classList.add('hidden');
   const btnLbl=document.getElementById('btn-enroll-label'); if(btnLbl) btnLbl.textContent='Open Face Camera';
   const clearBtn=document.getElementById('btn-clear-enroll'); if(clearBtn) clearBtn.classList.add('hidden');
+  const verifyBtn=document.getElementById('btn-verify-face'); if(verifyBtn) verifyBtn.classList.add('hidden');
 }
 
 // ── INIT ──
@@ -2257,6 +2456,293 @@ function wiReset(){
   document.getElementById('wi-step-code').classList.add('hidden');
   document.getElementById('wi-code-display').textContent='——';
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════════
+//  FACE RECOGNITION ENGINE — APPLE FACEID STYLE
+//  (Ported from index.html for face verification)
+// ══════════════════════════════════════════════
+const REG_FACE_MODELS_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
+const REG_RING_CIRCUMFERENCE = 723;
+const REG_LIVENESS_STEPS = ['Turn Left', 'Turn Right', 'Hold Still'];
+const REG_LIVENESS_YAW_THRESHOLD = 0.18;
+const REG_HOLD_FRAMES_NEEDED = 8;
+
+let regFaceRecActive   = false;
+let regFaceVideoStream = null;
+let regFaceAnimFrame   = null;
+let regFaceMatcher     = null;
+let regFaceMatchCooldown = false;
+let regLivenessStep      = 0;
+let regLivenessCompleted = [false, false, false];
+let regLivenessDescriptors = [];
+let regFaceHoldFrames    = 0;
+
+function regSetRingProgress(pct) {
+  const el = document.getElementById('reg-face-ring-progress');
+  if (!el) return;
+  const offset = REG_RING_CIRCUMFERENCE - (REG_RING_CIRCUMFERENCE * Math.min(pct, 1));
+  el.style.strokeDashoffset = offset;
+  el.style.stroke = pct >= 1 ? '#4ade80' : 'var(--gold)';
+}
+
+function regSetLivenessLabel(text) {
+  const el = document.getElementById('reg-face-liveness-label');
+  if (el) el.textContent = text;
+}
+
+function regUpdateStepDots(step, completed) {
+  for (let i = 0; i < 3; i++) {
+    const d = document.getElementById('reg-ldot-' + i);
+    if (!d) continue;
+    d.className = 'liveness-dot-reg';
+    if (completed[i]) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  }
+}
+
+function regShowArrow(direction) {
+  ['left','right'].forEach(d => {
+    const el = document.getElementById('reg-face-arrow-' + d);
+    if (el) el.style.display = (d === direction) ? 'block' : 'none';
+  });
+}
+
+function regHideArrows() {
+  ['left','right'].forEach(d => {
+    const el = document.getElementById('reg-face-arrow-' + d);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function regEstimateHeadPose(landmarks) {
+  const pts = landmarks.positions;
+  const noseTip  = pts[30];
+  const leftEye  = pts[36];
+  const rightEye = pts[45];
+  const eyeCenterX = (leftEye.x + rightEye.x) / 2;
+  const eyeSpan    = rightEye.x - leftEye.x;
+  if (eyeSpan < 1) return { yaw: 0 };
+  const yaw = (noseTip.x - eyeCenterX) / eyeSpan;
+  return { yaw };
+}
+
+function regSetFaceStatus(text, spinning) {
+  const t = document.getElementById('reg-face-status-text');
+  const i = document.getElementById('reg-face-status-icon');
+  if (t) t.textContent = text;
+  if (i) {
+    i.className = spinning
+      ? 'fas fa-circle-notch fa-spin mr-1'
+      : 'fas fa-circle mr-1';
+    i.style.color = spinning ? '' : 'var(--gold)';
+  }
+}
+
+// Build a matcher from the in-memory feSamples (the just-enrolled descriptors)
+function buildRegFaceMatcherFromSamples(threshold = 0.55) {
+  if (!feSamples || feSamples.length === 0) return null;
+  try {
+    const descriptors = feSamples.map(d => {
+      if (d instanceof Float32Array) return d;
+      if (typeof d === 'string') return new Float32Array(d.split(',').map(Number));
+      if (d instanceof Array) return new Float32Array(d);
+      return new Float32Array(Object.values(d));
+    });
+    const labeled = [new faceapi.LabeledFaceDescriptors('enrolled-member', descriptors)];
+    return new faceapi.FaceMatcher(labeled, threshold);
+  } catch(e) { return null; }
+}
+
+function regAverageDescriptors(descriptorArrays) {
+  if (!descriptorArrays.length) return new Array(128).fill(0);
+  const len = descriptorArrays[0].length;
+  const avg = new Array(len).fill(0);
+  for (const d of descriptorArrays) for (let i = 0; i < len; i++) avg[i] += d[i];
+  for (let i = 0; i < len; i++) avg[i] /= descriptorArrays.length;
+  return avg;
+}
+
+async function startFaceVerification() {
+  if (!faceApiReady) {
+    showNotif('Face models still loading, please wait…', 'info');
+    return;
+  }
+  if (!feSamples || feSamples.length < ENROLL_TOTAL) {
+    showNotif('Please complete face enrollment first', 'warning');
+    return;
+  }
+
+  // Reset liveness state
+  regLivenessStep = 0;
+  regLivenessCompleted = [false, false, false];
+  regLivenessDescriptors = [];
+  regFaceHoldFrames = 0;
+  regFaceMatchCooldown = false;
+
+  document.getElementById('face-recog-modal').classList.remove('hidden');
+  regSetFaceStatus('Starting camera…', true);
+  regSetRingProgress(0);
+  regUpdateStepDots(0, regLivenessCompleted);
+  regSetLivenessLabel(REG_LIVENESS_STEPS[0]);
+  regHideArrows();
+
+  try {
+    regFaceVideoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+    });
+    const video = document.getElementById('reg-face-video');
+    video.srcObject = regFaceVideoStream;
+    await video.play();
+
+    regSetFaceStatus('Building matcher…', true);
+    regFaceMatcher = buildRegFaceMatcherFromSamples(0.55);
+    if (!regFaceMatcher) {
+      regSetFaceStatus('No enrolled face data found', false);
+      regSetLivenessLabel('Enrollment needed');
+      return;
+    }
+    regSetFaceStatus('Turn your head left', false);
+    regShowArrow('left');
+    regFaceRecActive = true;
+    regFaceDetectionLoop();
+  } catch(e) {
+    regSetFaceStatus('Camera error: ' + (e.message || e), false);
+    setTimeout(stopFaceRecognitionReg, 2500);
+  }
+}
+
+async function regFaceDetectionLoop() {
+  if (!regFaceRecActive) return;
+  const video  = document.getElementById('reg-face-video');
+  const canvas = document.getElementById('reg-face-canvas');
+  if (!video || !canvas) return;
+
+  const options = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.3, inputSize: 416 });
+
+  try {
+    const detection = await faceapi
+      .detectSingleFace(video, options)
+      .withFaceLandmarks()
+      .withFaceDescriptors();
+
+    const ctx = canvas.getContext('2d');
+    canvas.width  = video.videoWidth  || 320;
+    canvas.height = video.videoHeight || 240;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!detection) {
+      regFaceHoldFrames = 0;
+      regSetFaceStatus(regLivenessStep < 2 ? REG_LIVENESS_STEPS[regLivenessStep] : 'No face detected…', false);
+      if (regFaceRecActive) regFaceAnimFrame = requestAnimationFrame(regFaceDetectionLoop);
+      return;
+    }
+
+    const { landmarks, descriptor } = detection;
+    const pose = regEstimateHeadPose(landmarks);
+
+    // Nose dot feedback
+    const pts = landmarks.positions;
+    const nose = pts[30];
+    const mirroredX = canvas.width - nose.x;
+    ctx.beginPath();
+    ctx.arc(mirroredX, nose.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(240,198,116,0.8)';
+    ctx.fill();
+
+    const progress = regLivenessCompleted.filter(Boolean).length / 3;
+    regSetRingProgress(progress);
+    regUpdateStepDots(regLivenessStep, regLivenessCompleted);
+
+    if (regLivenessStep === 0) {
+      if (pose.yaw < -REG_LIVENESS_YAW_THRESHOLD) {
+        regLivenessCompleted[0] = true;
+        regLivenessDescriptors.push(Array.from(descriptor));
+        regLivenessStep = 1;
+        regSetLivenessLabel(REG_LIVENESS_STEPS[1]);
+        regSetFaceStatus('Good! Now turn right', false);
+        regShowArrow('right');
+        regSetRingProgress(0.33);
+        regUpdateStepDots(1, regLivenessCompleted);
+      } else {
+        regSetFaceStatus('Turn your head LEFT', false);
+      }
+    } else if (regLivenessStep === 1) {
+      if (pose.yaw > REG_LIVENESS_YAW_THRESHOLD) {
+        regLivenessCompleted[1] = true;
+        regLivenessDescriptors.push(Array.from(descriptor));
+        regLivenessStep = 2;
+        regSetLivenessLabel(REG_LIVENESS_STEPS[2]);
+        regSetFaceStatus('Now face the camera', false);
+        regHideArrows();
+        regSetRingProgress(0.67);
+        regUpdateStepDots(2, regLivenessCompleted);
+        regFaceHoldFrames = 0;
+      } else {
+        regSetFaceStatus('Turn your head RIGHT', false);
+      }
+    } else if (regLivenessStep === 2) {
+      const centered = Math.abs(pose.yaw) < 0.1;
+      if (centered) {
+        regFaceHoldFrames++;
+        const holdPct = 0.67 + 0.33 * (regFaceHoldFrames / REG_HOLD_FRAMES_NEEDED);
+        regSetRingProgress(holdPct);
+        regSetFaceStatus(`Hold still… ${Math.round(regFaceHoldFrames / REG_HOLD_FRAMES_NEEDED * 100)}%`, false);
+      } else {
+        regFaceHoldFrames = Math.max(0, regFaceHoldFrames - 1);
+        regSetFaceStatus('Face the camera directly', false);
+      }
+
+      if (regFaceHoldFrames >= REG_HOLD_FRAMES_NEEDED && regFaceMatcher && !regFaceMatchCooldown) {
+        regFaceMatchCooldown = true;
+        regLivenessDescriptors.push(Array.from(descriptor));
+        const avgDescriptor = regAverageDescriptors(regLivenessDescriptors);
+        const best = regFaceMatcher.findBestMatch(new Float32Array(avgDescriptor));
+
+        if (best.label !== 'unknown') {
+          regLivenessCompleted[2] = true;
+          regSetRingProgress(1);
+          regUpdateStepDots(3, regLivenessCompleted);
+          regSetFaceStatus('✓ Face verified!', false);
+          regSetLivenessLabel('Identity Confirmed');
+          const clip = document.getElementById('reg-face-oval-clip');
+          if (clip) clip.classList.add('verified');
+          setTimeout(() => {
+            stopFaceRecognitionReg();
+            showNotif('Face verification successful! ✓', 'success');
+          }, 800);
+          return;
+        } else {
+          const conf = Math.round((1 - best.distance) * 100);
+          regSetFaceStatus(`No match (${conf}% confidence) — retry`, false);
+          regSetLivenessLabel('Not recognized — try again');
+          regSetRingProgress(0);
+          regLivenessStep = 0;
+          regLivenessCompleted = [false, false, false];
+          regLivenessDescriptors = [];
+          regFaceHoldFrames = 0;
+          regFaceMatchCooldown = false;
+          regShowArrow('left');
+          regUpdateStepDots(0, regLivenessCompleted);
+          setTimeout(() => regSetLivenessLabel(REG_LIVENESS_STEPS[0]), 1500);
+        }
+      }
+    }
+  } catch(e) { /* skip frame */ }
+
+  if (regFaceRecActive) {
+    regFaceAnimFrame = requestAnimationFrame(regFaceDetectionLoop);
+  }
+}
+
+function stopFaceRecognitionReg() {
+  regFaceRecActive = false;
+  regFaceMatchCooldown = false;
+  if (regFaceAnimFrame) { cancelAnimationFrame(regFaceAnimFrame); regFaceAnimFrame = null; }
+  if (regFaceVideoStream) { regFaceVideoStream.getTracks().forEach(t => t.stop()); regFaceVideoStream = null; }
+  const video = document.getElementById('reg-face-video');
+  if (video) video.srcObject = null;
+  document.getElementById('face-recog-modal').classList.add('hidden');
 }
 </script>
 </body>
