@@ -412,8 +412,8 @@ select.input-dark option{background:#111;color:#fff;}
 
 /* ── FACE ENROLLMENT ── */
 #enroll-video-wrap{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;width:100%;}
-#enroll-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);}
-#enroll-canvas-admin{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);}
+#enroll-video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1);will-change:transform;}
+#enroll-canvas-admin{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);will-change:contents;}
 .enroll-scan-bar{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:escan 2s ease-in-out infinite;opacity:0.8;}
 @keyframes escan{0%{top:0%;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:100%;opacity:0;}}
 .e-corner{position:absolute;width:20px;height:20px;border-color:var(--accent);border-style:solid;opacity:0.7;}
@@ -811,7 +811,85 @@ select.input-dark option{background:#111;color:#fff;}
     <div id="tab-settings" class="tab-section hidden fade-in">
       <div class="mb-5">
         <h3 class="font-oswald text-2xl uppercase text-white tracking-wider">Settings</h3>
-        <p class="text-xs mt-1" style="color:var(--text-muted);">Manage admin account & security</p>
+        <p class="text-xs mt-1" style="color:var(--text-muted);">Manage admin account, pricing & security</p>
+      </div>
+
+      <!-- ── PRICING EDITOR ── -->
+      <div class="card-gold p-5 mb-4" style="box-shadow:0 8px 40px rgba(0,0,0,0.4);">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(197,241,0,0.1);border:1px solid var(--accent-border);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);">
+            <i class="fas fa-peso-sign text-sm" style="color:var(--accent);"></i>
+          </div>
+          <div>
+            <p class="font-oswald text-base uppercase tracking-wider text-white">Pricing Editor</p>
+            <p class="text-xs mt-0.5" style="color:var(--text-muted);">Set membership & walk-in rates</p>
+          </div>
+        </div>
+
+        <div id="pricing-loading" class="flex items-center gap-2 py-2 mb-3" style="color:var(--text-muted);">
+          <div class="spinner" style="width:16px;height:16px;border-width:1.5px;"></div>
+          <span class="text-xs">Loading pricing...</span>
+        </div>
+
+        <div id="pricing-fields" class="hidden space-y-4">
+          <!-- Monthly pricing -->
+          <div>
+            <p class="text-[10px] uppercase tracking-wider mb-2 font-bold" style="color:var(--accent);">Monthly Membership</p>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Regular (₱)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold" style="color:var(--accent);">₱</span>
+                  <input type="number" id="price-monthly-regular" class="input-dark w-full rounded-xl pl-7 pr-3 py-3 text-sm" min="1" placeholder="900">
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Student (₱)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold" style="color:#60a5fa;">₱</span>
+                  <input type="number" id="price-monthly-student" class="input-dark w-full rounded-xl pl-7 pr-3 py-3 text-sm" min="1" placeholder="600">
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Walk-in pricing -->
+          <div>
+            <p class="text-[10px] uppercase tracking-wider mb-2 font-bold" style="color:#60a5fa;">Walk-in / Daily</p>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Regular (₱)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold" style="color:var(--accent);">₱</span>
+                  <input type="number" id="price-entry-regular" class="input-dark w-full rounded-xl pl-7 pr-3 py-3 text-sm" min="1" placeholder="70">
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Student (₱)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold" style="color:#60a5fa;">₱</span>
+                  <input type="number" id="price-entry-student" class="input-dark w-full rounded-xl pl-7 pr-3 py-3 text-sm" min="1" placeholder="50">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p id="pricing-error" class="text-xs text-red-400 hidden mt-2"><i class="fas fa-exclamation-circle mr-1"></i><span id="pricing-error-msg"></span></p>
+        <button onclick="savePricing()" id="btn-save-pricing" class="w-full btn-gold py-3.5 rounded-xl font-oswald uppercase tracking-widest text-sm mt-5 hidden">
+          <i class="fas fa-floppy-disk mr-2"></i>Save Pricing
+        </button>
+      </div>
+
+      <!-- ── RFID EXPIRY INFO ── -->
+      <div class="card p-4 mb-4" style="border-color:rgba(250,204,21,0.18);background:rgba(250,204,21,0.04);">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style="background:rgba(250,204,21,0.1);border:1px solid rgba(250,204,21,0.2);">
+            <i class="fas fa-id-card text-yellow-400 text-xs"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-white mb-1">RFID Auto-Expiry Policy</p>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">All RFID cards automatically expire <span class="text-yellow-300 font-semibold">1 year</span> after registration. Members will be prompted to renew their RFID membership upon check-in. Admins can manually renew or extend from the <span class="text-yellow-300">Expiring</span> tab or the member profile.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Change Password Card -->
@@ -952,12 +1030,25 @@ select.input-dark option{background:#111;color:#fff;}
       </div>
       <div>
         <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Plan</label>
-        <select id="edit-plan" class="input-dark w-full rounded-xl px-4 py-3" onchange="toggleEditExpiry(this.value)">
-          <option value="entry">Walk-in / Daily (₱50–₱70)</option>
-          <option value="monthly">Monthly (₱600–₱900)</option>
+        <select id="edit-plan" class="input-dark w-full rounded-xl px-4 py-3" onchange="updateEditPlanLabels();toggleEditExpiry(this.value)">
+          <option value="entry" id="edit-plan-entry">Walk-in / Daily (₱50–₱70)</option>
+          <option value="monthly" id="edit-plan-monthly">Monthly (₱600–₱900)</option>
         </select>
       </div>
       <div id="edit-expiry-row" class="hidden"><label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Expiry Date</label><input type="date" id="edit-expiry" class="input-dark w-full rounded-xl px-4 py-3"></div>
+      <div>
+        <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">
+          RFID Expiry Date
+          <span class="ml-1 font-normal normal-case" style="color:var(--text-dim);">— overrides auto 1-year limit</span>
+        </label>
+        <div class="flex gap-2 items-center">
+          <input type="date" id="edit-rfid-expiry" class="input-dark flex-1 rounded-xl px-4 py-3">
+          <button type="button" onclick="clearRfidExpiryEdit()" title="Clear override (revert to auto)" class="flex-shrink-0 w-10 h-10 rounded-xl btn-ghost flex items-center justify-center text-xs" style="color:var(--text-muted);">
+            <i class="fas fa-rotate-left"></i>
+          </button>
+        </div>
+        <p class="text-[10px] mt-1.5" id="edit-rfid-expiry-hint" style="color:var(--text-dim);"></p>
+      </div>
       <div>
         <label class="text-[10px] uppercase tracking-wider mb-1.5 block" style="color:var(--text-muted);">Status</label>
         <select id="edit-active" class="input-dark w-full rounded-xl px-4 py-3">
@@ -1006,6 +1097,32 @@ select.input-dark option{background:#111;color:#fff;}
       <button onclick="confirmClearToday()" id="btn-confirm-clear" class="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
         <i class="fas fa-trash-can"></i> Delete
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RFID EXPIRY MODAL ══ -->
+<div id="rfid-expired-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center" style="background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);">
+  <div class="w-full sm:max-w-sm modal-enter rounded-t-2xl sm:rounded-2xl p-7 text-center" style="background:linear-gradient(145deg,rgba(248,113,113,0.08),rgba(248,113,113,0.02));border:1px solid rgba(248,113,113,0.28);box-shadow:0 30px 100px rgba(0,0,0,0.8),0 0 40px rgba(248,113,113,0.08);">
+    <!-- Icon -->
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);">
+      <i class="fas fa-id-card text-red-400 text-2xl"></i>
+    </div>
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3" style="background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.22);">
+      <i class="fas fa-exclamation-triangle text-[9px]"></i> RFID Expired
+    </div>
+    <h3 class="font-oswald text-2xl uppercase tracking-wider text-white mb-1" id="rfid-exp-name">Member Name</h3>
+    <p class="text-sm mb-1" style="color:var(--text-muted);">RFID: <span class="font-mono text-white" id="rfid-exp-rfid">—</span></p>
+    <p class="text-xs mb-5" style="color:#f87171;"><i class="fas fa-calendar-xmark mr-1"></i>Expired on <span id="rfid-exp-date">—</span></p>
+
+    <div class="rounded-xl p-4 mb-5 text-left" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);">
+      <p class="text-xs font-semibold text-white mb-1">Renewal Required</p>
+      <p class="text-xs leading-relaxed" style="color:var(--text-muted);">This member's RFID registration has passed the <span class="text-yellow-300 font-semibold">1-year validity period</span>. They must renew their membership to continue using the gym.</p>
+    </div>
+
+    <div class="flex gap-3">
+      <button onclick="closeRfidExpiredModal()" class="flex-1 py-3 btn-ghost rounded-xl text-sm">Dismiss</button>
+      <button onclick="openRenewFromExpiredModal()" class="flex-1 py-3 btn-gold rounded-xl font-oswald uppercase tracking-wider text-sm"><i class="fas fa-rotate-right mr-1.5"></i>Renew Now</button>
     </div>
   </div>
 </div>
@@ -1078,6 +1195,10 @@ select.input-dark option{background:#111;color:#fff;}
         <div class="card p-3.5">
           <p class="text-[10px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Valid Until</p>
           <p class="text-sm" id="prof-expiry">—</p>
+        </div>
+        <div class="card p-3.5">
+          <p class="text-[10px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">RFID Expires</p>
+          <p class="text-sm" id="prof-rfid-expiry">—</p>
         </div>
         <div class="card p-3.5">
           <p class="text-[10px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Total Visits</p>
@@ -1279,6 +1400,17 @@ const DB = {
   },
   async setAdminPass(newPass){
     await db.collection('settings').doc('admin').set({password:newPass},{merge:true});
+  },
+  async getPricing(){
+    try{
+      const doc=await db.collection('settings').doc('pricing').get();
+      if(doc.exists) return doc.data();
+    }catch(e){console.error(e);}
+    // defaults
+    return {monthlyRegular:900,monthlyStudent:600,entryRegular:70,entryStudent:50};
+  },
+  async setPricing(data){
+    await db.collection('settings').doc('pricing').set(data,{merge:true});
   }
 };
 
@@ -1297,6 +1429,9 @@ let revTxPage = 0;
 const REV_TX_PAGE_SIZE = 15;
 let _revCache = { att: null, members: null, fetchedAt: 0 };
 
+// Global pricing cache (loaded once on login)
+let _pricing = {monthlyRegular:900,monthlyStudent:600,entryRegular:70,entryStudent:50};
+
 // ══════════════════════════════════════════════
 //  LOGIN / LOGOUT
 // ══════════════════════════════════════════════
@@ -1310,6 +1445,8 @@ async function doAdminLogin(){
   if(pass === correctPass){
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('admin-app').classList.remove('hidden');
+    // Load pricing from Firestore
+    DB.getPricing().then(p=>{ _pricing=p; });
     adminTab('dashboard');
     startAdminClock();
   } else {
@@ -1360,7 +1497,7 @@ function adminTab(tab){
   if(tab==='allmembers') renderAdmMembers();
   if(tab==='revenue'){ _revCache.fetchedAt=0; renderRevenue(); }
   if(tab==='expiring') renderExpiring();
-  if(tab==='settings') resetPwForm();
+  if(tab==='settings'){ resetPwForm(); loadPricingSettings(); }
 }
 
 function refreshCurrentTab(){
@@ -1377,8 +1514,8 @@ function avatar(photo, name, size='w-10 h-10', text='text-sm'){
 }
 function memberPrice(att, membersMap){
   const m = membersMap ? membersMap[att.memberId] : null;
-  if(att.memberPlan==='monthly') return (m&&m.isStudent)?600:900;
-  return (m&&m.isStudent)?50:70;
+  if(att.memberPlan==='monthly') return (m&&m.isStudent)?_pricing.monthlyStudent:_pricing.monthlyRegular;
+  return (m&&m.isStudent)?_pricing.entryStudent:_pricing.entryRegular;
 }
 function calcRev(arr, membersMap=null){ return arr.reduce((s,a)=>s+(a.amount||memberPrice(a,membersMap)),0); }
 function formatPeso(n){ return '₱'+Math.round(n).toLocaleString(); }
@@ -1613,13 +1750,22 @@ async function renderAdmMembers(){
     const checkins=allAtt.filter(a=>a.memberId===m.id).length;
     const studentBadge=m.isStudent?(m.studentVerified?'<span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2);font-size:9px;"><i class="fas fa-graduation-cap mr-0.5"></i>Verified</span>':'<span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);font-size:9px;"><i class="fas fa-graduation-cap mr-0.5"></i>Student</span>'):' ';
     const notesIcon=m.notes?'<i class="fas fa-sticky-note text-yellow-500/40 text-[10px] ml-1" title="Has notes"></i>':'';
+    // RFID expiry
+    const rfidDays = getRfidExpiryDays(m);
+    const rfidExp = rfidDays !== null && rfidDays <= 0;
+    const rfidSoon = rfidDays !== null && rfidDays > 0 && rfidDays <= 30;
+    const rfidBadge = rfidExp
+      ? '<span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.25);font-size:9px;"><i class="fas fa-id-card mr-0.5"></i>RFID Expired</span>'
+      : rfidSoon
+      ? `<span class="badge" style="background:rgba(250,204,21,0.08);color:#facc15;border:1px solid rgba(250,204,21,0.2);font-size:9px;"><i class="fas fa-id-card mr-0.5"></i>RFID ${rfidDays}d</span>`
+      : '';
     return `<div class="member-card">
       <div class="flex items-center gap-3">
         ${avatar(m.photo,m.name,'w-11 h-11','text-base')}
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-2">
             <p class="font-semibold text-sm truncate">${m.name}${notesIcon}</p>
-            ${statusBadge}
+            <div class="flex gap-1 flex-shrink-0">${rfidBadge}${statusBadge}</div>
           </div>
           <div class="flex items-center gap-2 mt-0.5 flex-wrap">${planBadge}${expiryText}${studentBadge}</div>
           <div class="flex items-center justify-between mt-1">
@@ -1635,6 +1781,7 @@ async function renderAdmMembers(){
         <button onclick="openEditModal('${m.id}')" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold" style="color:var(--accent);border:1px solid var(--accent-border);background:rgba(197,241,0,0.06);"><i class="fas fa-edit text-[10px]"></i> Edit</button>
         <button onclick="openDeleteModal('${m.id}','${m.name.replace(/'/g,"\\'")}') " class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-danger"><i class="fas fa-trash text-[10px]"></i></button>
       </div>
+      ${rfidExp?`<div class="mt-2 rounded-lg px-3 py-2 flex items-center justify-between gap-2" style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.18);"><span class="text-xs text-red-300"><i class="fas fa-exclamation-circle mr-1.5"></i>RFID registration expired — renewal needed</span><button onclick="handleRfidExpiredClick('${m.id}')" class="text-xs font-bold text-red-400 whitespace-nowrap hover:text-red-300">Renew →</button></div>`:''}
     </div>`;
   }).join('');
 }
@@ -2052,22 +2199,43 @@ async function exportRevenueCSV(){
 //  EXPIRING
 // ══════════════════════════════════════════════
 async function renderExpiring(){
-  const members=(await DB.getMembers()).filter(m=>{
+  const allMembers = await DB.getMembers();
+
+  // membership expiring within 7 days
+  const expiringMembers = allMembers.filter(m=>{
     if(m.plan!=='monthly'||!m.expiry||m.active===false)return false;
     const d=daysUntil(m.expiry);return d>=0&&d<=7;
   }).sort((a,b)=>new Date(a.expiry)-new Date(b.expiry));
 
+  // RFID expiring within 30 days (or already expired)
+  const rfidAlertMembers = allMembers.filter(m=>{
+    const d = getRfidExpiryDays(m);
+    return d !== null && d <= 30;
+  }).sort((a,b)=>{
+    const da = getRfidExpiryDays(a) ?? 0;
+    const db2 = getRfidExpiryDays(b) ?? 0;
+    return da - db2;
+  });
+
   const list=document.getElementById('exp-list'),empty=document.getElementById('exp-empty');
-  if(!members.length){list.innerHTML='';empty.classList.remove('hidden');return;}
+
+  if(!expiringMembers.length && !rfidAlertMembers.length){
+    list.innerHTML='';empty.classList.remove('hidden');return;
+  }
   empty.classList.add('hidden');
 
-  list.innerHTML=members.map(m=>{
-    const dLeft=daysUntil(m.expiry);
-    const urgency=dLeft===0
-      ?'color:#f87171;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.25);'
-      :dLeft<=3?'color:#facc15;background:rgba(250,204,21,0.1);border-color:rgba(250,204,21,0.25);'
-      :'color:#fb923c;background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.25);';
-    return `<div class="member-card">
+  let html = '';
+
+  // Section: Membership expiring
+  if(expiringMembers.length) {
+    html += `<p class="text-[10px] uppercase tracking-wider font-bold mb-2 mt-1" style="color:var(--accent);">Membership Expiring Soon</p>`;
+    html += expiringMembers.map(m=>{
+      const dLeft=daysUntil(m.expiry);
+      const urgency=dLeft===0
+        ?'color:#f87171;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.25);'
+        :dLeft<=3?'color:#facc15;background:rgba(250,204,21,0.1);border-color:rgba(250,204,21,0.25);'
+        :'color:#fb923c;background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.25);';
+      return `<div class="member-card">
       <div class="flex items-center gap-3">
         ${avatar(m.photo,m.name,'w-11 h-11','text-base')}
         <div class="flex-1 min-w-0">
@@ -2082,7 +2250,41 @@ async function renderExpiring(){
         <button onclick="openRenewModal('${m.id}')" class="flex-1 btn-gold text-xs px-3 py-2 rounded-lg font-semibold"><i class="fas fa-rotate-right mr-1"></i>Renew</button>
       </div>
     </div>`;
-  }).join('');
+    }).join('');
+  }
+
+  // Section: RFID expiring
+  if(rfidAlertMembers.length) {
+    html += `<p class="text-[10px] uppercase tracking-wider font-bold mb-2 mt-4" style="color:#f87171;">RFID Registration Expiring / Expired</p>`;
+    html += rfidAlertMembers.map(m=>{
+      const rfidDays = getRfidExpiryDays(m);
+      const rfidExpDate = getRfidExpiry(m.registered || m.registeredAt, m.rfidExpiry);
+      const rfidExp = rfidDays !== null && rfidDays <= 0;
+      const label = rfidExp ? 'RFID Expired' : `RFID ${rfidDays}d left`;
+      const badgeStyle = rfidExp
+        ? 'color:#f87171;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.25);'
+        : rfidDays<=7
+        ? 'color:#facc15;background:rgba(250,204,21,0.1);border-color:rgba(250,204,21,0.25);'
+        : 'color:#fb923c;background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.25);';
+      return `<div class="member-card">
+      <div class="flex items-center gap-3">
+        ${avatar(m.photo,m.name,'w-11 h-11','text-base')}
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-sm">${m.name}</p>
+          <p class="text-xs mt-0.5 font-mono" style="color:var(--text-muted);">${m.rfid||'No RFID'}</p>
+          <p class="text-xs mt-0.5" style="color:var(--text-dim);">RFID Expiry: ${rfidExpDate?rfidExpDate.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}):'—'}</p>
+        </div>
+        <span class="badge font-bold flex-shrink-0" style="${badgeStyle}border:1px solid;"><i class="fas fa-id-card mr-0.5"></i>${label}</span>
+      </div>
+      <div class="flex gap-2 mt-3 pt-3 border-t" style="border-color:var(--border);">
+        <button onclick="openMemberProfile('${m.id}')" class="flex-1 btn-ghost text-xs px-3 py-2 rounded-lg"><i class="fas fa-eye mr-1"></i>View</button>
+        <button onclick="handleRfidExpiredClick('${m.id}')" class="flex-1 text-xs px-3 py-2 rounded-lg font-semibold" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);color:#f87171;"><i class="fas fa-id-card mr-1"></i>Renew RFID</button>
+      </div>
+    </div>`;
+    }).join('');
+  }
+
+  list.innerHTML = html;
 }
 
 // ══════════════════════════════════════════════
@@ -2120,7 +2322,7 @@ function updateRenewDate(){
   const base=_renewMember.expiry&&new Date(_renewMember.expiry)>new Date()?new Date(_renewMember.expiry):new Date();
   const newExp=new Date(base);newExp.setDate(newExp.getDate()+renewDuration);
   document.getElementById('renew-new-expiry').textContent=newExp.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
-  document.getElementById('btn-confirm-renew').innerHTML=`<i class="fas fa-rotate-right mr-2"></i>Renew ${renewDuration}d — ₱1,500`;
+  document.getElementById('btn-confirm-renew').innerHTML=`<i class="fas fa-rotate-right mr-2"></i>Renew ${renewDuration}d — ₱${_pricing.monthlyRegular}`;
 }
 
 function closeRenewModal(){ document.getElementById('renew-modal').classList.add('hidden'); renewTargetId=null; _renewMember=null; }
@@ -2143,6 +2345,19 @@ async function confirmRenew(){
 // ══════════════════════════════════════════════
 //  EDIT MODAL
 // ══════════════════════════════════════════════
+function clearRfidExpiryEdit(){
+  // Re-compute auto date from the member currently being edited
+  DB.getMembers().then(members=>{
+    const m = members.find(x=>x.id===editTargetId);
+    if(!m) return;
+    const autoExp = getRfidExpiry(m.registered || m.registeredAt, null);
+    document.getElementById('edit-rfid-expiry').value = autoExp ? autoExp.toISOString().slice(0,10) : '';
+    const rfidHint = document.getElementById('edit-rfid-expiry-hint');
+    rfidHint.textContent = autoExp ? 'Reverted to auto (registered + 1 yr).' : 'No registration date.';
+    rfidHint.style.color = '';
+  });
+}
+
 function toggleEditExpiry(plan){
   document.getElementById('edit-expiry-row').classList.toggle('hidden',plan!=='monthly');
   if(plan==='monthly'&&!document.getElementById('edit-expiry').value){
@@ -2169,6 +2384,19 @@ async function openEditModal(id){
     document.getElementById('edit-expiry').value=m.expiry?m.expiry.slice(0,10):'';
     exR.classList.remove('hidden');
   } else exR.classList.add('hidden');
+  // RFID Expiry
+  const autoRfidExp = getRfidExpiry(m.registered || m.registeredAt, null);
+  const rfidExpiryInput = document.getElementById('edit-rfid-expiry');
+  const rfidHint = document.getElementById('edit-rfid-expiry-hint');
+  if(m.rfidExpiry) {
+    rfidExpiryInput.value = new Date(m.rfidExpiry).toISOString().slice(0,10);
+    rfidHint.textContent = 'Custom date set. Click ↩ to revert to auto.';
+    rfidHint.style.color = 'rgba(197,241,0,0.55)';
+  } else {
+    rfidExpiryInput.value = autoRfidExp ? autoRfidExp.toISOString().slice(0,10) : '';
+    rfidHint.textContent = autoRfidExp ? 'Auto (registered + 1 yr). Change to override.' : 'No registration date — set one to activate.';
+    rfidHint.style.color = '';
+  }
   document.getElementById('edit-modal').classList.remove('hidden');
 }
 function closeEditModal(){document.getElementById('edit-modal').classList.add('hidden');editTargetId=null;}
@@ -2180,6 +2408,21 @@ async function saveEdit(){
   const address=document.getElementById('edit-address').value.trim();
   const birthday=document.getElementById('edit-birthday').value||null;
   const emergency=document.getElementById('edit-emergency').value.trim();
+
+  // Determine RFID expiry override
+  const rfidExpiryInput = document.getElementById('edit-rfid-expiry').value;
+  let rfidExpiry = null;
+  if(rfidExpiryInput) {
+    // Compare against auto value for this member
+    const members=await DB.getMembers();
+    const m=members.find(x=>x.id===editTargetId);
+    const autoExp = getRfidExpiry(m&&(m.registered||m.registeredAt), null);
+    const pickedDate = new Date(rfidExpiryInput);
+    // Only store as override if it differs from the auto date by more than a day
+    const isSameAsAuto = autoExp && Math.abs(pickedDate - autoExp) < 864e5;
+    rfidExpiry = isSameAsAuto ? null : pickedDate.toISOString();
+  }
+
   await DB.updateMember(editTargetId,{
     name:document.getElementById('edit-name').value.trim(),
     email:document.getElementById('edit-email').value.trim(),
@@ -2189,10 +2432,135 @@ async function saveEdit(){
     emergency:emergency||null,
     plan,expiry,
     active:document.getElementById('edit-active').value==='true',
-    notes:notes||null
+    notes:notes||null,
+    rfidExpiry:rfidExpiry||null
   });
   showNotif('Member updated ✓','success');
   closeEditModal();renderAdmMembers();
+}
+
+// ══════════════════════════════════════════════
+//  RFID EXPIRY (1-year auto-expire)
+// ══════════════════════════════════════════════
+const RFID_VALIDITY_YEARS = 1;
+
+function getRfidExpiry(registeredDateStr, rfidExpiryOverride) {
+  // If an explicit override is stored, use it
+  if(rfidExpiryOverride) {
+    const ov = new Date(rfidExpiryOverride);
+    if(!isNaN(ov)) return ov;
+  }
+  if(!registeredDateStr) return null;
+  const reg = new Date(registeredDateStr);
+  if(isNaN(reg)) return null;
+  const exp = new Date(reg);
+  exp.setFullYear(exp.getFullYear() + RFID_VALIDITY_YEARS);
+  return exp;
+}
+
+function isRfidExpired(member) {
+  const expiry = getRfidExpiry(member.registered || member.registeredAt, member.rfidExpiry);
+  if(!expiry) return false;
+  return new Date() > expiry;
+}
+
+function getRfidExpiryDays(member) {
+  const expiry = getRfidExpiry(member.registered || member.registeredAt, member.rfidExpiry);
+  if(!expiry) return null;
+  return Math.ceil((expiry - new Date()) / 864e5);
+}
+
+let _rfidExpiredMemberId = null;
+
+function openRfidExpiredModal(member) {
+  _rfidExpiredMemberId = member.id;
+  document.getElementById('rfid-exp-name').textContent = member.name || '—';
+  document.getElementById('rfid-exp-rfid').textContent = member.rfid || '—';
+  const expDate = getRfidExpiry(member.registered || member.registeredAt, member.rfidExpiry);
+  document.getElementById('rfid-exp-date').textContent = expDate
+    ? expDate.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})
+    : '—';
+  document.getElementById('rfid-expired-modal').classList.remove('hidden');
+}
+
+function closeRfidExpiredModal() {
+  document.getElementById('rfid-expired-modal').classList.add('hidden');
+  _rfidExpiredMemberId = null;
+}
+
+function openRenewFromExpiredModal() {
+  const id = _rfidExpiredMemberId;
+  closeRfidExpiredModal();
+  if(id) openRenewModal(id);
+}
+
+async function handleRfidExpiredClick(memberId) {
+  const members = await DB.getMembers();
+  const m = members.find(x => x.id === memberId);
+  if(m) openRfidExpiredModal(m);
+}
+
+// ══════════════════════════════════════════════
+//  PRICING SETTINGS
+// ══════════════════════════════════════════════
+async function loadPricingSettings() {
+  const loadEl = document.getElementById('pricing-loading');
+  const fieldsEl = document.getElementById('pricing-fields');
+  const btnEl = document.getElementById('btn-save-pricing');
+  loadEl.classList.remove('hidden');
+  fieldsEl.classList.add('hidden');
+  btnEl.classList.add('hidden');
+
+  try {
+    const p = await DB.getPricing();
+    _pricing = p;
+    document.getElementById('price-monthly-regular').value = p.monthlyRegular || 900;
+    document.getElementById('price-monthly-student').value = p.monthlyStudent || 600;
+    document.getElementById('price-entry-regular').value = p.entryRegular || 70;
+    document.getElementById('price-entry-student').value = p.entryStudent || 50;
+    loadEl.classList.add('hidden');
+    fieldsEl.classList.remove('hidden');
+    btnEl.classList.remove('hidden');
+  } catch(e) {
+    loadEl.innerHTML = '<span class="text-red-400 text-xs"><i class="fas fa-exclamation-circle mr-1"></i>Failed to load pricing</span>';
+  }
+}
+
+async function savePricing() {
+  const btn = document.getElementById('btn-save-pricing');
+  const errEl = document.getElementById('pricing-error');
+  const errMsg = document.getElementById('pricing-error-msg');
+
+  const mr = parseInt(document.getElementById('price-monthly-regular').value);
+  const ms = parseInt(document.getElementById('price-monthly-student').value);
+  const er = parseInt(document.getElementById('price-entry-regular').value);
+  const es = parseInt(document.getElementById('price-entry-student').value);
+
+  if([mr,ms,er,es].some(v=>isNaN(v)||v<1)){
+    errMsg.textContent='All prices must be valid positive numbers.';
+    errEl.classList.remove('hidden'); return;
+  }
+  errEl.classList.add('hidden');
+
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+  try {
+    const data = {monthlyRegular:mr,monthlyStudent:ms,entryRegular:er,entryStudent:es};
+    await DB.setPricing(data);
+    _pricing = data;
+    showNotif('Pricing updated successfully ✓','success');
+    updateEditPlanLabels();
+  } catch(e) {
+    showNotif('Failed to save pricing','error');
+  } finally {
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-floppy-disk mr-2"></i>Save Pricing';
+  }
+}
+
+function updateEditPlanLabels() {
+  const entryEl = document.getElementById('edit-plan-entry');
+  const monthlyEl = document.getElementById('edit-plan-monthly');
+  if(entryEl) entryEl.textContent = `Walk-in / Daily (₱${_pricing.entryStudent}–₱${_pricing.entryRegular})`;
+  if(monthlyEl) monthlyEl.textContent = `Monthly (₱${_pricing.monthlyStudent}–₱${_pricing.monthlyRegular})`;
 }
 
 // ══════════════════════════════════════════════
@@ -2247,11 +2615,27 @@ async function openMemberProfile(id){
   }
   document.getElementById('prof-badges').innerHTML=badges;
 
-  const monthlyPrice=m.isStudent?'₱600':'₱900';
-  const entryPrice=m.isStudent?'₱50':'₱70';
+  const monthlyPrice=m.isStudent?`₱${_pricing.monthlyStudent}`:`₱${_pricing.monthlyRegular}`;
+  const entryPrice=m.isStudent?`₱${_pricing.entryStudent}`:`₱${_pricing.entryRegular}`;
   document.getElementById('prof-plan').textContent=m.plan==='monthly'?`Monthly (${monthlyPrice}/mo)`:`Walk-in / Daily (${entryPrice})`;
   document.getElementById('prof-status').innerHTML=m.active===false?'<span style="color:var(--text-muted);">Inactive</span>':isExp?'<span class="text-red-400">Expired</span>':isSoon?`<span class="text-yellow-400">${daysLeft}d left</span>`:'<span class="text-green-400">Active</span>';
   document.getElementById('prof-expiry').textContent=m.expiry?new Date(m.expiry).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'—';
+  // RFID expiry
+  const rfidExpDate = getRfidExpiry(m.registered || m.registeredAt, m.rfidExpiry);
+  const rfidDaysLeft = getRfidExpiryDays(m);
+  const rfidExpEl = document.getElementById('prof-rfid-expiry');
+  if(rfidExpEl && rfidExpDate) {
+    const rfidStr = rfidExpDate.toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
+    if(rfidDaysLeft !== null && rfidDaysLeft <= 0) {
+      rfidExpEl.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-triangle mr-1"></i>Expired ${rfidStr}</span>`;
+    } else if(rfidDaysLeft !== null && rfidDaysLeft <= 30) {
+      rfidExpEl.innerHTML = `<span class="text-yellow-400"><i class="fas fa-clock mr-1"></i>${rfidStr} (${rfidDaysLeft}d)</span>`;
+    } else {
+      rfidExpEl.textContent = rfidStr;
+    }
+  } else if(rfidExpEl) {
+    rfidExpEl.textContent = '—';
+  }
   document.getElementById('prof-visits').textContent=visits+' visit'+(visits!==1?'s':'');
   document.getElementById('prof-email').textContent=m.email||'—';
   document.getElementById('prof-phone').textContent=m.phone||'—';
@@ -2522,17 +2906,56 @@ async function adminOpenEnrollment(memberId, memberName, hasExisting) {
   }
 }
 
+// ── Smooth box state for admin enrollment ──
+let _adminBoxTarget = null;
+let _adminBoxCurrent = null;
+let _adminBoxRafId = null;
+const ADMIN_DETECT_INTERVAL_MS = 120; // ~8fps for ML inference
+
+function _adminLerp(a, b, t) { return a + (b - a) * t; }
+
+function _animateAdminBox() {
+  const canvas = document.getElementById('enroll-canvas-admin');
+  if (!canvas || !adminEnrollActive) { _adminBoxRafId = null; return; }
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (_adminBoxTarget) {
+    if (!_adminBoxCurrent) {
+      _adminBoxCurrent = { ..._adminBoxTarget };
+    } else {
+      const t = 0.18;
+      _adminBoxCurrent.x = _adminLerp(_adminBoxCurrent.x, _adminBoxTarget.x, t);
+      _adminBoxCurrent.y = _adminLerp(_adminBoxCurrent.y, _adminBoxTarget.y, t);
+      _adminBoxCurrent.w = _adminLerp(_adminBoxCurrent.w, _adminBoxTarget.w, t);
+      _adminBoxCurrent.h = _adminLerp(_adminBoxCurrent.h, _adminBoxTarget.h, t);
+    }
+    const b = _adminBoxCurrent;
+    ctx.strokeStyle = 'rgba(197,241,0,0.9)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(197,241,0,0.5)';
+    ctx.shadowBlur = 8;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+    ctx.shadowBlur = 0;
+  } else {
+    _adminBoxCurrent = null;
+  }
+
+  if (adminEnrollActive) _adminBoxRafId = requestAnimationFrame(_animateAdminBox);
+}
+
 async function adminEnrollLoop() {
   if (!adminEnrollActive) return;
   const video = document.getElementById('enroll-video');
   const canvas = document.getElementById('enroll-canvas-admin');
   if (!video || !canvas) return;
 
-  const opts = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5, inputSize: 320 });
+  // Start smooth render loop once
+  if (!_adminBoxRafId) _adminBoxRafId = requestAnimationFrame(_animateAdminBox);
+
+  const opts = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5, inputSize: 224 });
   try {
     const det = await faceapi.detectSingleFace(video, opts).withFaceLandmarks(true);
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     const captBtn = document.getElementById('admin-capture-btn');
 
     if (det) {
@@ -2540,9 +2963,7 @@ async function adminEnrollLoop() {
       faceapi.matchDimensions(canvas, ds);
       const r = faceapi.resizeResults(det, ds);
       const box = r.detection.box;
-      ctx.strokeStyle = 'rgba(197,241,0,0.9)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(box.x, box.y, box.width, box.height);
+      _adminBoxTarget = { x: box.x, y: box.y, w: box.width, h: box.height };
 
       const needed = ADMIN_ENROLL_MAX - adminEnrollSamples.length;
       if (needed > 0) {
@@ -2554,12 +2975,13 @@ async function adminEnrollLoop() {
         captBtn.disabled = true; captBtn.style.opacity = '0.45';
       }
     } else {
+      _adminBoxTarget = null;
       document.getElementById('admin-enroll-status').textContent = 'No face detected — look at the camera';
       captBtn.disabled = true; captBtn.style.opacity = '0.45';
     }
   } catch(e) { /* skip frame */ }
 
-  if (adminEnrollActive) adminEnrollFrame = requestAnimationFrame(adminEnrollLoop);
+  if (adminEnrollActive) adminEnrollFrame = setTimeout(adminEnrollLoop, ADMIN_DETECT_INTERVAL_MS);
 }
 
 async function adminCaptureSample() {
@@ -2567,7 +2989,7 @@ async function adminCaptureSample() {
   const video = document.getElementById('enroll-video');
   const opts = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5, inputSize: 320 });
   try {
-    const det = await faceapi.detectSingleFace(video, opts).withFaceLandmarks(true).withFaceDescriptors();
+    const det = await faceapi.detectSingleFace(video, opts).withFaceLandmarks(true).withFaceDescriptor();
     if (!det) { showNotif('No face detected — try again', 'warning'); return; }
 
     adminEnrollSamples.push(Array.from(det.descriptor).join(","));
@@ -2614,7 +3036,7 @@ async function adminSaveEnrollment() {
     });
     showNotif('Face profile saved successfully!', 'success');
     adminStopEnrollment();
-    renderMembers(); // refresh list to update Face badge
+    renderAdmMembers(); // refresh list to update Face badge
   } catch(e) {
     showNotif('Save failed: ' + e.message, 'error');
     btn.disabled = false;
@@ -2629,13 +3051,15 @@ async function adminClearFace() {
     await db.collection('members').doc(adminEnrollMemberId).update({ faceDescriptors: [] });
     showNotif('Face profile removed', 'success');
     adminStopEnrollment();
-    renderMembers();
+    renderAdmMembers();
   } catch(e) { showNotif('Error: ' + e.message, 'error'); }
 }
 
 function adminStopEnrollment() {
   adminEnrollActive = false;
-  if (adminEnrollFrame) { cancelAnimationFrame(adminEnrollFrame); adminEnrollFrame = null; }
+  if (adminEnrollFrame) { clearTimeout(adminEnrollFrame); adminEnrollFrame = null; }
+  if (_adminBoxRafId) { cancelAnimationFrame(_adminBoxRafId); _adminBoxRafId = null; }
+  _adminBoxTarget = null; _adminBoxCurrent = null;
   if (adminEnrollStream) { adminEnrollStream.getTracks().forEach(t => t.stop()); adminEnrollStream = null; }
   const video = document.getElementById('enroll-video');
   if (video) video.srcObject = null;
