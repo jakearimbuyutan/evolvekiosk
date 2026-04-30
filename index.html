@@ -449,6 +449,9 @@ html,body{
   object-fit:cover;
   display:block;
   transform:scaleX(-1);
+  will-change:transform;
+  filter: brightness(1.05) contrast(0.95) saturate(1.1);
+  image-rendering: smooth;
 }
 #face-canvas {
   position:absolute;
@@ -456,26 +459,31 @@ html,body{
   width:100%;
   height:100%;
   transform:scaleX(-1);
+  will-change:contents;
 }
 .face-scanning-bar {
   position:absolute;
-  left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--gold),transparent);
-  animation:face-scan 2s ease-in-out infinite;
-  opacity:0.8;
+  left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent 0%,rgba(232,197,71,0.3) 20%,rgba(232,197,71,0.9) 50%,rgba(232,197,71,0.3) 80%,transparent 100%);
+  animation:face-scan 3s cubic-bezier(0.45,0,0.55,1) infinite;
+  opacity:0.75;
+  filter: blur(0.5px);
 }
 @keyframes face-scan{
   0%{top:0%;opacity:0;}
-  10%{opacity:1;}
-  90%{opacity:1;}
+  5%{opacity:0.8;}
+  50%{opacity:0.6;}
+  95%{opacity:0.8;}
   100%{top:100%;opacity:0;}
 }
 .face-corner{
   position:absolute;
-  width:24px;height:24px;
+  width:28px;height:28px;
   border-color:var(--gold);
   border-style:solid;
-  opacity:0.7;
+  opacity:0.8;
+  transition: opacity 0.4s ease, border-color 0.4s ease;
+  border-radius: 2px;
 }
 .face-corner-tl{top:12px;left:12px;border-width:3px 0 0 3px;}
 .face-corner-tr{top:12px;right:12px;border-width:3px 3px 0 0;}
@@ -1071,13 +1079,54 @@ function setFaceStatus(text, spinning) {
   }
 }
 
+// Smooth box interpolation state
+let _faceBoxTarget = null;
+let _faceBoxCurrent = null;
+let _faceBoxRafId = null;
+const FACE_DETECT_INTERVAL_MS = 150; // ~6.5fps for heavy ML inference
+
+function _lerp(a, b, t) { return a + (b - a) * t; }
+
+function _animateFaceBox() {
+  const canvas = document.getElementById('face-canvas');
+  if (!canvas || !faceRecActive) { _faceBoxRafId = null; return; }
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (_faceBoxTarget) {
+    if (!_faceBoxCurrent) {
+      _faceBoxCurrent = { ..._faceBoxTarget };
+    } else {
+      const t = 0.1; // smoothing factor (lower = smoother/laggier)
+      _faceBoxCurrent.x = _lerp(_faceBoxCurrent.x, _faceBoxTarget.x, t);
+      _faceBoxCurrent.y = _lerp(_faceBoxCurrent.y, _faceBoxTarget.y, t);
+      _faceBoxCurrent.w = _lerp(_faceBoxCurrent.w, _faceBoxTarget.w, t);
+      _faceBoxCurrent.h = _lerp(_faceBoxCurrent.h, _faceBoxTarget.h, t);
+    }
+    const b = _faceBoxCurrent;
+    ctx.strokeStyle = 'rgba(232,197,71,0.9)';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(232,197,71,0.6)';
+    ctx.shadowBlur = 12;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+    ctx.shadowBlur = 0;
+  } else {
+    _faceBoxCurrent = null;
+  }
+
+  if (faceRecActive) _faceBoxRafId = requestAnimationFrame(_animateFaceBox);
+}
+
 async function faceDetectionLoop() {
   if (!faceRecActive) return;
   const video = document.getElementById('face-video');
   const canvas = document.getElementById('face-canvas');
   if (!video || !canvas) return;
 
-  const options = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.45, inputSize: 320 });
+  // Start the smooth rendering loop once
+  if (!_faceBoxRafId) _faceBoxRafId = requestAnimationFrame(_animateFaceBox);
+
+  const options = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.45, inputSize: 224 });
 
   try {
     const detections = await faceapi
@@ -1088,17 +1137,10 @@ async function faceDetectionLoop() {
     const displaySize = { width: video.videoWidth || 320, height: video.videoHeight || 240 };
     faceapi.matchDimensions(canvas, displaySize);
     const resized = faceapi.resizeResults(detections, displaySize);
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (resized.length > 0) {
-      // Draw box (gold color)
-      resized.forEach(d => {
-        const box = d.detection.box;
-        ctx.strokeStyle = 'rgba(232,197,71,0.9)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(box.x, box.y, box.width, box.height);
-      });
+      const box = resized[0].detection.box;
+      _faceBoxTarget = { x: box.x, y: box.y, w: box.width, h: box.height };
 
       if (faceMatcher && !faceMatchCooldown) {
         const best = faceMatcher.findBestMatch(resized[0].descriptor);
@@ -1119,12 +1161,13 @@ async function faceDetectionLoop() {
         setFaceStatus('Face detected — no enrolled members', false);
       }
     } else {
+      _faceBoxTarget = null;
       setFaceStatus('Looking for face…', false);
     }
   } catch(e) { /* skip frame */ }
 
   if (faceRecActive) {
-    faceAnimFrame = requestAnimationFrame(faceDetectionLoop);
+    faceAnimFrame = setTimeout(faceDetectionLoop, FACE_DETECT_INTERVAL_MS);
   }
 }
 
@@ -1133,7 +1176,9 @@ function stopFaceRecognition() {
   if (_rfidVerifyActive) { _stopRfidVerifyCamera(); _rfidVerifyMember = null; return; }
   faceRecActive = false;
   faceMatchCooldown = false;
-  if (faceAnimFrame) { cancelAnimationFrame(faceAnimFrame); faceAnimFrame = null; }
+  if (faceAnimFrame) { clearTimeout(faceAnimFrame); faceAnimFrame = null; }
+  if (_faceBoxRafId) { cancelAnimationFrame(_faceBoxRafId); _faceBoxRafId = null; }
+  _faceBoxTarget = null; _faceBoxCurrent = null;
   if (faceVideoStream) { faceVideoStream.getTracks().forEach(t => t.stop()); faceVideoStream = null; }
   const video = document.getElementById('face-video');
   if (video) video.srcObject = null;
@@ -1203,20 +1248,56 @@ async function startEnrollCamera() {
   }
 }
 
+// Smooth box state for enrollment
+let _enrollBoxTarget = null;
+let _enrollBoxCurrent = null;
+let _enrollBoxRafId = null;
+const ENROLL_DETECT_INTERVAL_MS = 150;
+
+function _animateEnrollBox() {
+  const canvas = document.getElementById('enroll-canvas');
+  if (!canvas || !enrollActive) { _enrollBoxRafId = null; return; }
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (_enrollBoxTarget) {
+    if (!_enrollBoxCurrent) {
+      _enrollBoxCurrent = { ..._enrollBoxTarget };
+    } else {
+      const t = 0.1;
+      _enrollBoxCurrent.x = _lerp(_enrollBoxCurrent.x, _enrollBoxTarget.x, t);
+      _enrollBoxCurrent.y = _lerp(_enrollBoxCurrent.y, _enrollBoxTarget.y, t);
+      _enrollBoxCurrent.w = _lerp(_enrollBoxCurrent.w, _enrollBoxTarget.w, t);
+      _enrollBoxCurrent.h = _lerp(_enrollBoxCurrent.h, _enrollBoxTarget.h, t);
+    }
+    const b = _enrollBoxCurrent;
+    ctx.strokeStyle = 'rgba(232,197,71,0.9)';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(232,197,71,0.6)';
+    ctx.shadowBlur = 12;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+    ctx.shadowBlur = 0;
+  } else {
+    _enrollBoxCurrent = null;
+  }
+
+  if (enrollActive) _enrollBoxRafId = requestAnimationFrame(_animateEnrollBox);
+}
+
 async function enrollDetectionLoop() {
   if (!enrollActive) return;
   const video = document.getElementById('enroll-video');
   const canvas = document.getElementById('enroll-canvas');
   if (!video || !canvas) return;
 
-  const options = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5, inputSize: 320 });
+  // Start smooth render loop once
+  if (!_enrollBoxRafId) _enrollBoxRafId = requestAnimationFrame(_animateEnrollBox);
+
+  const options = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5, inputSize: 224 });
   try {
     const det = await faceapi
       .detectSingleFace(video, options)
       .withFaceLandmarks(true);
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const captBtn = document.getElementById('enroll-capture-btn');
     if (det) {
@@ -1224,9 +1305,7 @@ async function enrollDetectionLoop() {
       faceapi.matchDimensions(canvas, displaySize);
       const resized = faceapi.resizeResults(det, displaySize);
       const box = resized.detection.box;
-      ctx.strokeStyle = 'rgba(232,197,71,0.9)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(box.x, box.y, box.width, box.height);
+      _enrollBoxTarget = { x: box.x, y: box.y, w: box.width, h: box.height };
 
       const needed = ENROLL_TOTAL - enrollSamples.length;
       if (needed > 0) {
@@ -1237,12 +1316,13 @@ async function enrollDetectionLoop() {
         if (captBtn) { captBtn.disabled = true; captBtn.style.opacity = '0.5'; }
       }
     } else {
+      _enrollBoxTarget = null;
       document.getElementById('enroll-status-text').textContent = 'No face detected — look at the camera';
       if (captBtn) { captBtn.disabled = true; captBtn.style.opacity = '0.5'; }
     }
   } catch(e) { /* skip */ }
 
-  if (enrollActive) enrollAnimFrame = requestAnimationFrame(enrollDetectionLoop);
+  if (enrollActive) enrollAnimFrame = setTimeout(enrollDetectionLoop, ENROLL_DETECT_INTERVAL_MS);
 }
 
 async function captureEnrollSample() {
@@ -1253,7 +1333,7 @@ async function captureEnrollSample() {
     const det = await faceapi
       .detectSingleFace(video, options)
       .withFaceLandmarks(true)
-      .withFaceDescriptors();
+      .withFaceDescriptor();
     if (!det) { showNotif('No face detected — try again', 'warning'); return; }
 
     // Flash effect
@@ -1310,7 +1390,9 @@ async function saveEnrollment() {
 
 function stopFaceEnrollment() {
   enrollActive = false;
-  if (enrollAnimFrame) { cancelAnimationFrame(enrollAnimFrame); enrollAnimFrame = null; }
+  if (enrollAnimFrame) { clearTimeout(enrollAnimFrame); enrollAnimFrame = null; }
+  if (_enrollBoxRafId) { cancelAnimationFrame(_enrollBoxRafId); _enrollBoxRafId = null; }
+  _enrollBoxTarget = null; _enrollBoxCurrent = null;
   if (enrollStream) { enrollStream.getTracks().forEach(t => t.stop()); enrollStream = null; }
   const video = document.getElementById('enroll-video');
   if (video) video.srcObject = null;
@@ -1319,7 +1401,7 @@ function stopFaceEnrollment() {
   enrollSamples = [];
 }
 /* ====================================================== */
-const REGISTER_URL = 'https://evovlekiosk.pages.dev/register.html';
+const REGISTER_URL = 'https://evolvekiosk.pages.dev/register';
 
 function showSection(s){
   document.querySelectorAll('#kiosk-main > section').forEach(el => {
@@ -2069,6 +2151,13 @@ function initGlobalRFIDCapture() {
     if (key === 'F2') {
       e.preventDefault();
       showQRModal();
+      return;
+    }
+
+    // F3: open Face Recognition
+    if (key === 'F3') {
+      e.preventDefault();
+      startFaceRecognition();
       return;
     }
 
