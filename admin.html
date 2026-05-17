@@ -807,6 +807,73 @@ select.input-dark option{background:#111;color:#fff;}
       </div>
     </div>
 
+    <!-- ═══ ANNOUNCEMENTS ═══ -->
+    <div id="tab-announcements" class="tab-section hidden fade-in">
+      <div class="mb-4">
+        <h3 class="font-oswald text-xl uppercase text-white tracking-wider">Announcements</h3>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted);">Post news & updates visible to all members in the app</p>
+      </div>
+
+      <!-- Post new announcement -->
+      <div class="card p-4 mb-5">
+        <p class="section-header mb-3">📢 New Announcement</p>
+        <div class="mb-3">
+          <label class="block text-xs font-semibold mb-1" style="color:var(--text-muted);letter-spacing:.06em;">TITLE</label>
+          <input id="ann-title" type="text" placeholder="e.g. Holiday Schedule Change" maxlength="120"
+            class="input-dark w-full rounded-xl px-4 py-2.5 text-sm">
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs font-semibold mb-1" style="color:var(--text-muted);letter-spacing:.06em;">CONTENT</label>
+          <textarea id="ann-content" rows="4" placeholder="Write your announcement here…" maxlength="2000"
+            class="input-dark w-full rounded-xl px-4 py-2.5 text-sm resize-none"></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1" style="color:var(--text-muted);letter-spacing:.06em;">EMOJI / TAG (optional)</label>
+          <select id="ann-tag" class="input-dark w-full rounded-xl px-4 py-2.5 text-sm">
+            <option value="">— none —</option>
+            <option value="📢">📢 Announcement</option>
+            <option value="🎉">🎉 Celebration</option>
+            <option value="⚠️">⚠️ Important</option>
+            <option value="💪">💪 Motivation</option>
+            <option value="🏋️">🏋️ Workout</option>
+            <option value="🎁">🎁 Promo / Offer</option>
+            <option value="📅">📅 Schedule</option>
+            <option value="🔔">🔔 Reminder</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1" style="color:var(--text-muted);letter-spacing:.06em;">IMAGE (optional)</label>
+          <div id="ann-image-drop" onclick="document.getElementById('ann-image-input').click()"
+            style="border:2px dashed rgba(255,255,255,0.12);border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:border-color 0.2s;background:rgba(255,255,255,0.02);"
+            ondragover="event.preventDefault();this.style.borderColor='var(--accent)';"
+            ondragleave="this.style.borderColor='rgba(255,255,255,0.12)';"
+            ondrop="handleAnnImageDrop(event)">
+            <div id="ann-image-preview-wrap" style="display:none;margin-bottom:10px;">
+              <img id="ann-image-preview" src="" alt="Preview" style="max-height:160px;max-width:100%;border-radius:10px;object-fit:cover;">
+            </div>
+            <div id="ann-image-placeholder">
+              <i class="fas fa-image" style="font-size:22px;color:rgba(255,255,255,0.25);display:block;margin-bottom:6px;"></i>
+              <span class="text-xs" style="color:var(--text-muted);">Click or drag & drop an image</span>
+            </div>
+            <input type="file" id="ann-image-input" accept="image/*" style="display:none;" onchange="handleAnnImageSelect(this)">
+          </div>
+          <button id="ann-image-clear-btn" onclick="clearAnnImage()" style="display:none;margin-top:6px;background:none;border:1px solid rgba(255,100,100,0.3);color:rgba(255,100,100,0.7);border-radius:8px;padding:4px 12px;font-size:11px;cursor:pointer;width:100%;">
+            <i class="fas fa-times mr-1"></i> Remove image
+          </button>
+        </div>
+        <button id="ann-post-btn" onclick="postAnnouncement()" class="btn-gold w-full rounded-xl py-3 text-sm uppercase tracking-widest">
+          <i class="fas fa-paper-plane mr-1"></i> Post Announcement
+        </button>
+        <p id="ann-post-msg" class="text-center text-xs mt-2 hidden" style="color:var(--accent);"></p>
+      </div>
+
+      <!-- Existing announcements list -->
+      <p class="section-header">Posted Announcements</p>
+      <div id="admin-ann-list">
+        <div class="text-center py-8" style="color:var(--text-muted);"><div class="spinner mx-auto mb-2"></div><p class="text-xs">Loading…</p></div>
+      </div>
+    </div>
+
     <!-- ═══ SETTINGS ═══ -->
     <div id="tab-settings" class="tab-section hidden fade-in">
       <div class="mb-5">
@@ -976,6 +1043,7 @@ select.input-dark option{background:#111;color:#fff;}
     <button class="bnav-btn" id="bnav-allmembers" onclick="adminTab('allmembers')"><i class="fas fa-id-card"></i>Members</button>
     <button class="bnav-btn" id="bnav-revenue" onclick="adminTab('revenue')"><i class="fas fa-peso-sign"></i>Revenue</button>
     <button class="bnav-btn" id="bnav-expiring" onclick="adminTab('expiring')"><i class="fas fa-clock"></i>Expiring</button>
+    <button class="bnav-btn" id="bnav-announcements" onclick="adminTab('announcements')"><i class="fas fa-bullhorn"></i>News</button>
     <button class="bnav-btn" id="bnav-settings" onclick="adminTab('settings')"><i class="fas fa-gear"></i>Settings</button>
   </nav>
 </div><!-- /admin-app -->
@@ -1480,11 +1548,11 @@ function startAdminClock(){
 // ══════════════════════════════════════════════
 //  TABS
 // ══════════════════════════════════════════════
-const TAB_TITLES = {dashboard:'Dashboard',logins:'Attendance Log',allmembers:'All Members',revenue:'Revenue',expiring:'Expiring Soon',settings:'Settings'};
+const TAB_TITLES = {dashboard:'Dashboard',logins:'Attendance Log',allmembers:'All Members',revenue:'Revenue',expiring:'Expiring Soon',announcements:'Announcements',settings:'Settings'};
 
 function adminTab(tab){
   currentTab = tab;
-  ['dashboard','logins','allmembers','revenue','expiring','settings'].forEach(t=>{
+  ['dashboard','logins','allmembers','revenue','expiring','announcements','settings'].forEach(t=>{
     document.getElementById('tab-'+t).classList.add('hidden');
     document.getElementById('bnav-'+t).classList.remove('active');
   });
@@ -1497,6 +1565,7 @@ function adminTab(tab){
   if(tab==='allmembers') renderAdmMembers();
   if(tab==='revenue'){ _revCache.fetchedAt=0; renderRevenue(); }
   if(tab==='expiring') renderExpiring();
+  if(tab==='announcements') renderAdminAnnouncements();
   if(tab==='settings'){ resetPwForm(); loadPricingSettings(); }
 }
 
@@ -2198,6 +2267,242 @@ async function exportRevenueCSV(){
 // ══════════════════════════════════════════════
 //  EXPIRING
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  ANNOUNCEMENTS (ADMIN)
+// ══════════════════════════════════════════════
+let _annImageFile = null;
+let _annImageBase64 = '';
+
+function compressImage(file, maxWidth, maxHeight, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+        if (h > maxHeight) { w = Math.round(w * maxHeight / h); h = maxHeight; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function showAnnImagePreview(dataUrl) {
+  document.getElementById('ann-image-preview').src = dataUrl;
+  document.getElementById('ann-image-preview-wrap').style.display = 'block';
+  document.getElementById('ann-image-placeholder').style.display = 'none';
+  document.getElementById('ann-image-clear-btn').style.display = 'block';
+}
+
+async function handleAnnImageSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  _annImageFile = file;
+  const dataUrl = await compressImage(file, 1200, 900, 0.82);
+  _annImageBase64 = dataUrl;
+  showAnnImagePreview(dataUrl);
+}
+
+async function handleAnnImageDrop(event) {
+  event.preventDefault();
+  document.getElementById('ann-image-drop').style.borderColor = 'rgba(255,255,255,0.12)';
+  const file = event.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  _annImageFile = file;
+  const dataUrl = await compressImage(file, 1200, 900, 0.82);
+  _annImageBase64 = dataUrl;
+  showAnnImagePreview(dataUrl);
+}
+
+function clearAnnImage() {
+  _annImageFile = null;
+  _annImageBase64 = '';
+  document.getElementById('ann-image-input').value = '';
+  document.getElementById('ann-image-preview').src = '';
+  document.getElementById('ann-image-preview-wrap').style.display = 'none';
+  document.getElementById('ann-image-placeholder').style.display = 'block';
+  document.getElementById('ann-image-clear-btn').style.display = 'none';
+}
+
+async function postAnnouncement() {
+  const title   = document.getElementById('ann-title').value.trim();
+  const content = document.getElementById('ann-content').value.trim();
+  const tag     = document.getElementById('ann-tag').value;
+  const msg     = document.getElementById('ann-post-msg');
+  const postBtn = document.getElementById('ann-post-btn');
+  if (!title || !content) { showToast('Please fill in title and content.','warning'); return; }
+  if (postBtn) { postBtn.disabled = true; postBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Posting…'; }
+  try {
+    await db.collection('announcements').add({
+      title,
+      content,
+      tag: tag || '',
+      imageUrl: _annImageBase64 || '',
+      date: firebase.firestore.FieldValue.serverTimestamp(),
+      reactions: {},
+      commentCount: 0
+    });
+    document.getElementById('ann-title').value   = '';
+    document.getElementById('ann-content').value = '';
+    document.getElementById('ann-tag').value     = '';
+    clearAnnImage();
+    msg.textContent = '✓ Announcement posted!';
+    msg.classList.remove('hidden');
+    setTimeout(()=>msg.classList.add('hidden'), 3000);
+    renderAdminAnnouncements();
+  } catch(e) {
+    console.error('Post announcement error:', e);
+    showToast('Error: '+e.message,'error');
+  }
+  if (postBtn) { postBtn.disabled = false; postBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Post Announcement'; }
+}
+
+async function renderAdminAnnouncements() {
+  const list = document.getElementById('admin-ann-list');
+  if (!list) return;
+  list.innerHTML = '<div class="text-center py-8" style="color:var(--text-muted);"><div class="spinner mx-auto mb-2"></div><p class="text-xs">Loading…</p></div>';
+  try {
+    const [annSnap, membersArr] = await Promise.all([
+      db.collection('announcements').orderBy('date','desc').get(),
+      DB.getMembers()
+    ]);
+    const memberMap = {};
+    membersArr.forEach(m => { memberMap[m.id] = m.name || m.firstName || m.email || m.id; });
+
+    if (annSnap.empty) {
+      list.innerHTML = '<div class="text-center py-10" style="color:var(--text-muted);"><i class="fas fa-bullhorn text-3xl block mb-3 opacity-20"></i><p class="text-sm">No announcements yet</p></div>';
+      return;
+    }
+    const EMOJI_MAP = { heart:'❤️', fire:'🔥', muscle:'💪', clap:'👏' };
+    list.innerHTML = annSnap.docs.map(doc => {
+      const a = doc.data();
+      const id = doc.id;
+      const dateStr = a.date && a.date.toDate ? a.date.toDate().toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      const reactions = a.reactions || {};
+      const reactionTotal = Object.values(reactions).reduce((s,v)=> s + (Array.isArray(v) ? v.length : 0), 0);
+      const commentCount = a.commentCount || 0;
+
+      // Build per-emoji reaction rows
+      const reactionRows = Object.entries(EMOJI_MAP).map(([key, emoji]) => {
+        const members = Array.isArray(reactions[key]) ? reactions[key] : [];
+        if (!members.length) return '';
+        const names = members.map(mid => memberMap[mid] || mid).join(', ');
+        return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="font-size:15px;flex-shrink:0;">${emoji}</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.55);line-height:1.5;">${names}</span>
+        </div>`;
+      }).join('');
+
+      return `<div class="member-card mb-3" id="ann-admin-${id}">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              ${a.tag ? `<span style="font-size:16px;">${a.tag}</span>` : ''}
+              <span class="font-bold text-sm truncate">${a.title||'Untitled'}</span>
+              <span class="text-xs ml-auto" style="color:var(--text-dim);flex-shrink:0;">${dateStr}</span>
+            </div>
+            <p class="text-xs leading-relaxed mb-2" style="color:var(--text-muted);white-space:pre-wrap;">${a.content||''}</p>
+            ${a.imageUrl ? `<img src="${a.imageUrl}" alt="" style="max-height:120px;max-width:100%;border-radius:10px;object-fit:cover;margin-bottom:8px;border:1px solid rgba(255,255,255,0.08);">` : ''}
+
+            <!-- Reactions toggle -->
+            <button onclick="toggleAdminSection('react-${id}')" style="display:inline-flex;align-items:center;gap:6px;background:rgba(197,241,0,0.08);border:1px solid rgba(197,241,0,0.15);color:var(--accent);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px;margin-bottom:6px;">
+              <i class="fas fa-face-smile" style="font-size:10px;"></i> ${reactionTotal} Reaction${reactionTotal!==1?'s':''}
+              <i class="fas fa-chevron-down" id="chev-react-${id}" style="font-size:8px;transition:transform 0.2s;"></i>
+            </button>
+
+            <!-- Comments toggle -->
+            <button onclick="toggleAdminComments('${id}')" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:6px;">
+              <i class="fas fa-comment-dots" style="font-size:10px;"></i> ${commentCount} Comment${commentCount!==1?'s':''}
+              <i class="fas fa-chevron-down" id="chev-cmt-${id}" style="font-size:8px;transition:transform 0.2s;"></i>
+            </button>
+
+            <!-- Reactions panel -->
+            <div id="react-${id}" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;margin-bottom:6px;">
+              ${reactionRows || '<p style="font-size:11px;color:rgba(255,255,255,0.3);margin:0;">No reactions yet</p>'}
+            </div>
+
+            <!-- Comments panel -->
+            <div id="admin-cmt-${id}" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;margin-bottom:6px;">
+              <div id="admin-cmt-list-${id}" style="color:rgba(255,255,255,0.3);font-size:11px;">Loading…</div>
+            </div>
+          </div>
+          <button onclick="deleteAnnouncement('${id}')" class="btn-danger rounded-lg px-3 py-1.5 text-xs flex-shrink-0" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<p class="text-xs text-center py-6" style="color:var(--text-muted);">Error: ${e.message}</p>`;
+  }
+}
+
+function toggleAdminSection(id) {
+  const panel = document.getElementById(id);
+  const chev  = document.getElementById('chev-' + id);
+  if (!panel) return;
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+const _adminCmtOpen = {};
+async function toggleAdminComments(annId) {
+  const panel = document.getElementById('admin-cmt-' + annId);
+  const chev  = document.getElementById('chev-cmt-' + annId);
+  if (!panel) return;
+  const open = _adminCmtOpen[annId];
+  if (open) {
+    panel.style.display = 'none';
+    if (chev) chev.style.transform = '';
+    _adminCmtOpen[annId] = false;
+  } else {
+    panel.style.display = 'block';
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    _adminCmtOpen[annId] = true;
+    // Load comments
+    const listEl = document.getElementById('admin-cmt-list-' + annId);
+    if (!listEl) return;
+    try {
+      const snap = await db.collection('announcements').doc(annId).collection('comments').orderBy('date','asc').get();
+      if (snap.empty) {
+        listEl.innerHTML = '<p style="font-size:11px;color:rgba(255,255,255,0.3);margin:0;">No comments yet</p>';
+        return;
+      }
+      listEl.innerHTML = snap.docs.map(d => {
+        const c = d.data();
+        const t = c.date && c.date.toDate ? c.date.toDate().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+        return `<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+            <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.85);">${c.memberName||'Member'}</span>
+            <span style="font-size:10px;color:rgba(255,255,255,0.3);">${t}</span>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.55);margin:0;line-height:1.5;">${c.text||''}</p>
+        </div>`;
+      }).join('');
+    } catch(e) {
+      listEl.innerHTML = `<p style="font-size:11px;color:rgba(255,100,100,0.6);margin:0;">Error: ${e.message}</p>`;
+    }
+  }
+}
+
+async function deleteAnnouncement(id) {
+  if (!confirm('Delete this announcement? This cannot be undone.')) return;
+  try {
+    await db.collection('announcements').doc(id).delete();
+    document.getElementById('ann-admin-'+id)?.remove();
+    showToast('Announcement deleted.','success');
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
 async function renderExpiring(){
   const allMembers = await DB.getMembers();
 
