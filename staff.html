@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Evolve Fitness — Staff Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{font-family:'Barlow',sans-serif;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+.font-oswald{font-family:'Oswald',sans-serif;}
+.font-mono{font-family:'DM Mono',monospace;}
+body{background:#080808;color:#fff;overflow-x:hidden;}
+#ambient-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+#ambient-bg::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(197,241,0,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(197,241,0,0.025) 1px,transparent 1px);background-size:44px 44px;}
+#ambient-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 5% 100%,rgba(197,241,0,0.08) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 95% 5%,rgba(197,241,0,0.06) 0%,transparent 50%);}
+.orb{position:absolute;border-radius:50%;filter:blur(120px);animation:float 24s ease-in-out infinite;}
+.orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(197,241,0,0.15) 0%,transparent 70%);top:-200px;left:-120px;opacity:0.28;}
+.orb-2{width:380px;height:380px;background:radial-gradient(circle,rgba(197,241,0,0.1) 0%,transparent 70%);bottom:-100px;right:-80px;opacity:0.2;animation-delay:-12s;}
+@keyframes float{0%,100%{transform:translate(0,0);}33%{transform:translate(25px,-22px);}66%{transform:translate(-18px,18px);}}
+:root{--accent:#c5f100;--accent-bright:#d4ff40;--accent-border:rgba(197,241,0,0.22);--border:rgba(255,255,255,0.075);--border2:rgba(255,255,255,0.14);--text-muted:rgba(255,255,255,0.42);--text-dim:rgba(255,255,255,0.2);--topbar-h:62px;--nav-h:68px;}
+.card{background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.08);border-radius:14px;backdrop-filter:blur(20px);}
+.card-accent{background:linear-gradient(140deg,rgba(197,241,0,0.065) 0%,rgba(197,241,0,0.015) 100%);border:1px solid var(--accent-border);border-radius:14px;backdrop-filter:blur(20px);}
+.input-dark{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#fff;transition:all 0.22s;font-family:'Barlow',sans-serif;border-radius:10px;padding:11px 14px;width:100%;font-size:14px;}
+.input-dark:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(197,241,0,0.1);background:rgba(255,255,255,0.07);}
+.input-dark::placeholder{color:var(--text-dim);}
+.btn-accent{background:var(--accent);color:#080808;font-weight:800;transition:all 0.18s;letter-spacing:0.06em;border:none;cursor:pointer;border-radius:10px;padding:12px 20px;font-family:'Barlow',sans-serif;}
+.btn-accent:hover{background:var(--accent-bright);transform:translateY(-1px);}
+.btn-accent:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text-muted);transition:all 0.16s;cursor:pointer;border-radius:10px;padding:11px 18px;font-family:'Barlow',sans-serif;font-size:13px;}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.24);color:#fff;background:rgba(255,255,255,0.06);}
+#top-bar{position:fixed;top:0;left:0;right:0;height:var(--topbar-h);background:rgba(8,8,8,0.96);border-bottom:1px solid rgba(255,255,255,0.065);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:40;backdrop-filter:blur(32px);}
+.topbar-btn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.08);color:var(--text-muted);transition:all 0.18s;cursor:pointer;}
+.topbar-btn:hover{background:rgba(197,241,0,0.12);border-color:rgba(197,241,0,0.3);color:var(--accent);}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,8,0.97);border-top:1px solid rgba(255,255,255,0.07);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom);backdrop-filter:blur(40px);}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 2px 9px;color:rgba(255,255,255,0.3);font-size:7.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:color 0.2s;border:none;background:none;position:relative;}
+.bnav-btn i{font-size:16px;transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),filter 0.2s;}
+.bnav-btn.active{color:var(--accent);}
+.bnav-btn.active i{transform:translateY(-2px);filter:drop-shadow(0 0 8px rgba(197,241,0,0.9));}
+.bnav-btn::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);border-radius:0 0 6px 6px;transition:width 0.28s cubic-bezier(0.34,1.56,0.64,1);}
+.bnav-btn.active::before{width:36px;}
+#main-content{padding-top:var(--topbar-h);padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));min-height:100vh;}
+.tab-section{padding:14px;}
+.fade-in{animation:fadeIn 0.3s ease-out;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(197,241,0,0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 0.75s linear infinite;}
+@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.5);}50%{box-shadow:0 0 0 10px rgba(74,222,128,0);}}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.5);}50%{box-shadow:0 0 0 10px rgba(239,68,68,0);}}
+.notif-enter{animation:slideIn 0.28s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+.section-header{font-family:'Oswald',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.36);margin-bottom:12px;}
+.verify-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:30px;font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;}
+.v-match{background:rgba(74,222,128,0.12);border:1.5px solid rgba(74,222,128,0.35);color:#4ade80;animation:pulse-green 2s infinite;}
+.v-mismatch{background:rgba(239,68,68,0.12);border:1.5px solid rgba(239,68,68,0.35);color:#f87171;animation:pulse-red 2s infinite;}
+.v-scanning{background:rgba(197,241,0,0.08);border:1.5px solid var(--accent-border);color:var(--accent);}
+.v-nodata{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:var(--text-muted);}
+.cam-wrap{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;}
+video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+.cam-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;transform:scaleX(-1);}
+.cam-label{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:11px;font-weight:600;color:rgba(255,255,255,0.9);background:rgba(0,0,0,0.55);padding:5px 8px;}
+.rfid-zone{border:2px dashed rgba(197,241,0,0.25);border-radius:14px;padding:18px;text-align:center;transition:border-color 0.2s,background 0.2s;cursor:pointer;}
+.rfid-zone.active{border-color:var(--accent);background:rgba(197,241,0,0.04);}
+.m-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-border);flex-shrink:0;}
+.m-init{width:64px;height:64px;border-radius:50%;background:rgba(197,241,0,0.08);border:2px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.ci-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.ci-row:last-child{border-bottom:none;}
+.ci-av{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--accent-border);flex-shrink:0;}
+.ci-in{width:34px;height:34px;border-radius:50%;background:rgba(197,241,0,0.06);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.esample{width:44px;height:44px;border-radius:9px;border:1.5px dashed rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:all 0.2s;}
+.esample.captured{border-color:var(--accent);border-style:solid;box-shadow:0 0 10px rgba(197,241,0,0.2);}
+.stat-mini{background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 10px;}
+.qstat{background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;text-align:center;}
+.rev-hero{background:linear-gradient(140deg,rgba(197,241,0,0.1) 0%,rgba(197,241,0,0.02) 60%);border:1px solid var(--accent-border);border-radius:16px;padding:20px;position:relative;overflow:hidden;}
+.rev-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.period-tab{flex:1;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);cursor:pointer;transition:all 0.18s;border:none;background:transparent;font-family:'Barlow',sans-serif;}
+.period-tab.active{background:var(--accent);color:#080808;box-shadow:0 2px 12px rgba(197,241,0,0.3);}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:0.04em;}
+.progress-bar{height:4px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:10px;background:var(--accent);transition:width 0.5s;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:60;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);}
+.modal-sheet{background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;padding:20px;animation:sheetUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes sheetUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 16px;}
+#login-screen{position:fixed;inset:0;z-index:100;background:#080808;display:flex;align-items:center;justify-content:center;padding:20px;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:rgba(197,241,0,0.25);border-radius:4px;}
+.face-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.face-dot.on{background:#4ade80;box-shadow:0 0 6px rgba(74,222,128,0.5);}
+@keyframes alertPop{from{transform:scale(0.88) translateY(20px);opacity:0;}to{transform:scale(1) translateY(0);opacity:1;}}
+.btn-gold{background:linear-gradient(135deg,#d4a853,#b8863a);color:#0a0700;font-weight:800;transition:all 0.18s;letter-spacing:0.06em;border:none;cursor:pointer;border-radius:10px;padding:10px 18px;font-family:'Barlow',sans-serif;}
+.btn-gold:hover{background:linear-gradient(135deg,#e0b85a,#c4923f);transform:translateY(-1px);}
+.member-card{background:rgba(255,255,255,0.036);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px;margin-bottom:10px;backdrop-filter:blur(10px);}
+.ann-card{background:#0e0e0e;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;margin-bottom:12px;}
+.ann-react-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);font-size:13px;cursor:pointer;color:rgba(255,255,255,0.55);transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.ann-react-btn.reacted{border-color:rgba(197,241,0,0.4);background:rgba(197,241,0,0.12);color:var(--accent);}
+</style>
+</head>
+<body>
+<div id="ambient-bg"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+<div id="notifications" class="fixed top-[68px] right-3 z-[90] flex flex-col gap-2" style="max-width:300px;"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="w-full" style="max-width:320px;">
+    <div class="flex flex-col items-center mb-7">
+      <div class="relative mb-4">
+        <div class="absolute inset-0 rounded-2xl" style="background:radial-gradient(circle,rgba(197,241,0,0.18),transparent 70%);filter:blur(16px);transform:scale(1.4);"></div>
+        <div class="relative p-4 rounded-2xl" style="background:linear-gradient(145deg,rgba(197,241,0,0.12),rgba(197,241,0,0.03));border:1px solid rgba(197,241,0,0.2);">
+          <i class="fas fa-id-badge text-3xl" style="color:var(--accent);"></i>
+        </div>
+      </div>
+      <h1 class="font-oswald text-2xl uppercase tracking-[0.22em] text-white">Staff Panel</h1>
+      <p class="text-[11px] tracking-widest uppercase mt-1" style="color:var(--text-muted);">Evolve Fitness</p>
+    </div>
+    <div class="rounded-2xl overflow-hidden" style="background:linear-gradient(145deg,rgba(197,241,0,0.07),rgba(197,241,0,0.01));border:1px solid rgba(197,241,0,0.18);">
+      <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(197,241,0,0.4),transparent);"></div>
+      <div class="p-5">
+        <div class="relative mb-3">
+          <i class="fas fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-xs" style="color:var(--text-dim);"></i>
+          <input type="password" id="staff-pass" class="input-dark pl-10 text-center tracking-[0.2em]" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <p id="login-err" class="text-red-400 text-xs hidden mb-3 flex items-center gap-1.5"><i class="fas fa-exclamation-circle"></i>Incorrect password</p>
+        <button onclick="doLogin()" class="btn-accent w-full font-oswald uppercase tracking-widest text-sm" style="padding:13px;">
+          <i class="fas fa-door-open mr-2"></i>Enter
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="staff-app" class="hidden relative z-10">
+  <div id="top-bar">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(145deg,rgba(197,241,0,0.1),rgba(197,241,0,0.03));border:1px solid rgba(197,241,0,0.18);">
+        <i class="fas fa-dumbbell text-sm" style="color:var(--accent);"></i>
+      </div>
+      <div>
+        <p class="font-oswald text-sm uppercase tracking-wider text-white leading-none" id="topbar-title">Attendance</p>
+        <p class="text-[10px] mt-0.5 font-mono" id="staff-clock" style="color:var(--text-muted);"></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="doLogout()" class="topbar-btn"><i class="fas fa-right-from-bracket text-xs"></i></button>
+    </div>
+  </div>
+
+  <div id="main-content">
+
+    <!-- TAB ATTENDANCE -->
+    <div id="tab-attendance" class="tab-section fade-in">
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <div class="qstat"><div class="font-oswald text-2xl font-bold text-white" id="qs-today">0</div><div class="text-[9px] uppercase tracking-wider mt-1" style="color:var(--text-muted);">Today</div></div>
+        <div class="qstat"><div class="font-oswald text-2xl font-bold" style="color:var(--accent);" id="qs-monthly">0</div><div class="text-[9px] uppercase tracking-wider mt-1" style="color:var(--text-muted);">Monthly</div></div>
+        <div class="qstat"><div class="font-oswald text-2xl font-bold text-blue-400" id="qs-walkin">0</div><div class="text-[9px] uppercase tracking-wider mt-1" style="color:var(--text-muted);">Walk-in</div></div>
+      </div>
+
+      <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <p class="section-header m-0">Today's Check-ins</p>
+          <span class="text-xs font-mono px-2 py-1 rounded-lg" id="ci-count" style="background:rgba(197,241,0,0.08);color:var(--accent);border:1px solid var(--accent-border);">0</span>
+        </div>
+        <div id="ci-list">
+          <div id="ci-empty" class="flex flex-col items-center py-8 gap-2">
+            <i class="fas fa-moon text-2xl" style="color:var(--text-dim);"></i>
+            <p class="text-xs" style="color:var(--text-muted);">No check-ins yet today</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB REVENUE -->
+    <div id="tab-revenue" class="tab-section hidden fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-oswald text-xl uppercase text-white tracking-wider">Revenue</h2>
+        <button onclick="loadRevenue(true)" class="topbar-btn"><i class="fas fa-rotate-right text-xs"></i></button>
+      </div>
+      <div class="flex gap-1 p-1 rounded-xl mb-3" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);">
+        <button class="period-tab active" data-period="today" onclick="setRevPeriod('today')">Today</button>
+        <button class="period-tab" data-period="week" onclick="setRevPeriod('week')">Week</button>
+        <button class="period-tab" data-period="month" onclick="setRevPeriod('month')">Month</button>
+        <button class="period-tab" data-period="all" onclick="setRevPeriod('all')">All</button>
+      </div>
+      <div class="rev-hero mb-3">
+        <p class="text-[10px] uppercase tracking-widest mb-1" style="color:var(--text-muted);" id="rev-label">Today</p>
+        <p class="font-oswald text-4xl font-bold mb-1.5" style="color:var(--accent);" id="rev-total">₱0</p>
+        <div class="flex gap-3">
+          <span class="text-xs" style="color:var(--text-muted);" id="rev-count">0 tx</span>
+          <span class="text-xs" style="color:var(--text-dim);" id="rev-avg">avg ₱0</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <div class="qstat"><p class="text-[9px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Today</p><p class="font-oswald text-sm font-bold" style="color:var(--accent);" id="rq-today">₱0</p></div>
+        <div class="qstat"><p class="text-[9px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">Month</p><p class="font-oswald text-sm font-bold text-blue-400" id="rq-month">₱0</p></div>
+        <div class="qstat"><p class="text-[9px] uppercase tracking-wider mb-1" style="color:var(--text-muted);">All</p><p class="font-oswald text-sm font-bold text-white" id="rq-all">₱0</p></div>
+      </div>
+      <div class="card p-4 mb-3">
+        <p class="section-header">Revenue Split</p>
+        <div class="flex flex-col gap-3">
+          <div>
+            <div class="flex justify-between mb-1.5"><span class="text-xs font-semibold" style="color:var(--accent);">Monthly</span><span class="text-xs font-semibold" style="color:var(--accent);" id="split-m">₱0</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="split-m-bar" style="width:0%"></div></div>
+            <p class="text-[10px] mt-1" style="color:var(--text-dim);" id="split-m-detail">0 tx</p>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1.5"><span class="text-xs font-semibold text-blue-400">Walk-in</span><span class="text-xs font-semibold text-blue-400" id="split-e">₱0</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="split-e-bar" style="width:0%;background:#3b82f6"></div></div>
+            <p class="text-[10px] mt-1" style="color:var(--text-dim);" id="split-e-detail">0 tx</p>
+          </div>
+        </div>
+      </div>
+      <div class="card p-4">
+        <p class="section-header">Recent Transactions</p>
+        <div id="rev-tx"><div class="text-center py-5"><div class="spinner mx-auto mb-2"></div><p class="text-xs" style="color:var(--text-muted);">Loading…</p></div></div>
+      </div>
+    </div>
+
+    <!-- TAB EXPIRING -->
+    <div id="tab-expiring" class="tab-section hidden fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="font-oswald text-xl uppercase text-white tracking-wider">Expiring Soon</h2>
+          <p class="text-xs mt-0.5" style="color:var(--text-muted);">Memberships expiring within 7 days</p>
+        </div>
+        <button onclick="renderExpiring()" class="topbar-btn"><i class="fas fa-rotate-right text-xs"></i></button>
+      </div>
+      <div id="exp-list"></div>
+      <div id="exp-empty" class="hidden text-center py-16" style="color:var(--text-muted);">
+        <i class="fas fa-circle-check text-4xl mb-3 block opacity-30 text-green-500"></i>
+        <p class="text-sm text-green-400 font-semibold">All clear!</p>
+        <p class="text-xs mt-1 opacity-60">No memberships expiring soon</p>
+      </div>
+    </div>
+
+    <!-- TAB NEWS / ANNOUNCEMENTS -->
+    <div id="tab-news" class="tab-section hidden fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="font-oswald text-xl uppercase text-white tracking-wider">Announcements</h2>
+          <p class="text-xs mt-0.5" style="color:var(--text-muted);">Post & view gym announcements</p>
+        </div>
+        <button onclick="renderStaffAnnouncements()" class="topbar-btn"><i class="fas fa-rotate-right text-xs"></i></button>
+      </div>
+
+      <!-- Post form -->
+      <div class="card p-4 mb-5">
+        <p class="section-header mb-3">📢 New Announcement</p>
+        <div class="mb-3">
+          <label class="block text-xs font-semibold mb-1" style="color:var(--text-muted);letter-spacing:.06em;">TITLE</label>
+          <input id="ann-title" type="text" placeholder="e.g. Holiday Schedule Change" maxlength="120" class="input-dark w-full">
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs font-semibold mb-1" style="color:var(--text-muted);letter-spacing:.06em;">CONTENT</label>
+          <textarea id="ann-content" rows="4" placeholder="Write your announcement here…" maxlength="2000" class="input-dark w-full resize-none"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs font-semibold mb-1" style="color:var(--text-muted);letter-spacing:.06em;">EMOJI / TAG (optional)</label>
+          <select id="ann-tag" class="input-dark w-full">
+            <option value="">— none —</option>
+            <option value="📢">📢 Announcement</option>
+            <option value="🎉">🎉 Celebration</option>
+            <option value="⚠️">⚠️ Important</option>
+            <option value="💪">💪 Motivation</option>
+            <option value="🏋️">🏋️ Workout</option>
+            <option value="🎁">🎁 Promo / Offer</option>
+            <option value="📅">📅 Schedule</option>
+            <option value="🔔">🔔 Reminder</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1" style="color:var(--text-muted);letter-spacing:.06em;">IMAGE (optional)</label>
+          <div id="ann-image-drop" onclick="document.getElementById('ann-image-input').click()"
+            style="border:2px dashed rgba(255,255,255,0.12);border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:border-color 0.2s;background:rgba(255,255,255,0.02);"
+            ondragover="event.preventDefault();this.style.borderColor='var(--accent)';"
+            ondragleave="this.style.borderColor='rgba(255,255,255,0.12)';"
+            ondrop="handleAnnImageDrop(event)">
+            <div id="ann-image-preview-wrap" style="display:none;margin-bottom:10px;">
+              <img id="ann-image-preview" src="" alt="Preview" style="max-height:160px;max-width:100%;border-radius:10px;object-fit:cover;">
+            </div>
+            <div id="ann-image-placeholder">
+              <i class="fas fa-image" style="font-size:22px;color:rgba(255,255,255,0.25);display:block;margin-bottom:6px;"></i>
+              <span class="text-xs" style="color:var(--text-muted);">Click or drag & drop an image</span>
+            </div>
+            <input type="file" id="ann-image-input" accept="image/*" style="display:none;" onchange="handleAnnImageSelect(this)">
+          </div>
+          <button id="ann-image-clear-btn" onclick="clearAnnImage()" style="display:none;margin-top:6px;background:none;border:1px solid rgba(255,100,100,0.3);color:rgba(255,100,100,0.7);border-radius:8px;padding:4px 12px;font-size:11px;cursor:pointer;width:100%;">
+            <i class="fas fa-times mr-1"></i> Remove image
+          </button>
+        </div>
+        <button id="ann-post-btn" onclick="postAnnouncement()" class="btn-accent w-full" style="font-family:'Barlow',sans-serif;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;font-size:13px;padding:13px;">
+          <i class="fas fa-paper-plane mr-1"></i> Post Announcement
+        </button>
+        <p id="ann-post-msg" class="text-center text-xs mt-2 hidden" style="color:var(--accent);"></p>
+      </div>
+
+      <!-- Posted announcements -->
+      <p class="section-header">Posted Announcements</p>
+      <div id="staff-ann-list">
+        <div class="text-center py-8" style="color:var(--text-muted);"><div class="spinner mx-auto mb-2"></div><p class="text-xs">Loading…</p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="bottom-nav">
+    <button class="bnav-btn active" id="bnav-attendance" onclick="switchTab('attendance')"><i class="fas fa-clipboard-list"></i>Attendance</button>
+    <button class="bnav-btn" id="bnav-revenue" onclick="switchTab('revenue')"><i class="fas fa-peso-sign"></i>Revenue</button>
+    <button class="bnav-btn" id="bnav-expiring" onclick="switchTab('expiring')"><i class="fas fa-clock"></i>Expiring</button>
+    <button class="bnav-btn" id="bnav-news" onclick="switchTab('news')"><i class="fas fa-bullhorn"></i>News</button>
+  </div>
+</div>
+
+
+<script>
+/* ── FIREBASE ── */
+const firebaseConfig={apiKey:"AIzaSyBjvcid8BGvrY71z1u3Eva6FI6tqCy7fb0",authDomain:"gym-attendance-e231d.firebaseapp.com",projectId:"gym-attendance-e231d",storageBucket:"gym-attendance-e231d.firebasestorage.app",messagingSenderId:"771252079470",appId:"1:771252079470:web:2750c64eedb45eec718f7f"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+const DB={
+  async getMemberByRFID(rfid){const s=await db.collection('members').where('rfid','==',rfid.toUpperCase()).get();if(s.empty)return null;const m={...s.docs[0].data(),id:s.docs[0].id};return m.active===false?null:m;},
+  async getMembers(){try{const s=await db.collection('members').get();return s.docs.map(d=>({...d.data(),id:d.id}));}catch(e){return[];}},
+  async logAttendance(e){return db.collection('attendance').add({...e,time:new Date().toISOString()});},
+  async getAttendance(n=500){const s=await db.collection('attendance').orderBy('time','desc').limit(n).get();return s.docs.map(d=>({...d.data(),id:d.id}));},
+  async hasCheckedInToday(id){const today=new Date().toDateString();const s=await db.collection('attendance').where('memberId','==',id).get();return s.docs.some(d=>new Date(d.data().time).toDateString()===today);},
+  async getMemberVisits(id){try{const s=await db.collection('attendance').where('memberId','==',id).get();return s.size;}catch(e){return 0;}},
+  async updateMember(id,data){return db.collection('members').doc(id).update(data);},
+  async getSettings(){try{const d=await db.collection('settings').doc('config').get();return d.exists?d.data():{};}catch(e){return{};}}
+};
+
+/* ── LOGIN ── */
+async function doLogin(){
+  const pass=document.getElementById('staff-pass').value;
+  if(!pass)return;
+  document.getElementById('login-err').classList.add('hidden');
+  try{
+    const cfg=await DB.getSettings();
+    if(pass===(cfg.adminPassword||'admin123')){
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('staff-app').classList.remove('hidden');
+      initApp();
+    }else{document.getElementById('login-err').classList.remove('hidden');document.getElementById('staff-pass').value='';}
+  }catch(e){showNotif('Connection error','error');}
+}
+document.getElementById('staff-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function doLogout(){document.getElementById('staff-app').classList.add('hidden');document.getElementById('login-screen').style.display='flex';document.getElementById('staff-pass').value='';}
+
+/* ── CLOCK / NAV ── */
+function startClock(){const el=document.getElementById('staff-clock');setInterval(()=>{if(el)el.textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});},1000);}
+let currentTab='attendance';
+const TAB_TITLES={attendance:'Attendance',revenue:'Revenue',expiring:'Expiring Soon',news:'News'};
+function switchTab(tab){
+  ['attendance','revenue','expiring','news'].forEach(t=>{
+    document.getElementById('tab-'+t)?.classList.toggle('hidden',t!==tab);
+    document.getElementById('bnav-'+t)?.classList.toggle('active',t===tab);
+  });
+  document.getElementById('topbar-title').textContent=TAB_TITLES[tab]||tab;
+  currentTab=tab;
+  if(tab==='revenue')loadRevenue();
+  if(tab==='attendance'&&!_staffCheckinUnsub){startRealtimeStaffCheckins();}
+  if(tab==='expiring')renderExpiring();
+  if(tab==='news')renderStaffAnnouncements();
+}
+
+/* ── NOTIFICATIONS ── */
+function showNotif(msg,type='info'){
+  const c=document.getElementById('notifications'),d=document.createElement('div');
+  const cfg={success:'border-green-500/40 text-green-400 bg-green-500/10',error:'border-red-500/40 text-red-400 bg-red-500/10',warning:'border-yellow-500/40 text-yellow-400 bg-yellow-500/10',info:'border-blue-500/40 text-blue-400 bg-blue-500/10'};
+  const ic={success:'fa-check-circle',error:'fa-exclamation-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
+  d.className=`notif-enter border px-3 py-2.5 rounded-xl flex items-center gap-2 text-xs shadow-2xl ${cfg[type]}`;
+  d.innerHTML=`<i class="fas ${ic[type]} flex-shrink-0"></i><span>${msg}</span>`;
+  c.appendChild(d);
+  setTimeout(()=>{d.style.transition='all 0.3s';d.style.opacity='0';d.style.transform='translateX(110%)';setTimeout(()=>d.remove(),300);},4000);
+}
+
+/* ── STATS + CHECKINS (REAL-TIME) ── */
+let _staffCheckinUnsub = null;
+
+function startRealtimeStaffCheckins() {
+  if (_staffCheckinUnsub) return;
+  try {
+    _staffCheckinUnsub = db.collection('attendance')
+      .orderBy('time', 'desc')
+      .limit(100)
+      .onSnapshot(snap => {
+        const today = new Date().toDateString();
+        const all = snap.docs.map(d=>({...d.data(),id:d.id}));
+        const ta = all.filter(a=>new Date(a.time).toDateString()===today);
+        document.getElementById('qs-today').textContent = ta.length;
+        document.getElementById('qs-monthly').textContent = ta.filter(a=>a.memberPlan==='monthly').length;
+        document.getElementById('qs-walkin').textContent = ta.filter(a=>a.memberPlan==='entry').length;
+        document.getElementById('ci-count').textContent = ta.length;
+        _renderStaffCheckinList(ta);
+        if(currentTab==='revenue') renderRevStats();
+      }, () => { refreshStats(); renderCheckins(); });
+  } catch(e) { refreshStats(); renderCheckins(); }
+}
+
+async function refreshStats(){
+  try{const att=await DB.getAttendance(200);const today=new Date().toDateString();const ta=att.filter(a=>new Date(a.time).toDateString()===today);document.getElementById('qs-today').textContent=ta.length;document.getElementById('qs-monthly').textContent=ta.filter(a=>a.memberPlan==='monthly').length;document.getElementById('qs-walkin').textContent=ta.filter(a=>a.memberPlan==='entry').length;document.getElementById('ci-count').textContent=ta.length;}catch(e){}
+}
+async function renderCheckins(){
+  const att=await DB.getAttendance(100);const today=new Date().toDateString();
+  _renderStaffCheckinList(att.filter(a=>new Date(a.time).toDateString()===today));
+}
+function _renderStaffCheckinList(ta){
+  const list=document.getElementById('ci-list'),empty=document.getElementById('ci-empty');
+  if(!ta.length){list.innerHTML='';list.appendChild(empty);empty.style.display='flex';return;}
+  empty.style.display='none';
+  list.innerHTML=ta.slice(0,20).map(a=>{
+    const time=new Date(a.time).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
+    const av=a.memberPhoto?`<img src="${a.memberPhoto}" class="ci-av">`:`<div class="ci-in">${(a.memberName||'?').charAt(0).toUpperCase()}</div>`;
+    const ft=(a.verifiedByFace||a.checkInMethod==='face'||a.checkInMethod==='rfid+face')?'<i class="fas fa-face-viewfinder text-[9px] ml-1" style="color:var(--accent);" title="Face verified"></i>':'';
+    const methodLabel = a.checkInMethod==='rfid+face'
+      ? '<span class="badge" style="background:rgba(197,241,0,0.08);color:var(--accent);border:1px solid var(--accent-border);">RFID+Face</span>'
+      : a.checkInMethod==='face'||a.verifiedByFace
+        ? '<span class="badge" style="background:rgba(197,241,0,0.08);color:var(--accent);border:1px solid var(--accent-border);">Face</span>'
+        : '';
+    const ps=a.memberPlan==='monthly'?'background:rgba(197,241,0,0.08);color:var(--accent);border:1px solid var(--accent-border);':'background:rgba(59,130,246,0.08);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);';
+    return `<div class="ci-row">${av}<div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate">${a.memberName||'Guest'}${ft}</p><p class="text-[11px]" style="color:var(--text-muted);">${time}</p></div><div class="flex items-center gap-1">${methodLabel}<span class="badge" style="${ps}">${a.memberPlan==='monthly'?'Monthly':'Walk-in'}</span></div></div>`;
+  }).join('');
+}
+
+
+/* ── REVENUE ── */
+let revPeriod='today',_revC={};
+function setRevPeriod(p){revPeriod=p;document.querySelectorAll('.period-tab').forEach(t=>t.classList.toggle('active',t.dataset.period===p));renderRevStats();}
+function calcRev(recs,mmap){return recs.reduce((s,a)=>{if(a.amount)return s+a.amount;if(a.memberPlan==='entry'){const m=mmap[a.memberId];return s+(m?.isStudent?50:70);}if(a.paid&&a.memberPlan==='monthly'&&a.note==='Renewal'){const m=mmap[a.memberId];return s+(m?.isStudent?600:900);}return s;},0);}
+function fmt(n){return n>=1000?'₱'+(n/1000).toFixed(1)+'k':'₱'+Math.round(n).toLocaleString();}
+async function loadRevenue(force=false){
+  if(!force&&_revC.at&&Date.now()-_revC.at<60000){renderRevStats();return;}
+  document.getElementById('rev-tx').innerHTML='<div class="text-center py-5"><div class="spinner mx-auto mb-2"></div><p class="text-xs" style="color:var(--text-muted);">Loading…</p></div>';
+  try{const [att,members]=await Promise.all([DB.getAttendance(1000),DB.getMembers()]);_revC={att,members,mmap:Object.fromEntries(members.map(m=>[m.id,m])),at:Date.now()};renderRevStats();}
+  catch(e){showNotif('Revenue load failed','error');}
+}
+function renderRevStats(){
+  if(!_revC.att)return;const{att,mmap}=_revC;const now=new Date(),ts=new Date(now.getFullYear(),now.getMonth(),now.getDate()),ms=new Date(now.getFullYear(),now.getMonth()-1,now.getDate());
+  const todayR=att.filter(a=>new Date(a.time)>=ts),monthR=att.filter(a=>new Date(a.time)>=ms);
+  document.getElementById('rq-today').textContent=fmt(calcRev(todayR,mmap));document.getElementById('rq-month').textContent=fmt(calcRev(monthR,mmap));document.getElementById('rq-all').textContent=fmt(calcRev(att,mmap));
+  let inR=att,label='All-Time';
+  if(revPeriod==='today'){inR=todayR;label="Today";}else if(revPeriod==='week'){const ws=new Date(ts);ws.setDate(ws.getDate()-6);inR=att.filter(a=>new Date(a.time)>=ws);label='Last 7 Days';}else if(revPeriod==='month'){inR=monthR;label='Last 30 Days';}
+  const total=calcRev(inR,mmap),count=inR.length;
+  document.getElementById('rev-label').textContent=label;document.getElementById('rev-total').textContent=fmt(total);document.getElementById('rev-count').textContent=count+' transactions';document.getElementById('rev-avg').textContent='avg '+fmt(count?total/count:0);
+  const mR=inR.filter(a=>a.memberPlan==='monthly'),eR=inR.filter(a=>a.memberPlan!=='monthly'),mA=calcRev(mR,mmap),eA=calcRev(eR,mmap),st=mA+eA||1;
+  document.getElementById('split-m').textContent=fmt(mA);document.getElementById('split-e').textContent=fmt(eA);document.getElementById('split-m-bar').style.width=((mA/st)*100)+'%';document.getElementById('split-e-bar').style.width=((eA/st)*100)+'%';document.getElementById('split-m-detail').textContent=`${mR.length} tx · ${((mA/st)*100).toFixed(0)}%`;document.getElementById('split-e-detail').textContent=`${eR.length} tx · ${((eA/st)*100).toFixed(0)}%`;
+  if(!inR.length){document.getElementById('rev-tx').innerHTML='<p class="text-xs text-center py-4" style="color:var(--text-muted);">No transactions</p>';return;}
+  document.getElementById('rev-tx').innerHTML=inR.slice(0,25).map(a=>{
+    const m=mmap[a.memberId],amt=a.amount?a.amount:(a.memberPlan==='entry'?(m?.isStudent?50:70):0);
+    const time=new Date(a.time).toLocaleDateString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
+    const av=a.memberPhoto?`<img src="${a.memberPhoto}" class="ci-av">`:`<div class="ci-in">${(a.memberName||'?').charAt(0).toUpperCase()}</div>`;
+    const ft=(a.verifiedByFace||a.checkInMethod==='face'||a.checkInMethod==='rfid+face')?'<i class="fas fa-face-viewfinder text-[9px] ml-1" style="color:var(--accent);" title="Face verified"></i>':'';
+    const ps=a.memberPlan==='monthly'?'background:rgba(197,241,0,0.08);color:var(--accent);border:1px solid var(--accent-border);':'background:rgba(59,130,246,0.08);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);';
+    return `<div class="ci-row">${av}<div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate">${a.memberName||'Guest'}${ft}</p><p class="text-[10px]" style="color:var(--text-muted);">${time}</p></div><div class="text-right"><p class="font-oswald text-sm font-bold" style="color:${amt>0?'var(--accent)':'var(--text-muted)'};">${amt>0?'₱'+amt:'—'}</p><span class="badge" style="${ps}">${a.memberPlan==='monthly'?'Monthly':'Walk-in'}</span></div></div>`;
+  }).join('');
+}
+
+/* ── HELPERS ── */
+function avatar(photo, name, size='w-10 h-10', text='text-sm'){
+  if(photo) return `<img src="${photo}" class="${size} rounded-full object-cover border flex-shrink-0" style="border-color:rgba(197,241,0,0.25);" alt="">`;
+  return `<div class="${size} rounded-full flex items-center justify-center ${text} font-bold flex-shrink-0" style="background:linear-gradient(135deg,#333,#1a1a1a);border:1px solid rgba(255,255,255,0.08);">${(name||'?').charAt(0).toUpperCase()}</div>`;
+}
+function daysUntil(expStr){ return Math.ceil((new Date(expStr)-new Date())/864e5); }
+const RFID_VALIDITY_YEARS = 1;
+function getRfidExpiry(registeredDateStr, rfidExpiryOverride) {
+  if(rfidExpiryOverride){const ov=new Date(rfidExpiryOverride);if(!isNaN(ov))return ov;}
+  if(!registeredDateStr)return null;
+  const reg=new Date(registeredDateStr);if(isNaN(reg))return null;
+  const exp=new Date(reg);exp.setFullYear(exp.getFullYear()+RFID_VALIDITY_YEARS);return exp;
+}
+function getRfidExpiryDays(member){
+  const expiry=getRfidExpiry(member.registered||member.registeredAt,member.rfidExpiry);
+  if(!expiry)return null;
+  return Math.ceil((expiry-new Date())/864e5);
+}
+
+/* ── EXPIRING TAB ── */
+async function renderExpiring(){
+  const list=document.getElementById('exp-list'),empty=document.getElementById('exp-empty');
+  list.innerHTML='<div class="text-center py-8" style="color:var(--text-muted);"><div class="spinner mx-auto mb-2"></div><p class="text-xs">Loading…</p></div>';
+  try{
+    const allMembers=await DB.getMembers();
+    const expiringMembers=allMembers.filter(m=>{
+      if(m.plan!=='monthly'||!m.expiry||m.active===false)return false;
+      const d=daysUntil(m.expiry);return d>=0&&d<=7;
+    }).sort((a,b)=>new Date(a.expiry)-new Date(b.expiry));
+
+    const rfidAlertMembers=allMembers.filter(m=>{
+      const d=getRfidExpiryDays(m);return d!==null&&d<=30;
+    }).sort((a,b)=>(getRfidExpiryDays(a)??0)-(getRfidExpiryDays(b)??0));
+
+    if(!expiringMembers.length&&!rfidAlertMembers.length){
+      list.innerHTML='';empty.classList.remove('hidden');return;
+    }
+    empty.classList.add('hidden');
+    let html='';
+
+    if(expiringMembers.length){
+      html+=`<p class="text-[10px] uppercase tracking-wider font-bold mb-2 mt-1" style="color:var(--accent);">Membership Expiring Soon</p>`;
+      html+=expiringMembers.map(m=>{
+        const dLeft=daysUntil(m.expiry);
+        const urgency=dLeft===0?'color:#f87171;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.25);'
+          :dLeft<=3?'color:#facc15;background:rgba(250,204,21,0.1);border-color:rgba(250,204,21,0.25);'
+          :'color:#fb923c;background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.25);';
+        const expDate=new Date(m.expiry).toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
+        return `<div class="member-card">
+          <div class="flex items-center gap-3">
+            ${avatar(m.photo,m.name,'w-11 h-11','text-base')}
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm">${m.name}</p>
+              <p class="text-xs mt-0.5" style="color:var(--text-muted);">${m.phone||m.email||''}</p>
+              <p class="text-xs mt-0.5" style="color:var(--text-dim);">Expires: ${expDate}</p>
+            </div>
+            <span class="badge font-bold flex-shrink-0" style="${urgency}border:1px solid;">${dLeft===0?'Today!':dLeft+'d left'}</span>
+          </div>
+          <div class="mt-3 pt-3 border-t" style="border-color:rgba(255,255,255,0.07);">
+            <p class="text-xs text-center" style="color:var(--text-muted);"><i class="fas fa-circle-info mr-1"></i>Notify admin to process renewal</p>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    if(rfidAlertMembers.length){
+      html+=`<p class="text-[10px] uppercase tracking-wider font-bold mb-2 mt-4" style="color:#f87171;">RFID Registration Expiring / Expired</p>`;
+      html+=rfidAlertMembers.map(m=>{
+        const rfidDays=getRfidExpiryDays(m);
+        const rfidExpDate=getRfidExpiry(m.registered||m.registeredAt,m.rfidExpiry);
+        const rfidExp=rfidDays!==null&&rfidDays<=0;
+        const label=rfidExp?'RFID Expired':`RFID ${rfidDays}d left`;
+        const badgeStyle=rfidExp?'color:#f87171;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.25);'
+          :rfidDays<=7?'color:#facc15;background:rgba(250,204,21,0.1);border-color:rgba(250,204,21,0.25);'
+          :'color:#fb923c;background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.25);';
+        const expDateStr=rfidExpDate?rfidExpDate.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}):'—';
+        return `<div class="member-card">
+          <div class="flex items-center gap-3">
+            ${avatar(m.photo,m.name,'w-11 h-11','text-base')}
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm">${m.name}</p>
+              <p class="text-xs mt-0.5 font-mono" style="color:var(--text-muted);">${m.rfid||'No RFID'}</p>
+              <p class="text-xs mt-0.5" style="color:var(--text-dim);">RFID Expiry: ${expDateStr}</p>
+            </div>
+            <span class="badge font-bold flex-shrink-0" style="${badgeStyle}border:1px solid;"><i class="fas fa-id-card mr-0.5"></i>${label}</span>
+          </div>
+          <div class="mt-3 pt-3 border-t" style="border-color:rgba(255,255,255,0.07);">
+            <p class="text-xs text-center" style="color:var(--text-muted);"><i class="fas fa-circle-info mr-1"></i>Notify admin to renew RFID</p>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    list.innerHTML=html;
+  }catch(e){list.innerHTML=`<p class="text-xs text-center py-6" style="color:var(--text-muted);">Error: ${e.message}</p>`;}
+}
+
+/* ── NEWS / ANNOUNCEMENTS TAB ── */
+const _staffCmtOpen={};
+
+let _annImageFile=null,_annImageBase64='';
+
+function compressImage(file,maxWidth,maxHeight,quality){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>maxWidth){h=Math.round(h*maxWidth/w);w=maxWidth;}
+        if(h>maxHeight){w=Math.round(w*maxHeight/h);h=maxHeight;}
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',quality));
+      };
+      img.onerror=reject;img.src=e.target.result;
+    };
+    reader.onerror=reject;reader.readAsDataURL(file);
+  });
+}
+
+async function handleAnnImageSelect(input){
+  const file=input.files[0];if(!file)return;
+  _annImageFile=file;
+  const dataUrl=await compressImage(file,1200,900,0.82);
+  _annImageBase64=dataUrl;
+  document.getElementById('ann-image-preview').src=dataUrl;
+  document.getElementById('ann-image-preview-wrap').style.display='block';
+  document.getElementById('ann-image-placeholder').style.display='none';
+  document.getElementById('ann-image-clear-btn').style.display='block';
+}
+
+async function handleAnnImageDrop(event){
+  event.preventDefault();
+  document.getElementById('ann-image-drop').style.borderColor='rgba(255,255,255,0.12)';
+  const file=event.dataTransfer.files[0];
+  if(!file||!file.type.startsWith('image/'))return;
+  _annImageFile=file;
+  const dataUrl=await compressImage(file,1200,900,0.82);
+  _annImageBase64=dataUrl;
+  document.getElementById('ann-image-preview').src=dataUrl;
+  document.getElementById('ann-image-preview-wrap').style.display='block';
+  document.getElementById('ann-image-placeholder').style.display='none';
+  document.getElementById('ann-image-clear-btn').style.display='block';
+}
+
+function clearAnnImage(){
+  _annImageFile=null;_annImageBase64='';
+  document.getElementById('ann-image-input').value='';
+  document.getElementById('ann-image-preview').src='';
+  document.getElementById('ann-image-preview-wrap').style.display='none';
+  document.getElementById('ann-image-placeholder').style.display='block';
+  document.getElementById('ann-image-clear-btn').style.display='none';
+}
+
+async function postAnnouncement(){
+  const title=document.getElementById('ann-title').value.trim();
+  const body=document.getElementById('ann-content').value.trim();
+  const tag=document.getElementById('ann-tag').value;
+  const msg=document.getElementById('ann-post-msg');
+  const btn=document.getElementById('ann-post-btn');
+  if(!title||!body){showNotif('Please fill in title and content.','warning');return;}
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin mr-1"></i> Posting…';
+  try{
+    await db.collection('announcements').add({
+      title,content:body,tag:tag||'',
+      imageUrl:_annImageBase64||'',
+      date:firebase.firestore.FieldValue.serverTimestamp(),
+      reactions:{},commentCount:0
+    });
+    document.getElementById('ann-title').value='';
+    document.getElementById('ann-content').value='';
+    document.getElementById('ann-tag').value='';
+    clearAnnImage();
+    msg.textContent='✓ Announcement posted!';
+    msg.classList.remove('hidden');
+    setTimeout(()=>msg.classList.add('hidden'),3000);
+    renderStaffAnnouncements();
+  }catch(e){
+    console.error('Post error:',e);
+    showNotif('Error: '+e.message,'error');
+  }
+  btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane mr-1"></i> Post Announcement';
+}
+
+async function renderStaffAnnouncements(){
+  const list=document.getElementById('staff-ann-list');
+  if(!list)return;
+  list.innerHTML='<div class="text-center py-8" style="color:var(--text-muted);"><div class="spinner mx-auto mb-2"></div><p class="text-xs">Loading…</p></div>';
+  try{
+    const [snap, membersArr]=await Promise.all([
+      db.collection('announcements').orderBy('date','desc').get(),
+      DB.getMembers()
+    ]);
+    const memberMap={};
+    membersArr.forEach(m=>{memberMap[m.id]=m.name||m.firstName||m.email||m.id;});
+
+    if(snap.empty){
+      list.innerHTML='<div class="text-center py-16" style="color:var(--text-muted);"><i class="fas fa-bullhorn text-4xl mb-3 block opacity-20"></i><p class="text-sm">No announcements yet</p></div>';
+      return;
+    }
+    const EMOJI_MAP={heart:'❤️',fire:'🔥',muscle:'💪',clap:'👏'};
+    list.innerHTML=snap.docs.map(doc=>{
+      const a=doc.data(),id=doc.id;
+      const dateStr=a.date&&a.date.toDate?a.date.toDate().toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):'';
+      const reactions=a.reactions||{};
+      const reactionTotal=Object.values(reactions).reduce((s,v)=>s+(Array.isArray(v)?v.length:0),0);
+      const commentCount=a.commentCount||0;
+
+      const reactionRows=Object.entries(EMOJI_MAP).map(([key,emoji])=>{
+        const members=Array.isArray(reactions[key])?reactions[key]:[];
+        if(!members.length)return '';
+        const names=members.map(mid=>memberMap[mid]||mid).join(', ');
+        return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="font-size:15px;flex-shrink:0;">${emoji}</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.55);line-height:1.5;">${names}</span>
+        </div>`;
+      }).join('');
+
+      return `<div class="ann-card" id="staff-ann-${id}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
+          <div style="flex:1;min-width:0;">
+            ${a.tag?`<span style="font-size:18px;margin-right:4px;">${a.tag}`+`</span>`:''}
+            <span style="font-size:15px;font-weight:800;line-height:1.3;">${a.title||''}</span>
+            ${dateStr?`<span style="display:block;font-size:11px;color:rgba(255,255,255,0.3);margin-top:3px;">${dateStr}</span>`:''}
+          </div>
+          <button onclick="staffDeleteAnnouncement('${id}')" title="Delete" style="flex-shrink:0;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);color:#f87171;border-radius:8px;padding:5px 9px;cursor:pointer;font-size:12px;line-height:1;">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:12px;white-space:pre-wrap;">${a.content||''}</p>
+        ${a.imageUrl?`<div style="margin-bottom:12px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">
+          <img src="${a.imageUrl}" alt="" style="width:100%;max-height:260px;object-fit:cover;display:block;cursor:pointer;" onclick="staffOpenImage('${a.imageUrl}')">
+        </div>`:''}
+
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+          <button onclick="staffToggleReactions('${id}')" style="display:inline-flex;align-items:center;gap:6px;background:rgba(197,241,0,0.08);border:1px solid rgba(197,241,0,0.15);color:var(--accent);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">
+            <i class="fas fa-face-smile" style="font-size:10px;"></i> ${reactionTotal} Reaction${reactionTotal!==1?'s':''}
+            <i class="fas fa-chevron-down" id="staff-react-chev-${id}" style="font-size:8px;transition:transform 0.2s;"></i>
+          </button>
+          <button onclick="staffToggleComments('${id}')" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">
+            <i class="fas fa-comment-dots" style="font-size:10px;"></i> ${commentCount} Comment${commentCount!==1?'s':''}
+            <i class="fas fa-chevron-down" id="staff-cmt-chev-${id}" style="font-size:8px;transition:transform 0.2s;"></i>
+          </button>
+        </div>
+
+        <div id="staff-react-${id}" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+          ${reactionRows||'<p style="font-size:11px;color:rgba(255,255,255,0.3);margin:0;">No reactions yet</p>'}
+        </div>
+
+        <div id="staff-cmt-${id}" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;">
+          <div id="staff-cmt-list-${id}" style="font-size:11px;color:rgba(255,255,255,0.3);">Loading…</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){list.innerHTML=`<p class="text-xs text-center py-6" style="color:var(--text-muted);">Error: ${e.message}</p>`;}
+}
+
+async function staffDeleteAnnouncement(id){
+  if(!confirm('Delete this announcement? This cannot be undone.'))return;
+  try{
+    await db.collection('announcements').doc(id).delete();
+    document.getElementById('staff-ann-'+id)?.remove();
+    showNotif('Announcement deleted.','success');
+  }catch(e){showNotif('Error: '+e.message,'error');}
+}
+
+function staffToggleReactions(annId){
+  const panel=document.getElementById('staff-react-'+annId);
+  const chev=document.getElementById('staff-react-chev-'+annId);
+  if(!panel)return;
+  const open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+  if(chev)chev.style.transform=open?'':'rotate(180deg)';
+}
+
+async function staffToggleComments(annId){
+  const panel=document.getElementById('staff-cmt-'+annId);
+  const chev=document.getElementById('staff-cmt-chev-'+annId);
+  if(!panel)return;
+  const isOpen=_staffCmtOpen[annId];
+  if(isOpen){
+    panel.style.display='none';
+    if(chev)chev.style.transform='';
+    _staffCmtOpen[annId]=false;
+  }else{
+    panel.style.display='block';
+    if(chev)chev.style.transform='rotate(180deg)';
+    _staffCmtOpen[annId]=true;
+    const listEl=document.getElementById('staff-cmt-list-'+annId);
+    if(!listEl)return;
+    try{
+      const snap=await db.collection('announcements').doc(annId).collection('comments').orderBy('date','asc').get();
+      if(snap.empty){listEl.innerHTML='<p style="font-size:11px;color:rgba(255,255,255,0.3);margin:0;">No comments yet</p>';return;}
+      listEl.innerHTML=snap.docs.map(d=>{
+        const c=d.data();
+        const t=c.date&&c.date.toDate?c.date.toDate().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}):'';
+        return `<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+            <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.85);">${c.memberName||'Member'}</span>
+            <span style="font-size:10px;color:rgba(255,255,255,0.28);">${t}</span>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.55);margin:0;line-height:1.5;">${c.text||''}</p>
+        </div>`;
+      }).join('');
+    }catch(e){listEl.innerHTML=`<p style="font-size:11px;color:rgba(255,100,100,0.6);margin:0;">Error: ${e.message}</p>`;}
+  }
+}
+
+function staffOpenImage(url){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;';
+  overlay.onclick=()=>overlay.remove();
+  const img=document.createElement('img');
+  img.src=url;img.style.cssText='max-width:100%;max-height:90vh;border-radius:14px;object-fit:contain;box-shadow:0 0 60px rgba(0,0,0,0.8);';
+  overlay.appendChild(img);document.body.appendChild(overlay);
+}
+
+/* ── INIT ── */
+function initApp(){startClock();refreshStats();renderCheckins();startRealtimeStaffCheckins();}
+</script>
+</body>
+</html>
