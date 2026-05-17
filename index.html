@@ -807,6 +807,39 @@ html,body{
   </div>
 </div>
 
+<!-- RFID Expired Modal (Kiosk) -->
+<div id="kiosk-rfid-expired-modal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.92);backdrop-filter:blur(14px);">
+  <div style="background:linear-gradient(145deg,rgba(20,14,14,0.99),rgba(15,10,10,0.99));border:1px solid rgba(248,113,113,0.35);border-radius:24px;padding:36px 28px;width:100%;max-width:380px;text-align:center;box-shadow:0 0 0 1px rgba(248,113,113,0.1),0 30px 80px rgba(0,0,0,0.7),0 0 60px rgba(248,113,113,0.06);">
+    <!-- Icon -->
+    <div style="width:72px;height:72px;border-radius:50%;background:rgba(248,113,113,0.12);border:2px solid rgba(248,113,113,0.35);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <i class="fas fa-id-card-clip" style="font-size:28px;color:#f87171;"></i>
+    </div>
+    <!-- Badge -->
+    <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.28);border-radius:20px;padding:4px 12px;margin-bottom:14px;">
+      <i class="fas fa-ban" style="font-size:9px;color:#f87171;"></i>
+      <span style="font-size:10px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.08em;">RFID Access Blocked</span>
+    </div>
+    <!-- Name -->
+    <h3 id="kiosk-rfid-exp-name" style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#fff;margin-bottom:6px;">Member Name</h3>
+    <p style="font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:4px;">RFID: <span id="kiosk-rfid-exp-rfid" style="font-family:monospace;color:#fff;font-weight:600;">—</span></p>
+    <p style="font-size:12px;color:#f87171;margin-bottom:22px;"><i class="fas fa-calendar-xmark" style="margin-right:5px;"></i>Expired on <span id="kiosk-rfid-exp-date" style="font-weight:700;">—</span></p>
+    <!-- Message box -->
+    <div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:14px;padding:16px;margin-bottom:22px;text-align:left;">
+      <p style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:6px;"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>RFID Card Expired</p>
+      <p style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;">This member's RFID registration has expired. Access has been <strong style="color:#f87171;">blocked</strong> until the RFID card is renewed by a gym administrator.</p>
+    </div>
+    <!-- Renewal instruction -->
+    <div style="background:rgba(212,168,83,0.07);border:1px solid rgba(212,168,83,0.2);border-radius:14px;padding:14px;margin-bottom:20px;text-align:left;">
+      <p style="font-size:11px;font-weight:700;color:#d4a853;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;"><i class="fas fa-rotate" style="margin-right:5px;"></i>How to Renew</p>
+      <p style="font-size:11px;color:rgba(255,255,255,0.5);line-height:1.6;">Please approach the front desk or contact the gym administrator to renew your RFID membership.</p>
+    </div>
+    <button onclick="closeKioskRfidExpiredModal()" style="width:100%;padding:13px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);border-radius:12px;color:#f87171;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.03em;">
+      <i class="fas fa-xmark" style="margin-right:8px;"></i>Close
+    </button>
+    <p style="font-size:10px;color:rgba(255,255,255,0.2);margin-top:12px;">This dialog closes automatically after 10 seconds</p>
+  </div>
+</div>
+
 <!-- Member Check-in Modal -->
 <div id="member-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
   <div class="modal-glass max-w-md w-full p-8">
@@ -1523,6 +1556,51 @@ function _renderCheckinList(todayRecords){
 
 function focusRFID(){ document.getElementById('rfid-input').focus(); }
 
+/* ── RFID EXPIRY HELPERS (Kiosk) ── */
+const RFID_VALIDITY_YEARS_KIOSK = 1;
+
+function getRfidExpiryKiosk(registeredDateStr, rfidExpiryOverride) {
+  if (rfidExpiryOverride) {
+    const ov = new Date(rfidExpiryOverride);
+    if (!isNaN(ov)) return ov;
+  }
+  if (!registeredDateStr) return null;
+  const reg = new Date(registeredDateStr);
+  if (isNaN(reg)) return null;
+  const exp = new Date(reg);
+  exp.setFullYear(exp.getFullYear() + RFID_VALIDITY_YEARS_KIOSK);
+  return exp;
+}
+
+function isRfidExpiredKiosk(member) {
+  const expiry = getRfidExpiryKiosk(member.registered || member.registeredAt, member.rfidExpiry);
+  if (!expiry) return false;
+  return new Date() > expiry;
+}
+
+function showRfidExpiredKiosk(member) {
+  const expiry = getRfidExpiryKiosk(member.registered || member.registeredAt, member.rfidExpiry);
+  const expDateStr = expiry
+    ? expiry.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
+    : '—';
+
+  // Populate the modal
+  document.getElementById('kiosk-rfid-exp-name').textContent = member.name || '—';
+  document.getElementById('kiosk-rfid-exp-rfid').textContent = member.rfid || '—';
+  document.getElementById('kiosk-rfid-exp-date').textContent = expDateStr;
+  document.getElementById('kiosk-rfid-expired-modal').classList.remove('hidden');
+
+  // Auto-close after 10 seconds
+  setTimeout(() => {
+    const el = document.getElementById('kiosk-rfid-expired-modal');
+    if (el && !el.classList.contains('hidden')) el.classList.add('hidden');
+  }, 10000);
+}
+
+function closeKioskRfidExpiredModal() {
+  document.getElementById('kiosk-rfid-expired-modal').classList.add('hidden');
+}
+
 async function processRFID(){
   const input = document.getElementById('rfid-input');
   const tag = input.value.trim().toUpperCase();
@@ -1540,26 +1618,25 @@ async function processRFID(){
     const alreadyIn = await DB.hasCheckedInToday(member.id);
     if(alreadyIn){ showAlreadyCheckedIn(member); return; }
 
-    // Check if this member has a face enrolled in Firebase
-    if(faceApiLoaded && member.faceDescriptors && member.faceDescriptors.length > 0){
-      // Has face data → require face verification before check-in
-      showNotif('RFID found — please look at the camera to verify identity', 'info');
-      // Broadcast to staff immediately so they see who is at the kiosk
-      broadcastCheckin(member, 'rfid');
-      startFaceVerification(member);
-    } else {
-      // No face data → check in directly (RFID only)
-      const daysLeft = member.expiry ? Math.ceil((new Date(member.expiry) - new Date()) / 864e5) : null;
-      await DB.logAttendance({
-        memberId: member.id, rfid: member.rfid,
-        memberName: member.name, memberPlan: member.plan,
-        memberPhoto: member.photo || null, paid: member.plan !== 'entry',
-        checkInMethod: 'rfid'
-      });
-      broadcastCheckin(member, 'rfid');
-      currentMember = member;
-      showMemberModal(member, daysLeft);
+    // ── RFID Expiry Gate ────────────────────────────────────────────────────
+    if(member.rfid && isRfidExpiredKiosk(member)){
+      showRfidExpiredKiosk(member);
+      return;
     }
+    // ───────────────────────────────────────────────────────────────────────
+
+    // RFID always checks in directly — face recognition is only triggered
+    // when the member presses the face button themselves.
+    const daysLeft = member.expiry ? Math.ceil((new Date(member.expiry) - new Date()) / 864e5) : null;
+    await DB.logAttendance({
+      memberId: member.id, rfid: member.rfid,
+      memberName: member.name, memberPlan: member.plan,
+      memberPhoto: member.photo || null, paid: member.plan !== 'entry',
+      checkInMethod: 'rfid'
+    });
+    broadcastCheckin(member, 'rfid');
+    currentMember = member;
+    showMemberModal(member, daysLeft);
   }catch(err){ showNotif('Error: ' + err.message,'error'); }
 }
 
